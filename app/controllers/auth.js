@@ -121,6 +121,9 @@ async function verifyToken(req, res) {
       return res.redirect('/dashboard/super_admin/index');
     }
 
+
+
+
     // Get return URL or default to dashboard
     const returnTo = req.session.returnTo || '/dashboard';
     delete req.session.returnTo;
@@ -128,7 +131,13 @@ async function verifyToken(req, res) {
     res.redirect(returnTo);
   } catch (error) {
     console.error('Token verification error:', error);
-    res.redirect('/auth/sign-in');
+    
+    // render error page
+    res.render('error', {
+      message: 'There was a problem verifying your sign-in link. Please try again.'
+    });
+
+    // if the user is not found, redirect to /auth/sign-in
   }
 }
 
