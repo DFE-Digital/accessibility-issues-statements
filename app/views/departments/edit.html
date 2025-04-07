@@ -1,0 +1,311 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = "Edit department" %}
+{% set serviceNav = "Departments" %}
+
+{% block pageTitle %}
+  Edit department
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Edit department</h1>
+
+      <form method="POST" action="/departments/{{ department.id }}">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="name">
+            Department name
+          </label>
+          <input class="govuk-input" id="name" name="name" type="text" value="{{ department.name }}" required>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="domains">
+            Allowed email domains
+          </label>
+          <div id="domains-hint" class="govuk-hint">
+            Enter email domains that users from this department can use to sign in, separated by commas. For example: example.gov.uk, example.nhs.uk
+          </div>
+          <textarea class="govuk-textarea" id="domains" name="domains" rows="3" aria-describedby="domains-hint">{% for domain in allowedDomains %}{{ domain.domain }}{% if not loop.last %}, {% endif %}{% endfor %}</textarea>
+        </div>
+
+        <button type="submit" class="govuk-button" data-module="govuk-button">
+          Save changes
+        </button>
+
+        <a href="/departments" class="govuk-button govuk-button--secondary">
+          Cancel
+        </a>
+      </form>
+
+      <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+      <h2 class="govuk-heading-m">Department admins</h2>
+      
+      <p class="govuk-body">
+        <a href="/departments/{{ department.id }}/admins/new" class="govuk-button">
+          Add new admin
+        </a>
+      </p>
+
+      {% if admins.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Name</th>
+              <th scope="col" class="govuk-table__header">Email</th>
+              <th scope="col" class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for admin in admins %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">{{ admin.first_name }} {{ admin.last_name }}</td>
+                <td class="govuk-table__cell">
+                  <a href="mailto:{{ admin.email }}" class="govuk-link">{{ admin.email }}</a>
+                </td>
+                <td class="govuk-table__cell">
+                  <button type="button" class="govuk-button govuk-button--warning govuk-!-margin-bottom-0" onclick="openRemoveAdminModal('{{ admin.id }}', '{{ admin.first_name }} {{ admin.last_name }}')">
+                    Remove admin
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">No department admins found. <a href="/departments/{{ department.id }}/admins/new" class="govuk-link">Add a new admin</a>.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Remove Admin Modal #}
+  <div class="govuk-modal-overlay" id="remove-admin-modal" style="display: none;" role="dialog" aria-labelledby="modal-title"
+    aria-describedby="modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="modal-title">Remove admin</h2>
+        <button class="govuk-modal__close" aria-label="Close modal" onclick="closeRemoveAdminModal()">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="govuk-modal__content">
+        <div id="modal-description">
+          <div class="govuk-warning-text">
+            <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+            <strong class="govuk-warning-text__text">
+              <span class="govuk-warning-text__assistive">Warning</span>
+              This action cannot be undone
+            </strong>
+          </div>
+          <p class="govuk-body">Are you sure you want to remove <span id="admin-name"></span> as a department admin?</p>
+        </div>
+        <form id="remove-admin-form" method="post" style="display: inline;">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-button-group">
+            <button type="submit" class="govuk-button govuk-button--warning" data-module="govuk-button"
+              data-prevent-double-click="true">
+              Remove admin
+            </button>
+            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button"
+              onclick="closeRemoveAdminModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .govuk-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .govuk-modal {
+      background: white;
+      padding: 30px;
+      border-radius: 5px;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      margin: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .govuk-modal__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .govuk-modal__title {
+      margin: 0;
+      padding-right: 45px;
+    }
+
+    .govuk-modal__close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      padding: 10px;
+      color: #505a5f;
+      font-size: 24px;
+    }
+
+    .govuk-modal__close:hover {
+      color: #0b0c0c;
+      background: #f3f2f1;
+    }
+
+    .govuk-modal__close:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      background-color: #ffdd00;
+    }
+
+    .govuk-modal__content {
+      margin-bottom: 20px;
+    }
+
+    .govuk-button--warning {
+      background-color: #d4351c;
+    }
+
+    .govuk-button--warning:hover {
+      background-color: #aa2a16;
+    }
+
+    @media (max-width: 40.0625em) {
+      .govuk-modal {
+        margin: 15px;
+        padding: 15px;
+        width: 95%;
+      }
+
+      .govuk-modal__close {
+        top: 10px;
+        right: 10px;
+      }
+    }
+
+    /* At 400% zoom, make the modal wider */
+    @media (min-width: 160em) {
+      .govuk-modal {
+        max-width: 95%;
+        width: 95%;
+        margin: 20px;
+        padding: 30px;
+      }
+    }
+
+    /* Hide scrollbar when modal is open */
+    body.modal-open {
+      overflow: hidden;
+    }
+  </style>
+
+  <script>
+    let previousActiveElement;
+
+    function openRemoveAdminModal(adminId, adminName) {
+      // Store the currently focused element
+      previousActiveElement = document.activeElement;
+
+      const modal = document.getElementById('remove-admin-modal');
+      const body = document.body;
+
+      // Show modal
+      modal.style.display = 'flex';
+      body.classList.add('modal-open');
+
+      // Set form action
+      document.getElementById('remove-admin-form').action = `/departments/{{ department.id }}/admins/${adminId}/remove`;
+
+      // Set admin name
+      document.getElementById('admin-name').textContent = adminName;
+
+      // Focus the modal
+      modal.focus();
+
+      // Trap focus within modal
+      trapFocus(modal);
+    }
+
+    function closeRemoveAdminModal() {
+      const modal = document.getElementById('remove-admin-modal');
+      const body = document.body;
+
+      modal.style.display = 'none';
+      body.classList.remove('modal-open');
+
+      // Return focus to the element that opened the modal
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    function trapFocus(modal) {
+      const focusableElements = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstFocusableElement) {
+              lastFocusableElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastFocusableElement) {
+              firstFocusableElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      });
+
+      // Focus first focusable element
+      firstFocusableElement.focus();
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function (event) {
+      const modal = document.querySelector('.govuk-modal');
+      const overlay = document.getElementById('remove-admin-modal');
+      if (event.target === overlay && modal && !modal.contains(event.target)) {
+        closeRemoveAdminModal();
+      }
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.getElementById('remove-admin-modal').style.display === 'flex') {
+        closeRemoveAdminModal();
+      }
+    });
+  </script>
+{% endblock %} 

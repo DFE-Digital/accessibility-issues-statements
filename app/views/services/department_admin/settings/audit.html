@@ -1,0 +1,139 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set pageTitle = service.name + " - Edit audit details" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+{% set subnav = 'settings' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      <a href="/services/{{ service.id }}/settings" class="govuk-back-link">Back to settings</a>
+
+      <form action="/services/{{ service.id }}/settings/audit" method="post" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group">
+          <fieldset class="govuk-fieldset" role="group" aria-describedby="last_audit_date-hint">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+              <h1 class="govuk-fieldset__heading">
+                Last accessibility audit
+              </h1>
+            </legend>
+
+            <div class="govuk-form-group {% if errors.last_audit_date %}govuk-form-group--error{% endif %}">
+              <fieldset class="govuk-fieldset" role="group">
+                <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                  Date of audit
+                </legend>
+                <div id="last_audit_date-hint" class="govuk-hint">
+                  For example, 27 3 2024
+                </div>
+                {% if errors.last_audit_date %}
+                  <p id="last_audit_date-error" class="govuk-error-message">
+                    <span class="govuk-visually-hidden">Error:</span> {{ errors.last_audit_date.text }}
+                  </p>
+                {% endif %}
+                <div class="govuk-date-input" id="last_audit_date">
+                  <div class="govuk-date-input__item">
+                    <div class="govuk-form-group">
+                      <label class="govuk-label govuk-date-input__label" for="last_audit_date-day">
+                        Day
+                      </label>
+                      <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if errors.last_audit_date %}govuk-input--error{% endif %}" 
+                             id="last_audit_date-day" 
+                             name="last_audit_date-day" 
+                             type="text" 
+                             pattern="[0-9]*" 
+                             inputmode="numeric"
+                             value="{{ settings.last_audit_date | date('DD') if settings.last_audit_date }}">
+                    </div>
+                  </div>
+                  <div class="govuk-date-input__item">
+                    <div class="govuk-form-group">
+                      <label class="govuk-label govuk-date-input__label" for="last_audit_date-month">
+                        Month
+                      </label>
+                      <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if errors.last_audit_date %}govuk-input--error{% endif %}" 
+                             id="last_audit_date-month" 
+                             name="last_audit_date-month" 
+                             type="text" 
+                             pattern="[0-9]*" 
+                             inputmode="numeric"
+                             value="{{ settings.last_audit_date | date('MM') if settings.last_audit_date }}">
+                    </div>
+                  </div>
+                  <div class="govuk-date-input__item">
+                    <div class="govuk-form-group">
+                      <label class="govuk-label govuk-date-input__label" for="last_audit_date-year">
+                        Year
+                      </label>
+                      <input class="govuk-input govuk-date-input__input govuk-input--width-4 {% if errors.last_audit_date %}govuk-input--error{% endif %}" 
+                             id="last_audit_date-year" 
+                             name="last_audit_date-year" 
+                             type="text" 
+                             pattern="[0-9]*" 
+                             inputmode="numeric"
+                             value="{{ settings.last_audit_date | date('YYYY') if settings.last_audit_date }}">
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="govuk-form-group {% if errors.last_audit_by %}govuk-form-group--error{% endif %}">
+              <label class="govuk-label govuk-label--m" for="last_audit_by">
+                Audited by
+              </label>
+              <div class="govuk-hint">
+                For example: Internal team, External company name, or Individual auditor
+              </div>
+              {% if errors.last_audit_by %}
+                <p id="last_audit_by-error" class="govuk-error-message">
+                  <span class="govuk-visually-hidden">Error:</span> {{ errors.last_audit_by.text }}
+                </p>
+              {% endif %}
+              <input class="govuk-input {% if errors.last_audit_by %}govuk-input--error{% endif %}" 
+                     id="last_audit_by" 
+                     name="last_audit_by" 
+                     type="text" 
+                     value="{{ settings.last_audit_by }}">
+            </div>
+
+            <div class="govuk-form-group {% if errors.last_audit_method %}govuk-form-group--error{% endif %}">
+              <label class="govuk-label govuk-label--m" for="last_audit_method">
+                Method
+              </label>
+              <div class="govuk-hint">
+                For example: Manual testing, Automated testing, or External audit
+              </div>
+              {% if errors.last_audit_method %}
+                <p id="last_audit_method-error" class="govuk-error-message">
+                  <span class="govuk-visually-hidden">Error:</span> {{ errors.last_audit_method.text }}
+                </p>
+              {% endif %}
+              <input class="govuk-input {% if errors.last_audit_method %}govuk-input--error{% endif %}" 
+                     id="last_audit_method" 
+                     name="last_audit_method" 
+                     type="text" 
+                     value="{{ settings.last_audit_method }}">
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            Save changes
+          </button>
+          <a href="/services/{{ service.id }}/settings" class="govuk-link">Cancel</a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %} 

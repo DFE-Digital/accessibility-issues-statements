@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = "Department services" %}
+{% set serviceNav = "Department admin" %}
+
+{% block pageTitle %}
+  Department services
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Department services</h1>
+
+      <p class="govuk-body">
+        <a href="/services/new" class="govuk-button">
+          Add new service
+        </a>
+      </p>
+
+      {% if services.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Service name</th>
+              <th scope="col" class="govuk-table__header">URL</th>
+              <th scope="col" class="govuk-table__header">Enrolled users</th>
+              <th scope="col" class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for service in services %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">{{ service.name }}</td>
+                <td class="govuk-table__cell">
+                  <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+                </td>
+                <td class="govuk-table__cell">{{ service.enrolled_users }}</td>
+                <td class="govuk-table__cell">
+                  <a href="/services/department-admin/services/{{ service.id }}" class="govuk-link">View</a>
+                  <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-!-margin-left-2">Edit</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">No services found.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %} 

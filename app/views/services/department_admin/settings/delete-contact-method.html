@@ -1,0 +1,247 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set pageTitle = service.name + " - Delete contact method" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+{% set subnav = 'settings' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      <a href="/services/{{ service.id }}/settings" class="govuk-back-link">Back to settings</a>
+
+      <div class="govuk-modal-overlay" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description" aria-modal="true" tabindex="-1">
+        <div class="govuk-modal">
+          <div class="govuk-modal__header">
+            <h2 class="govuk-modal__title" id="modal-title">Delete contact method</h2>
+            <button class="govuk-modal__close" aria-label="Close modal" onclick="closeDeleteModal()">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="govuk-modal__content">
+            <div id="modal-description">
+              <div class="govuk-warning-text">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text">
+                  <span class="govuk-warning-text__assistive">Warning</span>
+                  This action cannot be undone
+                </strong>
+              </div>
+              <p class="govuk-body">Are you sure you want to delete this contact method?</p>
+              <dl class="govuk-summary-list">
+                <div class="govuk-summary-list__row">
+                  <dt class="govuk-summary-list__key">
+                    Type
+                  </dt>
+                  <dd class="govuk-summary-list__value">
+                    {{ method.contact_type | replace('_', ' ') | title }}
+                  </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                  <dt class="govuk-summary-list__key">
+                    Value
+                  </dt>
+                  <dd class="govuk-summary-list__value">
+                    {{ method.contact_value }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <form method="post" action="/services/{{ service.id }}/settings/contact-methods/{{ method.id }}/delete">
+              <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+              <div class="govuk-button-group">
+                <button type="submit" class="govuk-button govuk-button--warning" data-module="govuk-button" data-prevent-double-click="true">
+                  Delete contact method
+                </button>
+                <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" onclick="closeDeleteModal()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .govuk-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .govuk-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 5px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    margin: 20px;
+  }
+
+  .govuk-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .govuk-modal__title {
+    margin: 0;
+    padding-right: 45px;
+  }
+
+  .govuk-modal__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 10px;
+    color: #505a5f;
+    font-size: 24px;
+  }
+
+  .govuk-modal__close:hover {
+    color: #0b0c0c;
+    background: #f3f2f1;
+  }
+
+  .govuk-modal__close:focus {
+    outline: 3px solid #ffdd00;
+    outline-offset: 0;
+    background-color: #ffdd00;
+  }
+
+  .govuk-modal__content {
+    margin-bottom: 20px;
+  }
+
+  .govuk-button--warning {
+    background-color: #d4351c;
+  }
+
+  .govuk-button--warning:hover {
+    background-color: #aa2a16;
+  }
+
+  @media (max-width: 40.0625em) {
+    .govuk-modal {
+      margin: 15px;
+      padding: 15px;
+    }
+
+    .govuk-modal__close {
+      top: 10px;
+      right: 10px;
+    }
+  }
+
+  /* Hide scrollbar when modal is open */
+  body.modal-open {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  let previousActiveElement;
+
+  function openDeleteModal() {
+    // Store the currently focused element
+    previousActiveElement = document.activeElement;
+
+    const modal = document.querySelector('.govuk-modal-overlay');
+    const body = document.body;
+
+    // Show modal
+    modal.style.display = 'flex';
+    body.classList.add('modal-open');
+
+    // Focus the modal
+    modal.focus();
+
+    // Trap focus within modal
+    trapFocus(modal);
+  }
+
+  function closeDeleteModal() {
+    const modal = document.querySelector('.govuk-modal-overlay');
+    const body = document.body;
+
+    modal.style.display = 'none';
+    body.classList.remove('modal-open');
+
+    // Return focus to the element that opened the modal
+    if (previousActiveElement) {
+      previousActiveElement.focus();
+    }
+  }
+
+  function trapFocus(modal) {
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    const firstFocusableElement = focusableElements[0];
+    const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+    modal.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            lastFocusableElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            firstFocusableElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    });
+
+    // Focus first focusable element
+    firstFocusableElement.focus();
+  }
+
+  // Close modal when clicking outside
+  document.addEventListener('click', function (event) {
+    const modal = document.querySelector('.govuk-modal');
+    const overlay = document.querySelector('.govuk-modal-overlay');
+    if (event.target === overlay && modal && !modal.contains(event.target)) {
+      closeDeleteModal();
+    }
+  });
+
+  // Close modal on escape key
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && document.querySelector('.govuk-modal-overlay').style.display === 'flex') {
+      closeDeleteModal();
+    }
+  });
+
+  // Open modal on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    openDeleteModal();
+  });
+</script>
+{% endblock %} 

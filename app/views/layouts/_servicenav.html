@@ -1,0 +1,84 @@
+<section aria-label="Service information" class="govuk-service-navigation" data-module="govuk-service-navigation">
+    <div class="govuk-width-container">
+        <div class="govuk-service-navigation__container">
+            <span class="govuk-service-navigation__service-name">
+                <a href="/" class="govuk-service-navigation__link {% if serviceNav == 'Home' %}govuk-service-navigation__item--active{% endif %}">
+                    Accessibility issues and statements
+                </a>
+            </span>
+            <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+                <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle"
+                        aria-controls="navigation" hidden>
+                    Menu
+                </button>
+                <ul class="govuk-service-navigation__list" id="navigation">
+                    {% if user %}
+                        {% if user.role == 'super_admin' %}
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Reports' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/reports">Reports</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Departments' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/departments">Departments</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Users' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/admin/users">Users</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Support' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/support">Support</a>
+                            </li>
+                        {% elseif user.role == 'department_admin' %}
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Services' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/services">Services</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Issues' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/issues">Issues</a>
+                            </li>
+
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Users' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/users">Users</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Reports' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/reports">Reports</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Settings' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/settings">Settings</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Support' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/support">Support</a>
+                            </li>
+                        {% else %}
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Services' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/services">Services</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Issues' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/issues">Issues</a>
+                            </li>
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'Support' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/support">Support</a>
+                            </li>
+                        {% endif %}
+                        <li class="govuk-service-navigation__item {% if serviceNav == 'Sign out' %}govuk-service-navigation__item--active{% endif %}">
+                            <a class="govuk-service-navigation__link" href="/auth/sign-out">Sign out</a>
+                        </li>
+                    {% else %}
+                        <li class="govuk-service-navigation__item {% if serviceNav == 'Features' %}govuk-service-navigation__item--active{% endif %}">
+                            <a class="govuk-service-navigation__link" href="/features">Features</a>
+                        </li>
+                        <li class="govuk-service-navigation__item {% if serviceNav == 'Sign in' %}govuk-service-navigation__item--active{% endif %}">
+                            <a class="govuk-service-navigation__link" href="/auth/sign-in">Sign in</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>

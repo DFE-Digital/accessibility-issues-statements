@@ -1,0 +1,59 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set pageTitle = "Statement templates" %}
+
+{% block content %}
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">Statement templates</h1>
+
+        {% if templates.length > 0 %}
+          {% for template in templates %}
+            <div class="govuk-summary-card">
+              <div class="govuk-summary-card__title-wrapper">
+                <h2 class="govuk-summary-card__title">{{ template.name }}</h2>
+                <ul class="govuk-summary-card__actions">
+                  <li class="govuk-summary-card__action">
+                    <a class="govuk-link" href="/super-admin/statement-templates/{{ template.id }}/edit">
+                  Edit<span class="govuk-visually-hidden">
+                        {{ template.name }}</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div class="govuk-summary-card__content">
+                <dl class="govuk-summary-list">
+                  <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">Version</dt>
+                    <dd class="govuk-summary-list__value">{{ template.version }}</dd>
+                  </div>
+                  <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">Status</dt>
+                    <dd class="govuk-summary-list__value">
+                      {% if template.is_active %}
+                        <strong class="govuk-tag govuk-tag--green">Active</strong>
+                      {% else %}
+                        <strong class="govuk-tag govuk-tag--grey">Inactive</strong>
+                      {% endif %}
+                    </dd>
+                  </div>
+                  <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">Last updated</dt>
+                    <dd class="govuk-summary-list__value">{{ template.updated_at | date("D MMMM YYYY") }}</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="govuk-body">No statement templates found.</p>
+        {% endif %}
+
+        <a href="/super-admin/statement-templates/new" role="button" draggable="false" class="govuk-button govuk-button--primary" data-module="govuk-button">
+      Create new template
+    </a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

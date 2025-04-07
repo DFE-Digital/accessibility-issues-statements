@@ -1,0 +1,69 @@
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+        <div class="app-service-header">
+            <div class="govuk-width-container">
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-one-third">
+                        <span class="govuk-caption-m govuk-!-margin-bottom-0">{{ service.department_name }}</span>
+                        <h1 class="govuk-heading-l govuk-!-margin-bottom-2">{{ service.name }}</h1>
+                        <p class="govuk-body-s">
+                            <a href="{{ service.url }}"
+              class="govuk-link govuk-link--no-visited-state govuk-!-margin-bottom-3">{{
+              service.url }}</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="app-service-nav">
+            <div class="govuk-service-navigation govuk-service-navigation--white" data-module="govuk-service-navigation">
+                <div class="govuk-width-container">
+                    <div class="govuk-service-navigation__container">
+                        <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+                            <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle"
+                aria-controls="navigation" hidden>
+                Menu
+              </button>
+                            <ul
+                class="govuk-service-navigation__list"
+                id="navigation">
+                                <li class="govuk-service-navigation__item {% if subnav == 'service' %}govuk-service-navigation__item--active{% endif %}">
+                                    <a class="govuk-service-navigation__link" href="/services/{{ service.id }}">
+                    Service details
+                  </a>
+                                </li>
+
+                                <li
+                  class="govuk-service-navigation__item {% if  subnav == 'issues' %}govuk-service-navigation__item--active{% endif %}">
+                                    <a class="govuk-service-navigation__link" href="/services/{{ service.id }}/issues" aria-current="true">
+                                        <strong class="govuk-service-navigation__active-fallback">Issues</strong>
+                                    </a>
+                                </li>
+                               
+                                <li
+                  class="govuk-service-navigation__item {% if subnav == 'reporting' %}govuk-service-navigation__item--active{% endif %}">
+                                    <a class="govuk-service-navigation__link" href="/services/{{ service.id }}/reporting">
+                    Reporting
+                  </a>
+                                </li>
+
+                                <li
+                  class="govuk-service-navigation__item {% if subnav == 'statement' %}govuk-service-navigation__item--active{% endif %}">
+                                    <a class="govuk-service-navigation__link" href="/services/{{ service.id }}/statement">
+                    Statement
+                  </a>
+                                </li>
+                                <li
+                  class="govuk-service-navigation__item {% if subnav == 'settings' %}govuk-service-navigation__item--active{% endif %}">
+                                    <a class="govuk-service-navigation__link" href="/services/{{ service.id }}/settings">
+                    Statement settings
+                  </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

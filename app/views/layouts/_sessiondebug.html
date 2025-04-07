@@ -1,0 +1,47 @@
+{% if env === 'development' %}
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <details class="govuk-details" data-module="govuk-details">
+        <summary class="govuk-details__summary">
+          <span class="govuk-details__summary-text">
+            Session Debug Information
+          </span>
+        </summary>
+        <div class="govuk-details__text">
+          <h3 class="govuk-heading-s">Environment</h3>
+          <ul class="govuk-list">
+            <li>Node Environment: {{ env }}</li>
+            <li>Service Name: {{ serviceName }}</li>
+          </ul>
+
+          <h3 class="govuk-heading-s">Session Information</h3>
+          <ul class="govuk-list">
+            <li>Session ID: {{ req.sessionID }}</li>
+            <li>Session Expires: {{ req.session.cookie.expires }}</li>
+          </ul>
+
+          {% if req.session.user %}
+            <h3 class="govuk-heading-s">User Information</h3>
+            <ul class="govuk-list">
+              <li>User ID: {{ req.session.user.id }}</li>
+              <li>Email: {{ req.session.user.email }}</li>
+              <li>Role: {{ req.session.user.role }}</li>
+              <li>Department ID: {{ req.session.user.department.id }}</li>
+              <li>Last Login: {{ req.session.user.last_login }}</li>
+            </ul>
+
+            <h3 class="govuk-heading-s">Permissions</h3>
+            <ul class="govuk-list">
+              <li>Is Admin: {{ req.session.user.role === 'department_admin' or req.session.user.role === 'super_admin' }}</li>
+              <li>Is Super Admin: {{ req.session.user.role === 'super_admin' }}</li>
+            </ul>
+          {% else %}
+            <p class="govuk-body">No authenticated user</p>
+          {% endif %}
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+{% endif %}

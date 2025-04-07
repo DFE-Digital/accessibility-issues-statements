@@ -1,0 +1,57 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set pageTitle = service.name + " - Edit response time SLA" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+{% set subnav = 'settings' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      <a href="/services/{{ service.id }}/settings" class="govuk-back-link">Back to settings</a>
+
+      <form action="/services/{{ service.id }}/settings/response-time" method="post" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group {% if errors.response_time_sla %}govuk-form-group--error{% endif %}">
+          <h1 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--l" for="response_time_sla">
+              Response time SLA
+            </label>
+          </h1>
+          <div class="govuk-hint">
+            How long users can expect to wait for a response to their accessibility requests
+          </div>
+          {% if errors.response_time_sla %}
+            <p id="response_time_sla-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.response_time_sla.text }}
+            </p>
+          {% endif %}
+          <div class="govuk-input__wrapper">
+            <input class="govuk-input govuk-input--width-3 {% if errors.response_time_sla %}govuk-input--error{% endif %}" 
+                   id="response_time_sla" 
+                   name="response_time_sla" 
+                   type="number" 
+                   value="{{ settings.response_time_sla }}"
+                   min="1"
+                   max="60">
+            <div class="govuk-input__suffix" aria-hidden="true">working days</div>
+          </div>
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            Save changes
+          </button>
+          <a href="/services/{{ service.id }}/settings" class="govuk-link">Cancel</a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %} 

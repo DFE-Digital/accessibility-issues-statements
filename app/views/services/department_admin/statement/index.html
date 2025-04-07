@@ -1,0 +1,409 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set pageTitle = service.name + " - Accessibility statement" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+{% set subnav = 'statement' %}
+
+{% block content %}
+
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Accessibility statement</h1>
+
+      {% if ableToEnroll == false %}
+
+      <div class="govuk-notification-banner" role="region" aria-labelledby="govuk-notification-banner-title"
+      data-module="govuk-notification-banner">
+      <div class="govuk-notification-banner__header">
+        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+          Important
+        </h2>
+      </div>
+      <div class="govuk-notification-banner__content">
+        <p class="govuk-notification-banner__heading">
+         You need to update statement settings before enrolling
+        </p>
+        <p class="govuk-body">
+         <a href="{{baseUrl}}/services/{{service.id}}/settings" class="govuk-link">Update statement settings</a>.
+        </p>
+      </div>
+    </div>
+
+      {% else%}
+
+      {% if not service.statement_enrolled %}
+        <div class="govuk-notification-banner" role="region" aria-labelledby="govuk-notification-banner-title"
+          data-module="govuk-notification-banner">
+          <div class="govuk-notification-banner__header">
+            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Important
+            </h2>
+          </div>
+          <div class="govuk-notification-banner__content">
+            <p class="govuk-notification-banner__heading">
+              You need to update your service to link to your accessibility statement
+            </p>
+            <p class="govuk-body">
+              Use your unique statement URL below to link to your accessibility statement from your service and validate it once added.
+            </p>
+            <p class="govuk-body">
+              <button class="govuk-button" data-module="govuk-button" onclick="validateServiceUrl()">
+                Validate installation
+              </button>
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if service.numeric_id %}
+       
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">Your accessibility statement URL</h2>
+          </div>
+          <div class="govuk-summary-card__content">
+            <p class="govuk-body">
+              This URL will always display your latest accessibility statement and compliance status based on your
+              reported issues.
+            </p>
+            <div class="govuk-form-group">
+              <div class="govuk-input__wrapper">
+                <input class="govuk-input" id="statement-url" value="{{ statementUrl }}" readonly>
+                <button class="govuk-button govuk-button--secondary" data-module="govuk-button" onclick="copyUrl()">
+                  Copy URL
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      
+      {% endif %}
+
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="govuk-modal-overlay" id="error-modal" style="display: none;" role="dialog"
+  aria-labelledby="error-modal-title" aria-describedby="error-modal-description" aria-modal="true" tabindex="-1">
+  <div class="govuk-modal">
+    <div class="govuk-modal__header">
+      <h2 class="govuk-modal__title" id="error-modal-title">We couldn't find the link</h2>
+      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeErrorModal()">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div class="govuk-modal__content">
+      <div id="error-modal-description">
+       <p class="govuk-body">We couldn't find the link to your accessibility statement on the page.</p>
+        <p class="govuk-body">Check the link is correctly added to the page and try the validation again.</p>
+      </div>
+      <div class="govuk-button-group">
+        <button type="button" class="govuk-button" data-module="govuk-button" onclick="closeErrorModal()">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="govuk-modal-overlay" id="success-modal" style="display: none;" role="dialog"
+  aria-labelledby="success-modal-title" aria-describedby="success-modal-description" aria-modal="true" tabindex="-1">
+  <div class="govuk-modal">
+    <div class="govuk-modal__header">
+      <h2 class="govuk-modal__title" id="success-modal-title">Statement Verified</h2>
+      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeSuccessModal()">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div class="govuk-modal__content">
+      <div id="success-modal-description">
+       
+        <p class="govuk-body">Your accessibility statement has been successfully linked to your service.</p>
+      </div>
+      <div class="govuk-button-group">
+        <button type="button" class="govuk-button" data-module="govuk-button" onclick="closeSuccessModal()">
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function copyUrl() {
+    const urlInput = document.getElementById('statement-url');
+    const button = document.querySelector('[onclick="copyUrl()"]');
+    const originalText = button.textContent;
+
+    try {
+      await navigator.clipboard.writeText(urlInput.value);
+      button.textContent = 'Copied!';
+      button.classList.add('govuk-button--success');
+
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.classList.remove('govuk-button--success');
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      button.textContent = 'Failed to copy';
+      button.classList.add('govuk-button--error');
+
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.classList.remove('govuk-button--error');
+      }, 2000);
+    }
+  }
+
+  let previousActiveElement;
+
+  function validateServiceUrl() {
+    const button = event.target;
+    button.disabled = true;
+    button.textContent = 'Validating...';
+
+    fetch(`/services/{{ service.id }}/validate-url`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': '{{ csrfToken }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showSuccessModal();
+      } else {
+        showErrorModal();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showErrorModal();
+    })
+    .finally(() => {
+      button.disabled = false;
+      button.textContent = 'Validate installation';
+    });
+  }
+
+  function showErrorModal() {
+    // Store the currently focused element
+    previousActiveElement = document.activeElement;
+
+    const modal = document.getElementById('error-modal');
+    const body = document.body;
+
+    // Show modal
+    modal.style.display = 'flex';
+    body.classList.add('modal-open');
+
+    // Focus the modal
+    modal.focus();
+
+    // Trap focus within modal
+    trapFocus(modal);
+  }
+
+  function closeErrorModal() {
+    const modal = document.getElementById('error-modal');
+    const body = document.body;
+
+    modal.style.display = 'none';
+    body.classList.remove('modal-open');
+
+    // Return focus to the element that opened the modal
+    if (previousActiveElement) {
+      previousActiveElement.focus();
+    }
+  }
+
+  function showSuccessModal() {
+    // Store the currently focused element
+    previousActiveElement = document.activeElement;
+
+    const modal = document.getElementById('success-modal');
+    const body = document.body;
+
+    // Show modal
+    modal.style.display = 'flex';
+    body.classList.add('modal-open');
+
+    // Focus the modal
+    modal.focus();
+
+    // Trap focus within modal
+    trapFocus(modal);
+  }
+
+  function closeSuccessModal() {
+    const modal = document.getElementById('success-modal');
+    const body = document.body;
+
+    modal.style.display = 'none';
+    body.classList.remove('modal-open');
+
+    // Return focus to the element that opened the modal
+    if (previousActiveElement) {
+      previousActiveElement.focus();
+    }
+
+    // Reload the page to show updated status
+    window.location.reload();
+  }
+
+  function trapFocus(modal) {
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    const firstFocusableElement = focusableElements[0];
+    const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+    modal.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            lastFocusableElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            firstFocusableElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    });
+
+    // Focus first focusable element
+    firstFocusableElement.focus();
+  }
+
+  // Close modals when clicking outside
+  document.addEventListener('click', function (event) {
+    const errorModal = document.querySelector('#error-modal .govuk-modal');
+    const errorOverlay = document.getElementById('error-modal');
+    const successModal = document.querySelector('#success-modal .govuk-modal');
+    const successOverlay = document.getElementById('success-modal');
+
+    if (event.target === errorOverlay && errorModal && !errorModal.contains(event.target)) {
+      closeErrorModal();
+    }
+    if (event.target === successOverlay && successModal && !successModal.contains(event.target)) {
+      closeSuccessModal();
+    }
+  });
+
+  // Close modals on escape key
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      if (document.getElementById('error-modal').style.display === 'flex') {
+        closeErrorModal();
+      }
+      if (document.getElementById('success-modal').style.display === 'flex') {
+        closeSuccessModal();
+      }
+    }
+  });
+</script>
+
+<style>
+  .govuk-input__wrapper {
+    display: flex;
+    gap: 10px;
+  }
+
+  .govuk-input__wrapper .govuk-input {
+    flex: 1;
+  }
+
+  .govuk-button--success {
+    background-color: #00703c;
+  }
+
+  .govuk-button--success:hover {
+    background-color: #005a30;
+  }
+
+  .govuk-button--error {
+    background-color: #d4351c;
+  }
+
+  .govuk-button--error:hover {
+    background-color: #aa2a16;
+  }
+
+  .govuk-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .govuk-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 5px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    margin: 20px;
+  }
+
+  .govuk-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .govuk-modal__title {
+    margin: 0;
+    padding-right: 45px;
+  }
+
+  .govuk-modal__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .govuk-panel--confirmation {
+    background-color: #00703c;
+    color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .govuk-panel__title {
+    font-size: 24px;
+    margin: 0 0 10px 0;
+  }
+
+  .govuk-panel__body {
+    font-size: 19px;
+    margin: 0;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "layouts/layout_public.html" %}
+
+{% set pageTitle = service.name + " accessibility statement" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {{ statementHtml | safe }}
+  </div>
+</div>
+{% endblock %} 

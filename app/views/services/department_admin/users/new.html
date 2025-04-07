@@ -1,0 +1,78 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set subnav = 'users' %}
+{% set pageTitle = "Add new user" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Add new user</h1>
+
+      <form method="post" action="/services/{{ service.id }}/users" novalidate>
+        <div class="govuk-form-group {% if errors.first_name %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="first_name">
+            First name
+          </label>
+          {% if errors.first_name %}
+          <p id="first_name-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> {{ errors.first_name }}
+          </p>
+          {% endif %}
+          <input class="govuk-input {% if errors.first_name %}govuk-input--error{% endif %}" 
+                 id="first_name" 
+                 name="first_name" 
+                 type="text" 
+                 value="{{ user.first_name }}"
+                 aria-describedby="{% if errors.first_name %}first_name-error{% endif %}">
+        </div>
+
+        <div class="govuk-form-group {% if errors.last_name %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="last_name">
+            Last name
+          </label>
+          {% if errors.last_name %}
+          <p id="last_name-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> {{ errors.last_name }}
+          </p>
+          {% endif %}
+          <input class="govuk-input {% if errors.last_name %}govuk-input--error{% endif %}" 
+                 id="last_name" 
+                 name="last_name" 
+                 type="text" 
+                 value="{{ user.last_name }}"
+                 aria-describedby="{% if errors.last_name %}last_name-error{% endif %}">
+        </div>
+
+        <div class="govuk-form-group {% if errors.email %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="email">
+            Email address
+          </label>
+          {% if errors.email %}
+          <p id="email-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> {{ errors.email }}
+          </p>
+          {% endif %}
+          <input class="govuk-input {% if errors.email %}govuk-input--error{% endif %}" 
+                 id="email" 
+                 name="email" 
+                 type="email" 
+                 value="{{ user.email }}"
+                 aria-describedby="{% if errors.email %}email-error{% endif %}">
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button">
+            Add user
+          </button>
+          <a class="govuk-link" href="/services/{{ service.id }}/users">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

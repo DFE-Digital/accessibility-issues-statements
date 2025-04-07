@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = "Dashboard" %}
+{% set serviceNav = "Dashboard"%}
+
+{% block beforeContent %}
+  <a class="govuk-back-link" href="/">Back</a>
+{% endblock %}
+
+{% block content %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">Department user dashboard</h1>
+
+      <p class="govuk-body">Ideas for this page:
+
+      <ul class="govuk-list govuk-list--bullet">
+      <li>Issues the user has raised or is assigned to</li>
+        <li>As department user view - high level summary of the services in the department</li>
+        <li>As department user view - count of issues across all services at A, AA</li>
+        <li>As department user view - count of accessiblity statement views across all services</li>
+        <li>As department user view - the most common issues across all services</li>
+        <li>Charts of progress over time</li>
+      </ul>
+    </div>
+  </div>
+
+
+{% endblock %} 

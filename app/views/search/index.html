@@ -1,0 +1,42 @@
+{% extends "layouts/layout.html" %}
+
+{% set serviceNav = "Search results" %}
+{% set path = "search" %}
+{% set title = "Search results" %}
+{% set description = "Search results" %}
+{% set mainClasses = 'govuk-!-padding-top-0 govuk-!-padding-bottom-0' %}
+
+{% block content %}
+
+<section style="background-color: #ffffff;" class="govuk-!-padding-top-7 govuk-!-padding-bottom-1">
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-three-quarters">
+        <h1 class="govuk-heading-xl">{{ title }}</h1>
+
+
+        {% if data and data|length > 0 %}
+          {% for result in data %}
+            <div class="search-result govuk-!-margin-bottom-6">
+              <h2 class="govuk-heading-m govuk-!-margin-bottom-1">
+                <a class="govuk-link" href="{{ result.url }}">
+                  {{ result.title }}
+                </a>
+              </h2>
+              <div class="govuk-body-s govuk-!-margin-bottom-1" style="color: #006621;">
+                {{ result.url }}
+              </div>
+              <p class="govuk-body">{{ result.description }}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="govuk-body">No results found.</p>
+        {% endif %}
+
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

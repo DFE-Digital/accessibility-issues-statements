@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = service.name %}
+{% set serviceNav = "Department admin" %}
+
+{% block pageTitle %}
+  {{ service.name }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">{{ service.name }}</h1>
+
+      <dl class="govuk-summary-list">
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">URL</dt>
+          <dd class="govuk-summary-list__value">
+            <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+          </dd>
+        </div>
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Created</dt>
+          <dd class="govuk-summary-list__value">{{ service.created_at | date }}</dd>
+        </div>
+      </dl>
+
+      <h2 class="govuk-heading-m">Enrolled users</h2>
+
+      {% if enrolledUsers.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Name</th>
+              <th scope="col" class="govuk-table__header">Email</th>
+              <th scope="col" class="govuk-table__header">Enrolled</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for user in enrolledUsers %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">{{ user.first_name }} {{ user.last_name }}</td>
+                <td class="govuk-table__cell">
+                  <a href="mailto:{{ user.email }}" class="govuk-link">{{ user.email }}</a>
+                </td>
+                <td class="govuk-table__cell">{{ user.enrolled_at | date }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">No users are enrolled in this service.</p>
+      {% endif %}
+
+      <div class="govuk-button-group">
+        <a href="/services/{{ service.id }}/edit" class="govuk-button">
+          Edit service
+        </a>
+        <a href="/services/department-admin/services" class="govuk-button govuk-button--secondary">
+          Back to services
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock %} 

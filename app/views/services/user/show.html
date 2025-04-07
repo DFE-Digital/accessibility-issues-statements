@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  {{ service.name }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">{{ service.name }}</h1>
+    </div>
+  </div>
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <dl class="govuk-summary-list">
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">URL</dt>
+          <dd class="govuk-summary-list__value">
+            <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+          </dd>
+        </div>
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Status</dt>
+          <dd class="govuk-summary-list__value">
+            {% if service.statement_enrolled %}
+              <strong class="govuk-tag govuk-tag--green">Enrolled</strong>
+            {% else %}
+              <strong class="govuk-tag govuk-tag--grey">Not enrolled</strong>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+
+      <h2 class="govuk-heading-m">Accessibility statement</h2>
+      {% if service.statement_enrolled %}
+        <p class="govuk-body">
+          <a href="/s/{{ service.numeric_id }}" class="govuk-link">View accessibility statement</a>
+        </p>
+      {% else %}
+        <p class="govuk-body">This service is not yet enrolled in the accessibility statement system.</p>
+      {% endif %}
+
+      <h2 class="govuk-heading-m">Issues</h2>
+      <p class="govuk-body">
+        <a href="/services/{{ service.id }}/issues" class="govuk-link">View accessibility issues</a>
+      </p>
+    </div>
+  </div>
+{% endblock %} 

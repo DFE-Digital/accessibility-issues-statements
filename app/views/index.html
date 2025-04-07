@@ -1,0 +1,647 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set mainClasses = "govuk-!-margin-top-0 govuk-!-margin-bottom-0 govuk-!-padding-top-0 govuk-!-padding-bottom-0" %}
+
+{% block pageTitle %}
+Accessibility Statement Manager - {{ serviceName }}
+{% endblock %}
+
+{% block styles %}
+<style>
+  :root {
+    --color-primary: #1d70b8;
+    --color-secondary: #003078;
+    --color-success: #00703c;
+    --color-warning: #fd0;
+    --color-light: #f3f2f1;
+    --color-dark: #0b0c0c;
+    --color-gray: #505a5f;
+    --color-muted: #b1b4b6;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  }
+
+  .modern-layout {
+    background: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .hero-section {
+    position: relative;
+    padding: 6rem 0;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+    color: white;
+    overflow: hidden;
+  }
+
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(253, 221, 0, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-section::after {
+    display: none;
+  }
+
+  .hero-section .plus-grid,
+  .hero-section .plus,
+  .hero-section .plus::before,
+  .hero-section .plus::after {
+    display: none;
+  }
+
+  .hero-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 6rem;
+    align-items: center;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-warning);
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    font-size: 1.125rem;
+    color: var(--color-dark);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+
+  .hero-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .hero-title {
+    font-size: 4rem !important;
+    line-height: 1.1 !important;
+    font-weight: 700 !important;
+    margin-bottom: 1.5rem !important;
+    color: white;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-description {
+    font-size: 1.375rem !important;
+    line-height: 1.5 !important;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2.5rem !important;
+    max-width: 540px;
+  }
+
+  .hero-right {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    z-index: 2;
+  }
+
+  .hero-feature {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .hero-feature:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .hero-feature:nth-child(even) {
+    margin-top: 2rem;
+  }
+
+  .hero-feature__icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: white;
+    transition: all 0.3s ease;
+  }
+
+  .hero-feature:hover .hero-feature__icon {
+    background: var(--color-warning);
+    color: var(--color-dark);
+  }
+
+  .hero-feature__title {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+    color: white;
+  }
+
+  .hero-feature__description {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 !important;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+
+  .modern-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+
+  .modern-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .modern-button--primary {
+    background: var(--color-warning);
+    color: var(--color-dark);
+  }
+
+  .modern-button--secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .modern-button--secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  @media (max-width: 64em) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+
+    .hero-content {
+      text-align: left;
+      max-width: none;
+    }
+
+    .hero-right {
+      grid-template-columns: 1fr;
+      padding: 0 1rem;
+    }
+
+    .hero-feature:nth-child(even) {
+      margin-top: 0;
+    }
+
+    .hero-title {
+      font-size: 3rem !important;
+    }
+
+    .hero-description {
+      font-size: 1.25rem !important;
+    }
+
+    .button-group {
+      justify-content: flex-start;
+    }
+
+    .hero-section {
+      padding: 4rem 0;
+    }
+
+    .hero-section::after {
+      background-size: 20px 20px;
+    }
+
+    .hero-section .plus {
+      width: 6px;
+      height: 6px;
+    }
+
+    .hero-section .plus::before {
+      left: 2px;
+      width: 2px;
+      height: 6px;
+    }
+
+    .hero-section .plus::after {
+      top: 2px;
+      width: 6px;
+      height: 2px;
+    }
+  }
+
+  .features-section {
+    padding: 6rem 0;
+    background: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .features-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 10% 0%, rgba(29, 112, 184, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 90% 100%, rgba(253, 221, 0, 0.05) 0%, transparent 50%);
+    z-index: 1;
+  }
+
+  .section-title {
+    font-size: 2.5rem !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+    margin-bottom: 1rem !important;
+    color: var(--color-dark);
+    text-align: left;
+    position: relative;
+    z-index: 2;
+  }
+
+  .section-subtitle {
+    text-align: left;
+    color: var(--color-gray);
+    max-width: 600px;
+    margin: 0 0 4rem 0 !important;
+    font-size: 1.25rem !important;
+    line-height: 1.5;
+    position: relative;
+    z-index: 2;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .feature-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e5e5;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: var(--color-primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+  }
+
+  .feature-card:hover::before {
+    opacity: 1;
+  }
+
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-light);
+    border-radius: 10px;
+    color: var(--color-primary);
+    transition: all 0.3s ease;
+  }
+
+  .feature-card:hover .feature-icon {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .feature-title {
+    font-size: 1.5rem !important;
+    margin: 0 !important;
+    color: var(--color-dark);
+    font-weight: 600 !important;
+  }
+
+  .feature-description {
+    color: var(--color-gray);
+    line-height: 1.6;
+    font-size: 1rem;
+    margin: 0 !important;
+  }
+
+  .workflow-section {
+    padding: 6rem 0;
+    background: var(--color-secondary);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .workflow-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(253, 221, 0, 0.1) 0%, transparent 50%);
+  }
+
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    position: relative;
+    z-index: 2;
+    margin-top: 4rem;
+  }
+
+  .workflow-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .workflow-item:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .workflow-item::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -2rem;
+    width: 2rem;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%);
+  }
+
+  .workflow-item:last-child::after {
+    display: none;
+  }
+
+  .workflow-number {
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-warning);
+    color: var(--color-dark);
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  .workflow-title {
+    font-size: 1.25rem !important;
+    margin: 0 0 1rem 0 !important;
+    color: white;
+    font-weight: 600 !important;
+  }
+
+  .workflow-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    font-size: 0.875rem;
+    margin: 0 !important;
+  }
+
+  @media (max-width: 64em) {
+    .features-grid {
+      grid-template-columns: 1fr;
+      padding: 0 1rem;
+    }
+
+    .workflow-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+
+    .workflow-item::after {
+      right: 50%;
+      top: auto;
+      bottom: -2rem;
+      width: 2px;
+      height: 1rem;
+      transform: translateX(50%);
+    }
+
+    .section-title {
+      font-size: 2rem !important;
+      padding: 0 1rem;
+    }
+
+    .section-subtitle {
+      padding: 0 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="modern-layout">
+  <section class="hero-section">
+    <div class="govuk-width-container">
+      <div class="hero-grid">
+        <div class="hero-content">
+         
+          <h1 class="govuk-heading-xl hero-title">
+            Make accessibility management simple and effective
+          </h1>
+          <p class="govuk-body-l hero-description">
+            A centralised service for managing accessibility issues and realtime accessibility statements.
+          </p>
+
+          <div class="button-group">
+            <a href="/auth/sign-in" class="modern-button modern-button--primary">
+              Get Started
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+            <a href="#features" class="modern-button modern-button--secondary">
+              Learn More
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="hero-feature">
+            <div class="hero-feature__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div class="hero-feature__content">
+              <h3 class="govuk-heading-s hero-feature__title">Realtime statements</h3>
+              <p class="govuk-body hero-feature__description">Always up-to-date accessibility statements with accurate
+                information.</p>
+            </div>
+          </div>
+
+          <div class="hero-feature">
+            <div class="hero-feature__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div class="hero-feature__content">
+              <h3 class="govuk-heading-s hero-feature__title">Team ownership</h3>
+              <p class="govuk-body hero-feature__description">Assign your team to services and take ownership of
+                accessibility issues and improvements.</p>
+            </div>
+          </div>
+
+          <div class="hero-feature">
+            <div class="hero-feature__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" />
+              </svg>
+            </div>
+
+            <div class="hero-feature__content">
+              <h3 class="govuk-heading-s hero-feature__title">Issue tracking</h3>
+              <p class="govuk-body hero-feature__description">Centralised issue tracking for all your products and services.</p>
+            </div>
+          </div>
+
+
+
+
+          <div class="hero-feature">
+            <div class="hero-feature__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </div>
+            <div class="hero-feature__content">
+              <h3 class="govuk-heading-s hero-feature__title">Department overview</h3>
+              <p class="govuk-body hero-feature__description">Complete visibility across all your department's services
+                of accessibility risk and conformance.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section" id="features">
+    <div class="govuk-width-container">
+      <h2 class="govuk-heading-l section-title">Manage accessibility compliance</h2>
+      <p class="govuk-body-l section-subtitle">Track your issues and improve your accessibility compliance.</p>
+
+# some kind of dashboard screenshot and info about how easy it is to use
+
+    </div>
+  </section>
+
+  <section class="workflow-section">
+    <div class="govuk-width-container">
+      <h2 class="govuk-heading-l section-title" style="color: white;">How it works</h2>
+      <p class="govuk-body-l section-subtitle" style="color: rgba(255, 255, 255, 0.9);">A simple four-step process to
+        manage your accessibility compliance</p>
+
+      <div class="workflow-grid">
+        <div class="workflow-item">
+          <div class="workflow-number">1</div>
+          <h3 class="govuk-heading-s workflow-title">Register your service</h3>
+          <p class="govuk-body workflow-description">Quickly add your service and team members.</p>
+        </div>
+
+        <div class="workflow-item">
+          <div class="workflow-number">2</div>
+          <h3 class="govuk-heading-s workflow-title">Track issues</h3>
+          <p class="govuk-body workflow-description">Monitor and manage accessibility issues.</p>
+        </div>
+
+        <div class="workflow-item">
+          <div class="workflow-number">3</div>
+          <h3 class="govuk-heading-s workflow-title">Add your statement</h3>
+          <p class="govuk-body workflow-description">Link your service to your unique accessibility statement.</p>
+        </div>
+
+        <div class="workflow-item">
+          <div class="workflow-number">4</div>
+          <h3 class="govuk-heading-s workflow-title">Monitor progress</h3>
+          <p class="govuk-body workflow-description">Track improvements and maintain compliance with real-time updates.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

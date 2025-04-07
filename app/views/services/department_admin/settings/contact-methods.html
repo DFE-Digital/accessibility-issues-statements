@@ -1,0 +1,83 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% if action == 'edit' %}
+  {% set pageTitle = service.name + " - Edit contact method" %}
+{% else %}
+  {% set pageTitle = service.name + " - Add contact method" %}
+{% endif %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+{% set subnav = 'settings' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      <a href="/services/{{ service.id }}/settings" class="govuk-back-link">Back to settings</a>
+
+      <form action="/services/{{ service.id }}/settings/contact-methods{% if action == 'edit' %}/{{ method.id }}{% endif %}" method="post" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group {% if errors.contact_type %}govuk-form-group--error{% endif %}">
+          <h1 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--l" for="contact_type">
+              {% if action == 'edit' %}Edit{% else %}Add{% endif %} contact method
+            </label>
+          </h1>
+
+          <label class="govuk-label" for="contact_type">
+            Type
+          </label>
+          <div class="govuk-hint">
+            Select how people can contact you
+          </div>
+          {% if errors.contact_type %}
+            <p id="contact_type-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.contact_type.text }}
+            </p>
+          {% endif %}
+          <select class="govuk-select {% if errors.contact_type %}govuk-select--error{% endif %}" 
+                  id="contact_type" 
+                  name="contact_type">
+            <option value="">Select a type</option>
+            <option value="email" {% if method.contact_type == 'email' %}selected{% endif %}>Email</option>
+            <option value="phone" {% if method.contact_type == 'phone' %}selected{% endif %}>Phone</option>
+            <option value="online_form" {% if method.contact_type == 'online_form' %}selected{% endif %}>Online form</option>
+          </select>
+        </div>
+
+        <div class="govuk-form-group {% if errors.contact_value %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="contact_value">
+            Contact details
+          </label>
+          <div class="govuk-hint">
+            Enter the email address, phone number, or URL for the online form
+          </div>
+          {% if errors.contact_value %}
+            <p id="contact_value-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.contact_value.text }}
+            </p>
+          {% endif %}
+          <input class="govuk-input {% if errors.contact_value %}govuk-input--error{% endif %}" 
+                 id="contact_value" 
+                 name="contact_value" 
+                 type="text" 
+                 value="{{ method.contact_value }}"
+                 spellcheck="false">
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            {% if action == 'edit' %}Save changes{% else %}Add contact method{% endif %}
+          </button>
+          <a href="/services/{{ service.id }}/settings" class="govuk-link">Cancel</a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %} 

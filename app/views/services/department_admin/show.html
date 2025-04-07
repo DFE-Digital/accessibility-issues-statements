@@ -1,0 +1,189 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+
+{% set subnav = 'service' %}
+
+{% set pageTitle = service.name %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set sortBy = request.args.sort %}
+{% set sortOrder = request.args.order %}
+
+{# Filter and sort issues #}
+{% set open_issues = issues | selectattr("status", "in", ["open", "in_progress"]) | list %}
+
+{% if sortBy == 'title' %}
+{% set open_issues = open_issues | sort(attribute='title', reverse=(sortOrder=='desc')) %}
+{% elif sortBy == 'wcag_criterion' %}
+{% set open_issues = open_issues | sort(attribute='wcag_criterion', reverse=(sortOrder=='desc')) %}
+{% elif sortBy == 'wcag_level' %}
+{% set open_issues = open_issues | sort(attribute='wcag_level', reverse=(sortOrder=='desc')) %}
+{% elif sortBy == 'created_at' %}
+{% set open_issues = open_issues | sort(attribute='created_at', reverse=(sortOrder=='desc')) %}
+{% endif %}
+
+
+
+{% block content %}
+
+{% include "services/department_admin/_subnav.html" %}
+
+
+
+
+
+<div class="govuk-width-container">
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <!-- If not entolled into statement service show a notification banner -->
+
+      {% if not service.statement_enrolled %}
+        <div class="govuk-notification-banner" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+          <div class="govuk-notification-banner__header">
+            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Important
+            </h2> 
+          </div>
+          <div class="govuk-notification-banner__content">
+            <p class="govuk-notification-banner__heading">
+              We've not detected the link to your service on the {{service.name}} homepage.
+            </p>
+            <p class="govuk-body">
+              Follow the instructions on the <a href="/services/{{service.id}}/statement">statement page</a> to add the link to your service.
+            </p>
+          </div>
+        </div>  
+      {% endif %}
+    </div>
+  </div>
+
+
+  <div class="app-stats-grid govuk-!-margin-top-1">
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ open_issues | length }}</p>
+      <p class="app-stat-card__label">Open issues</p>
+    </div>
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ levelACount }}</p>
+      <p class="app-stat-card__label">High priority</p>
+    </div>
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ levelAACount }}</p>
+      <p class="app-stat-card__label">Medium priority</p>
+    </div>
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ closedCount }}</p>
+      <p class="app-stat-card__label">Closed issues</p>
+    </div>
+  </div>
+
+
+
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const sortButton = document.querySelector('.app-sort-button');
+    const sortDropdown = document.querySelector('.app-sort-dropdown');
+    const table = document.querySelector('.app-issues-table');
+
+    // Sort functionality
+    function sortTable(column, order) {
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      rows.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (column) {
+          case 'title':
+            aValue = a.querySelector('td:nth-child(1) a').textContent.trim();
+            bValue = b.querySelector('td:nth-child(1) a').textContent.trim();
+            break;
+          case 'wcag_criterion':
+            aValue = a.querySelector('td:nth-child(2)').textContent.trim();
+            bValue = b.querySelector('td:nth-child(2)').textContent.trim();
+            break;
+          case 'wcag_level':
+            aValue = a.querySelector('td:nth-child(3) .govuk-tag').textContent.trim();
+            bValue = b.querySelector('td:nth-child(3) .govuk-tag').textContent.trim();
+            // Custom sort order for WCAG levels
+            const levelOrder = { 'A': 1, 'AA': 2, 'AAA': 3 };
+            aValue = levelOrder[aValue] || 0;
+            bValue = levelOrder[bValue] || 0;
+            break;
+          case 'created_at':
+            aValue = new Date(a.querySelector('td:nth-child(4)').textContent.trim());
+            bValue = new Date(b.querySelector('td:nth-child(4)').textContent.trim());
+            break;
+        }
+
+        if (order === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+
+      // Clear and re-append sorted rows
+      while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+      }
+      rows.forEach(row => tbody.appendChild(row));
+
+      // Update sort button text
+      const columnDisplay = column.replace('_', ' ');
+      sortButton.innerHTML = `Sort: ${columnDisplay.charAt(0).toUpperCase() + columnDisplay.slice(1)}`;
+
+      // Update current sort indicators
+      document.querySelectorAll('.app-sort-dropdown__link').forEach(link => {
+        const linkSort = new URL(link.href).searchParams.get('sort');
+        const linkOrder = new URL(link.href).searchParams.get('order');
+        link.setAttribute('aria-current', linkSort === column && linkOrder === order);
+      });
+
+      // Close dropdown
+      sortButton.setAttribute('aria-expanded', 'false');
+      sortDropdown.setAttribute('aria-hidden', 'true');
+    }
+
+    // Handle sort link clicks
+    document.querySelectorAll('.app-sort-dropdown__link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = new URL(link.href);
+        const sort = url.searchParams.get('sort');
+        const order = url.searchParams.get('order');
+        sortTable(sort, order);
+      });
+    });
+
+    // Dropdown toggle
+    sortButton.addEventListener('click', function () {
+      const isExpanded = this.getAttribute('aria-expanded') === 'true';
+      this.setAttribute('aria-expanded', !isExpanded);
+      sortDropdown.setAttribute('aria-hidden', isExpanded);
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.app-sort-button') && !event.target.closest('.app-sort-dropdown')) {
+        sortButton.setAttribute('aria-expanded', 'false');
+        sortDropdown.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    // Check URL params for initial sort
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialSort = urlParams.get('sort');
+    const initialOrder = urlParams.get('order');
+    if (initialSort && initialOrder) {
+      sortTable(initialSort, initialOrder);
+    }
+  });
+</script>
+{% endblock %}

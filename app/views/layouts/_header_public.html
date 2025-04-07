@@ -1,0 +1,22 @@
+{% from "header/macro.njk" import header %}
+
+
+{% block header %}
+
+{{ header({
+"showNav": "false",
+"showSearch": "false",
+"showHeaderActionLinks": "false",
+"logoPath": "assets/images",
+"searchAction": "/search",
+"searchInputName": "q",
+"logoAltText": "Department for Education",
+"homeHref": "https://statement-service.education.gov.uk",
+"selectedNav": view,
+"service": {
+"name": "",
+"serviceUrl": "/"
+}
+})
+}}
+{% endblock %}

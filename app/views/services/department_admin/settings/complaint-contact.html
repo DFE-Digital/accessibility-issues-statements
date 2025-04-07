@@ -1,0 +1,53 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set pageTitle = service.name + " - Edit complaint contact" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+{% set subnav = 'settings' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      <a href="/services/{{ service.id }}/settings" class="govuk-back-link">Back to settings</a>
+
+      <form action="/services/{{ service.id }}/settings/complaint-contact" method="post" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group {% if errors.complaint_contact %}govuk-form-group--error{% endif %}">
+          <h1 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--l" for="complaint_contact">
+              Complaint contact
+            </label>
+          </h1>
+          <div class="govuk-hint">
+            Where users should go to make a complaint about accessibility problems (URL or email address)
+          </div>
+          {% if errors.complaint_contact %}
+            <p id="complaint_contact-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.complaint_contact.text }}
+            </p>
+          {% endif %}
+          <input class="govuk-input {% if errors.complaint_contact %}govuk-input--error{% endif %}" 
+                 id="complaint_contact" 
+                 name="complaint_contact" 
+                 type="text" 
+                 value="{{ settings.complaint_contact }}"
+                 spellcheck="false">
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            Save changes
+          </button>
+          <a href="/services/{{ service.id }}/settings" class="govuk-link">Cancel</a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  Dashboard - Accessibility Issues Management
+{% endblock %}
+
+{% block beforeContent %}
+  <a class="govuk-back-link" href="/">Back</a>
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-xl">Dashboard</h1>
+      
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-one-third">
+          <div class="govuk-panel govuk-panel--confirmation">
+            <h2 class="govuk-panel__title">
+              {{ stats.total_issues }}
+            </h2>
+            <div class="govuk-panel__body">
+              Total Issues
+            </div>
+          </div>
+        </div>
+        
+        <div class="govuk-grid-column-one-third">
+          <div class="govuk-panel govuk-panel--confirmation">
+            <h2 class="govuk-panel__title">
+              {{ stats.open_issues }}
+            </h2>
+            <div class="govuk-panel__body">
+              Open Issues
+            </div>
+          </div>
+        </div>
+        
+        <div class="govuk-grid-column-one-third">
+          <div class="govuk-panel govuk-panel--confirmation">
+            <h2 class="govuk-panel__title">
+              {{ stats.closed_issues }}
+            </h2>
+            <div class="govuk-panel__body">
+              Closed Issues
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="govuk-heading-l govuk-!-margin-top-6">Your Services</h2>
+      
+      {% if services.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Service Name</th>
+              <th scope="col" class="govuk-table__header">URL</th>
+              <th scope="col" class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for service in services %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">{{ service.name }}</td>
+                <td class="govuk-table__cell">
+                  <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+                </td>
+                <td class="govuk-table__cell">
+                  <a href="/services/{{ service.id }}/issues" class="govuk-link">View Issues</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">No services found for your department.</p>
+      {% endif %}
+
+      <h2 class="govuk-heading-l govuk-!-margin-top-6">Recent Issues</h2>
+      
+      {% if recentIssues.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Service</th>
+              <th scope="col" class="govuk-table__header">Issue</th>
+              <th scope="col" class="govuk-table__header">Status</th>
+              <th scope="col" class="govuk-table__header">Reported</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for issue in recentIssues %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">{{ issue.service_name }}</td>
+                <td class="govuk-table__cell">
+                  <a href="/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                  {% if issue.wcag_criterion %}
+                    <br>
+                    <span class="govuk-tag govuk-tag--grey govuk-!-margin-top-2">
+                      {{ issue.wcag_criterion }}
+                      <span class="govuk-tag govuk-tag--{% if issue.wcag_level == 'A' %}purple{% elif issue.wcag_level == 'AA' %}blue{% elif issue.wcag_level == 'AAA' %}turquoise{% else %}grey{% endif %}">
+                        {{ issue.wcag_level }}
+                      </span>
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="govuk-table__cell">
+                  <strong class="govuk-tag {% if issue.status == 'open' %}govuk-tag--red{% else %}govuk-tag--green{% endif %}">
+                    {{ issue.status }}
+                  </strong>
+                </td>
+                <td class="govuk-table__cell">{{ issue.created_at | date }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">No recent issues found.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %} 

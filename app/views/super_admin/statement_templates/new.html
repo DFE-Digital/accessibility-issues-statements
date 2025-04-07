@@ -1,0 +1,79 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set pageTitle = "Create new statement template" %}
+
+{% block content %}
+  <div class="govuk-width-container">
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-xl">Create new statement template</h1>
+
+    <form action="/super-admin/statement-templates" method="post" novalidate>
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <div class="govuk-form-group {% if errors.name %}govuk-form-group--error{% endif %}">
+        <label class="govuk-label govuk-label--m" for="name">
+          Template name
+        </label>
+        {% if errors.name %}
+          <p id="name-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> {{ errors.name.text }}
+          </p>
+        {% endif %}
+        <input class="govuk-input {% if errors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ template.name }}">
+      </div>
+
+      <div class="govuk-form-group {% if errors.content %}govuk-form-group--error{% endif %}">
+        <label class="govuk-label govuk-label--m" for="content">
+          Template content
+        </label>
+        <div id="content-hint" class="govuk-hint">
+          Use markdown for formatting. Available variables: {{ name_of_service }}, {{ department_name }}, {{ contact_email }}
+        </div>
+        {% if errors.content %}
+          <p id="content-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> {{ errors.content.text }}
+          </p>
+        {% endif %}
+        <textarea class="govuk-textarea {% if errors.content %}govuk-textarea--error{% endif %}" id="content" name="content" rows="20" aria-describedby="content-hint">{{ template.content }}</textarea>
+      </div>
+
+      <div class="govuk-form-group">
+        <div class="govuk-checkboxes" data-module="govuk-checkboxes">
+          <div class="govuk-checkboxes__item">
+            <input class="govuk-checkboxes__input" id="is_active" name="is_active" type="checkbox" value="true" {% if template.is_active %}checked{% endif %}>
+            <label class="govuk-label govuk-checkboxes__label" for="is_active">
+              Set as active template
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="govuk-button" data-module="govuk-button">
+        Create template
+      </button>
+
+      <p class="govuk-body">
+        <a href="/super-admin/statement-templates" class="govuk-link">Cancel</a>
+      </p>
+    </form>
+  </div>
+
+  <div class="govuk-grid-column-one-third">
+    <div class="govuk-inset-text">
+      <h2 class="govuk-heading-m">Template variables</h2>
+      <p class="govuk-body">The following variables will be replaced with service information:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>{{ '{{ name_of_service }}' }} - The name of the service</li>
+        <li>{{ '{{ department_name }}' }} - The department name</li>
+        <li>{{ '{{ contact_email }}' }} - The service contact email</li>
+      </ul>
+    </div>
+
+    <div class="govuk-inset-text">
+      <h2 class="govuk-heading-m">Version control</h2>
+      <p class="govuk-body">The version number will be automatically generated using today's date and an incremented number (e.g. 20240405_1).</p>
+    </div>
+  </div>
+    </div>
+  </div>
+{% endblock %} 

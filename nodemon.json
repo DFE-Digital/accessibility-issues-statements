@@ -1,0 +1,5 @@
+{
+    "watch": ["app", "migrations", "seeds"],
+    "ext": "js,html,css,json",
+    "ignore": ["node_modules", "public", "*.test.js"]
+  }

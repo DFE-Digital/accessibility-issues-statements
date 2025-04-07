@@ -1,0 +1,52 @@
+<section class="dfe-feedback">
+    <div class="govuk-width-container">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                <div class="dfe-feedback-banner">
+                    <div class="dfe-feedback-banner--content">
+                        <div class="dfe-feedback-banner--flex">
+                            <h2 class="govuk-heading-s">Tell us what you think of this page</h2>
+                            <button type="button" class="govuk-button" data-module="govuk-button"
+                                id="problemButton">Give feedback</button>
+                        </div>
+
+                        <div class="dfe-feedback-banner--content-message" id="thanksMessage" role="status" hidden>
+                            Thank you for your feedback
+                        </div>
+
+                        <div class="dfe-feedback-panel" id="feedback-panel" style="display: none;" aria-hidden="true">
+                            <form id="feedback-form">
+                                <div class="govuk-character-count" data-module="govuk-character-count"
+                                    data-maxlength="400">
+                                    <div class="govuk-form-group govuk-!-margin-top-5">
+                                        <h3 class="govuk-label-wrapper">
+                                            <label class="govuk-label govuk-label--m" for="feedback_form_input">
+                                                What do you want to tell us?
+                                            </label>
+                                        </h3>
+                                        <textarea class="govuk-textarea govuk-js-character-count"
+                                            id="feedback_form_input" name="feedback_form_input" rows="5"
+                                            aria-describedby="feedback_form_input"></textarea>
+                                        <div id="feedback_form_input-info"
+                                            class="govuk-hint govuk-character-count__message">
+                                            You can enter up to 400 characters
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="govuk-button-group">
+                                    <button class="govuk-button" data-module="govuk-button" type="submit">
+                                        Submit
+                                    </button>
+                                    <button class="govuk-button govuk-button--secondary" type="button"
+                                        data-module="govuk-button" id="cancelButton">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

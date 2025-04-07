@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  Check your email - Accessibility Issues Management
+{% endblock %}
+
+{% block beforeContent %}
+  <a class="govuk-back-link" href="/auth/sign-in">Back</a>
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Check your email</h1>
+      
+      <div class="govuk-inset-text">
+        We've sent a secure sign-in link to {{ email }}
+      </div>
+
+      <p class="govuk-body">The link will expire in 30 minutes.</p>
+
+      <h2 class="govuk-heading-m">If you don't receive an email</h2>
+      <p class="govuk-body">Check your spam or junk folder. If you still don't see it, you can:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>try again</li>
+        <li>contact your department administrator</li>
+      </ul>
+
+      <form action="/auth/sign-in" method="post" novalidate>
+        <input type="hidden" name="email" value="{{ email }}">
+        <button class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          Send another link
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

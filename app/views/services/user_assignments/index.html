@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  Manage service assignments
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Manage service assignments</h1>
+    </div>
+  </div>
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <form method="POST" action="/services/department-admin/users/{{ userId }}/services">
+        <div class="govuk-form-group">
+          <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+              Select services to assign to this user
+            </legend>
+
+            {% if services.length > 0 %}
+              <div class="govuk-checkboxes" data-module="govuk-checkboxes">
+                {% for service in services %}
+                  <div class="govuk-checkboxes__item">
+                    <input class="govuk-checkboxes__input" id="service-{{ service.id }}" name="serviceIds[]" type="checkbox" value="{{ service.id }}" {% if service.assigned %}checked{% endif %}>
+                    <label class="govuk-label govuk-checkboxes__label" for="service-{{ service.id }}">
+                      {{ service.name }}
+                      <span class="govuk-hint">{{ service.url }}</span>
+                    </label>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="govuk-body">No services found in your department.</p>
+            {% endif %}
+          </fieldset>
+        </div>
+
+        {% if services.length > 0 %}
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            Save changes
+          </button>
+        {% endif %}
+
+        <a href="/services/department-admin/users" class="govuk-button govuk-button--secondary">
+          Cancel
+        </a>
+      </form>
+    </div>
+  </div>
+{% endblock %} 

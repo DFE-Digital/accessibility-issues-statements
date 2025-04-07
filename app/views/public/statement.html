@@ -1,0 +1,13 @@
+{% extends "layouts/layout_public.html" %}
+
+{% set pageTitle = service.name + " accessibility statement" %}
+
+{% block content %}
+
+{% markdown %}
+
+{{ statementHtml | safe }}
+
+{% endmarkdown %}
+
+{% endblock %} 

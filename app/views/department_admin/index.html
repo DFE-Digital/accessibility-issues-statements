@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = "Department admin dashboard" %}
+{% set serviceNav = "Department admin" %}
+
+{% block pageTitle %}
+  Department admin dashboard
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Department admin dashboard</h1>
+
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-one-half">
+          <div class="govuk-card govuk-card--contained">
+            <div class="govuk-card__content">
+              <h2 class="govuk-heading-m">Services</h2>
+              <p class="govuk-body govuk-!-font-size-48 govuk-!-font-weight-bold">{{ servicesCount }}</p>
+              <a href="/services/department-admin/services" class="govuk-link">View all services</a>
+            </div>
+          </div>
+        </div>
+        <div class="govuk-grid-column-one-half">
+          <div class="govuk-card govuk-card--contained">
+            <div class="govuk-card__content">
+              <h2 class="govuk-heading-m">Users</h2>
+              <p class="govuk-body govuk-!-font-size-48 govuk-!-font-weight-bold">{{ usersCount }}</p>
+              <a href="/services/department-admin/users" class="govuk-link">View all users</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="govuk-heading-m">Quick actions</h2>
+      <ul class="govuk-list">
+        <li>
+          <a href="/services/new" class="govuk-link">Add a new service</a>
+        </li>
+        <li>
+          <a href="/services/department-admin/users/new" class="govuk-link">Add a new user</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+{% endblock %} 

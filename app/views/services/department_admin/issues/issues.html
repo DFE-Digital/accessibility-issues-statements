@@ -1,0 +1,433 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set subnav = 'issues' %}
+{% set pageTitle = service.name %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set sortBy = request.args.sort %}
+{% set sortOrder = request.args.order %}
+
+{% block content %}
+ {% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="app-stats-grid govuk-!-margin-top-1">
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ openCount }}</p>
+      <p class="app-stat-card__label">Open issues</p>
+    </div>
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ levelACount }}</p>
+      <p class="app-stat-card__label">High priority</p>
+    </div>
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ levelAACount }}</p>
+      <p class="app-stat-card__label">Medium priority</p>
+    </div>
+    <div class="app-stat-card">
+      <p class="app-stat-card__count">{{ closedCount }}</p>
+      <p class="app-stat-card__label">Closed issues</p>
+    </div>
+  </div>
+
+  <div class="govuk-summary-card">
+    <div class="govuk-summary-card__title-wrapper">
+      <h2 class="govuk-summary-card__title">Open issues</h2>
+      <ul class="govuk-summary-card__actions">
+        <li class="govuk-summary-card__action">
+          <a class="govuk-link" href="/services/{{ service.id }}/issues/new">Add new issue</a>
+        </li>
+        <li class="govuk-summary-card__action">
+          <div class="app-sort">
+            <button type="button" class="app-sort__button" aria-expanded="false" aria-controls="sort-dropdown">
+              Sort{% if sortBy %}: {{ sortBy | replace('_', ' ') | title }}{% endif %}
+              <svg class="app-sort__icon" width="10" height="5" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0L5 5L10 0H0Z" fill="currentColor"/>
+              </svg>
+            </button>
+            <div id="sort-dropdown" class="app-sort__dropdown" aria-hidden="true">
+              <div class="app-sort__group">
+                <h3 class="app-sort__title">Title</h3>
+                <ul class="app-sort__list">
+                  <li class="app-sort__item">
+                    <a href="?sort=title&order=asc" class="app-sort__link" {% if sortBy=='title' and sortOrder=='asc' %}aria-current="true"{% endif %}>A to Z</a>
+                  </li>
+                  <li class="app-sort__item">
+                    <a href="?sort=title&order=desc" class="app-sort__link" {% if sortBy=='title' and sortOrder=='desc' %}aria-current="true"{% endif %}>Z to A</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="app-sort__group">
+                <h3 class="app-sort__title">WCAG criteria</h3>
+                <ul class="app-sort__list">
+                  <li class="app-sort__item">
+                    <a href="?sort=wcag_criterion&order=asc" class="app-sort__link" {% if sortBy=='wcag_criterion' and sortOrder=='asc' %}aria-current="true"{% endif %}>A to Z</a>
+                  </li>
+                  <li class="app-sort__item">
+                    <a href="?sort=wcag_criterion&order=desc" class="app-sort__link" {% if sortBy=='wcag_criterion' and sortOrder=='desc' %}aria-current="true"{% endif %}>Z to A</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="app-sort__group">
+                <h3 class="app-sort__title">Level</h3>
+                <ul class="app-sort__list">
+                  <li class="app-sort__item">
+                    <a href="?sort=wcag_level&order=asc" class="app-sort__link" {% if sortBy=='wcag_level' and sortOrder=='asc' %}aria-current="true"{% endif %}>A to AAA</a>
+                  </li>
+                  <li class="app-sort__item">
+                    <a href="?sort=wcag_level&order=desc" class="app-sort__link" {% if sortBy=='wcag_level' and sortOrder=='desc' %}aria-current="true"{% endif %}>AAA to A</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="app-sort__group">
+                <h3 class="app-sort__title">Date created</h3>
+                <ul class="app-sort__list">
+                  <li class="app-sort__item">
+                    <a href="?sort=created_at&order=desc" class="app-sort__link" {% if sortBy=='created_at' and sortOrder=='desc' %}aria-current="true"{% endif %}>Newest to oldest</a>
+                  </li>
+                  <li class="app-sort__item">
+                    <a href="?sort=created_at&order=asc" class="app-sort__link" {% if sortBy=='created_at' and sortOrder=='asc' %}aria-current="true"{% endif %}>Oldest to newest</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="govuk-summary-card__content">
+      {% if (open_issues | length) > 0 %}
+      <table class="govuk-table">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header govuk-!-width-one-third">Title</th>
+            <th scope="col" class="govuk-table__header">WCAG criteria</th>
+            <th scope="col" class="govuk-table__header">Level</th>
+            <th scope="col" class="govuk-table__header">Created</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for issue in open_issues %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">
+              <a href="/services/{{ service.id }}/issues/{{ issue.id }}" class="govuk-link govuk-link--no-visited-state">
+                #{{ issue.numeric_id }} - {{ issue.title }}
+              </a>
+            </td>
+            <td class="govuk-table__cell">
+              {{ issue.wcag_criterion }}{% if issue.wcag_title %} - {{ issue.wcag_title }}{% endif %}
+            </td>
+            <td class="govuk-table__cell" style="width: 160px;">
+              <strong class="govuk-tag govuk-tag--{% if issue.wcag_level == 'A' %}red{% elif issue.wcag_level == 'AA' %}yellow{% else %}blue{% endif %}">{{ issue.wcag_level }}</strong>
+              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'medium' %}yellow{% else %}blue{% endif %}">{{ issue.risk_level | title }}</strong>
+            </td>
+            <td class="govuk-table__cell" style="width: 120px;">{{ issue.created_at | date('D MMM YYYY') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="app-empty-state">
+        <h3 class="govuk-heading-m">No open issues</h3>
+        <p class="govuk-body">This service currently has no open accessibility issues.</p>
+        <a href="/services/{{ service.id }}/issues/new" class="govuk-button">Add first issue</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="govuk-summary-card">
+    <div class="govuk-summary-card__title-wrapper">
+      <div class="app-toggle-header">
+        <button class="app-toggle-button" aria-expanded="false" aria-controls="closed-issues-content">
+          <svg class="app-toggle-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="6 12 10 8 6 4"/>
+          </svg>
+        </button>
+        <h2 class="govuk-summary-card__title">Closed issues ({{ closed_issues | length }})</h2>
+      </div>
+    </div>
+
+    <div class="govuk-summary-card__content" id="closed-issues-content" hidden>
+      {% if (closed_issues | length) > 0 %}
+      <table class="govuk-table">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header govuk-!-width-one-third">Title</th>
+            <th scope="col" class="govuk-table__header">WCAG criteria</th>
+            <th scope="col" class="govuk-table__header">Level</th>
+            <th scope="col" class="govuk-table__header">Created</th>
+            <th scope="col" class="govuk-table__header">Closed</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for issue in closed_issues %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">
+              <a href="/services/{{ service.id }}/issues/{{ issue.id }}" class="govuk-link govuk-link--no-visited-state">
+                #{{ issue.numeric_id }} - {{ issue.title }}
+              </a>
+            </td>
+            <td class="govuk-table__cell">
+              {{ issue.wcag_criterion }}{% if issue.wcag_title %} - {{ issue.wcag_title }}{% endif %}
+            </td>
+            <td class="govuk-table__cell" style="width: 160px;">
+              <strong class="govuk-tag govuk-tag--{% if issue.wcag_level == 'A' %}red{% elif issue.wcag_level == 'AA' %}yellow{% else %}blue{% endif %}">{{ issue.wcag_level }}</strong>
+              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'medium' %}yellow{% else %}blue{% endif %}">{{ issue.risk_level | title }}</strong>
+            </td>
+            <td class="govuk-table__cell" style="width: 120px;">{{ issue.created_at | date('D MMM YYYY') }}</td>
+            <td class="govuk-table__cell" style="width: 120px;">{{ issue.closed_at | date('D MMM YYYY') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="app-empty-state">
+        <h3 class="govuk-heading-m">No closed issues</h3>
+        <p class="govuk-body">This service has no closed accessibility issues.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .app-sort {
+    position: relative;
+    display: inline-block;
+    padding-left: 0px;
+  }
+
+  .govuk-summary-card__action:last-child {
+    padding-left: 0px;
+  }
+
+  .app-sort__button {
+    background: #ffffff;
+    border: none;
+    color: #1d70b8;
+    cursor: pointer;
+    padding: 8px 14px;
+    font-size: 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s ease;
+    border: 1px solid #b1b4b6;
+    font-weight: 700;
+  }
+
+  .app-sort__button:hover {
+    background-color: #f3f2f1;
+    color: #003078;
+  }
+
+  .app-sort__button[aria-expanded="true"] {
+    background-color: #f3f2f1;
+    color: #0b0c0c;
+    text-decoration: none;
+  }
+
+  .app-sort__icon {
+    transition: transform 0.2s ease;
+    margin-left: 4px;
+  }
+
+  .app-sort__button[aria-expanded="true"] .app-sort__icon {
+    transform: rotate(180deg);
+  }
+
+  .app-sort__dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    border: 1px solid #b1b4b6;
+    padding: 16px;
+    margin-top: 0px;
+    min-width: 240px;
+    max-width: 320px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    z-index: 100;
+    text-align: left;
+  }
+
+  @media (max-width: 40.0525em) {
+    .app-sort__dropdown {
+      position: fixed;
+      top: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      max-width: none;
+      border-radius: 4px 4px 0 0;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    }
+  }
+
+  .app-sort__dropdown[aria-hidden="true"] {
+    display: none;
+  }
+
+  .app-sort__group {
+    margin-bottom: 16px;
+  }
+
+  .app-sort__group:last-child {
+    margin-bottom: 0;
+  }
+
+  .app-sort__title {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 0 8px 0;
+    color: #0b0c0c;
+  }
+
+  .app-sort__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .app-sort__item {
+    margin-bottom: 4px;
+  }
+
+  .app-sort__item:last-child {
+    margin-bottom: 0;
+  }
+
+  .app-sort__link {
+    color: #1d70b8;
+    text-decoration: none;
+    display: block;
+    padding: 4px 0;
+    transition: color 0.2s ease;
+    font-weight: 400;
+    font-size: 1rem;
+  }
+
+  .app-sort__link:hover {
+    color: #003078;
+    text-decoration: underline;
+  }
+
+  .app-sort__link[aria-current="true"] {
+    font-weight: bold;
+    color: #0b0c0c;
+    text-decoration: none;
+    position: relative;
+    padding-left: 16px;
+  }
+
+  .app-sort__link[aria-current="true"]::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #0b0c0c;
+  }
+
+  /* Adjust the summary card actions to better accommodate the sort button */
+  .govuk-summary-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+  }
+
+  .govuk-summary-card__action {
+    margin: 0;
+  }
+
+  /* Add toggle button styles */
+  .app-toggle-button {
+    background: none;
+    border: none;
+    padding: 4px;
+    margin-right: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 4px;
+  }
+
+  .app-toggle-button:hover {
+    background-color: #f3f2f1;
+  }
+
+  .app-toggle-button:focus {
+    outline: 3px solid #fd0;
+    outline-offset: 0;
+    background: none;
+  }
+
+  .app-toggle-icon {
+    transition: transform 0.2s ease;
+    display: inline-block;
+  }
+
+  .app-toggle-button[aria-expanded="true"] .app-toggle-icon {
+    transform: rotate(90deg);
+  }
+
+  .app-toggle-section[hidden] {
+    display: none;
+  }
+
+  .app-toggle-header {
+    display: flex;
+    align-items: center;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const sortButton = document.querySelector('.app-sort__button');
+    const sortDropdown = document.querySelector('.app-sort__dropdown');
+
+    if (sortButton && sortDropdown) {
+      // Dropdown toggle
+      sortButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', !isExpanded);
+        sortDropdown.setAttribute('aria-hidden', isExpanded);
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.app-sort')) {
+          sortButton.setAttribute('aria-expanded', 'false');
+          sortDropdown.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      // Close dropdown when pressing Escape
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          sortButton.setAttribute('aria-expanded', 'false');
+          sortDropdown.setAttribute('aria-hidden', 'true');
+        }
+      });
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.querySelector('.app-toggle-button');
+    const content = document.getElementById('closed-issues-content');
+
+    toggleButton.addEventListener('click', function() {
+      const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
+      toggleButton.setAttribute('aria-expanded', !isExpanded);
+      content.hidden = isExpanded;
+    });
+  });
+</script>
+
+{% endblock %} 

@@ -1,0 +1,52 @@
+{% from "header/macro.njk" import header %}
+
+
+{% block header %}
+
+{{ header({
+"showNav": "false",
+"showSearch": "true",
+"showHeaderActionLinks": "false",
+"logoPath": "assets/images",
+"searchAction": "/search",
+"searchInputName": "q",
+"logoAltText": "Department for Education",
+"homeHref": "https://design.education.gov.uk",
+"selectedNav": view,
+"service": {
+"name": "",
+"serviceUrl": "/"
+},
+"headerActionLinks": [
+{
+"url" : "/designops",
+"label" : "Contact"
+}
+],
+"primaryLinks": [
+{
+"url" : "/",
+"label" : "Home"
+}, {
+"url" : "/design-system/styles",
+"label" : "Styles"
+}, {
+"url" : "/design-system/components",
+"label" : "Components"
+}, {
+"url" : "/design-system/patterns",
+"label" : "Patterns"
+}, {
+"url" : "/content",
+"label" : "Content"
+},{
+"url" : "/standards",
+"label" : "Standards"
+}, {
+"url" : "/community",
+"label" : "Community"
+}
+]
+})
+}}
+{% endblock %}

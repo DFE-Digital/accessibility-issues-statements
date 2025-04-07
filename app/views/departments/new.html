@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = "Add new department" %}
+{% set serviceNav = "Departments" %}
+
+{% block pageTitle %}
+  Add new department
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Add new department</h1>
+
+      <form method="POST" action="/departments">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="name">
+            Department name
+          </label>
+          <input class="govuk-input" id="name" name="name" type="text" required>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="domains">
+            Allowed email domains
+          </label>
+          <div id="domains-hint" class="govuk-hint">
+            Enter email domains that users from this department can use to sign in, separated by commas. For example: example.gov.uk, example.nhs.uk
+          </div>
+          <textarea class="govuk-textarea" id="domains" name="domains" rows="3" aria-describedby="domains-hint"></textarea>
+        </div>
+
+        <button type="submit" class="govuk-button" data-module="govuk-button">
+          Create department
+        </button>
+
+        <a href="/departments" class="govuk-button govuk-button--secondary">
+          Cancel
+        </a>
+      </form>
+    </div>
+  </div>
+{% endblock %} 

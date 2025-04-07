@@ -1,0 +1,55 @@
+<div class="app-service-sidebar">
+  <div class="app-service-sidebar__header">
+    <p class="govuk-caption-m govuk-!-margin-bottom-1">{{service.department_name}}</p>
+    <h1 class="app-service-sidebar__title">{{service.name}}</h1>
+    <a href="{{ service.url }}" class="app-service-sidebar__url govuk-link govuk-link--no-visited-state">{{ service.url }}</a>
+  </div>
+  <div class="app-service-sidebar__section">
+    <h2 class="govuk-heading-s app-service-sidebar__section-title">Service information</h2>
+    <dl class="govuk-summary-list govuk-summary-list--no-border">
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Owner</dt>
+        <dd class="govuk-summary-list__value">
+          {% if service.owner_first_name %}
+            <p class="govuk-body-s govuk-!-margin-bottom-1">
+              <a href="mailto:{{ service.owner_email }}" class="app-service-sidebar__link govuk-link govuk-link--no-visited-state">
+                {{ service.owner_first_name }} {{ service.owner_last_name }}
+              </a>
+            </p>
+            <a href="/services/{{ service.id }}/owner" class="app-service-sidebar__link govuk-link govuk-link--no-visited-state">Change owner</a>
+          {% else %}
+            <strong class="govuk-tag govuk-tag--grey">Not assigned</strong>
+            <a href="/services/{{ service.id }}/owner" class="app-service-sidebar__link govuk-link govuk-link--no-visited-state">Assign owner</a>
+          {% endif %}
+        </dd>
+      </div>
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Statement</dt>
+        <dd class="govuk-summary-list__value">
+          {% if service.statement_enrolled %}
+            <strong class="govuk-tag govuk-tag--green">Enrolled</strong>
+          {% else %}
+            <strong class="govuk-tag govuk-tag--red">Not enrolled</strong>
+          {% endif %}
+          <p>
+            <a href="/services/{{ service.id }}/statement/new" class="app-service-sidebar__link govuk-!-margin-top-2 govuk-link govuk-link--no-visited-state">Get statement</a>
+          </p>
+        </dd>
+      </div>
+    </dl>
+  </div>
+  <div class="app-service-sidebar__section">
+    <h2 class="govuk-heading-s app-service-sidebar__section-title">Options</h2>
+    <ul class="app-service-sidebar__list govuk-body-s">
+      <li class="app-service-sidebar__list-item">
+        <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Edit service details</a>
+      </li>
+      <li class="app-service-sidebar__list-item">
+        <a href="/services/{{ service.id }}/statement" class="govuk-link govuk-link--no-visited-state">Manage statement</a>
+      </li>
+      <li class="app-service-sidebar__list-item">
+        <a href="/services/{{ service.id }}/users/invite" class="govuk-link govuk-link--no-visited-state">Invite team member</a>
+      </li>
+    </ul>
+  </div>
+</div> 

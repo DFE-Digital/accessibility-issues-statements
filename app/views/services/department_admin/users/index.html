@@ -1,0 +1,62 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set subnav = 'users' %}
+{% set pageTitle = "Department users" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Department users</h1>
+
+      <p class="govuk-body">
+        <a href="/services/department-admin/users/new" class="govuk-button">
+          Add new user
+        </a>
+      </p>
+
+      {% if users.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Name</th>
+              <th scope="col" class="govuk-table__header">Email</th>
+              <th scope="col" class="govuk-table__header">Role</th>
+              <th scope="col" class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for user in users %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">{{ user.first_name }} {{ user.last_name }}</td>
+                <td class="govuk-table__cell">{{ user.email }}</td>
+                <td class="govuk-table__cell">{{ user.role }}</td>
+                <td class="govuk-table__cell">
+                  <a href="/services/department-admin/users/{{ user.id }}/edit" class="govuk-link">Edit</a>
+                  {% if user.role === 'user' %}
+                    <span class="govuk-!-margin-left-2 govuk-!-margin-right-2">|</span>
+                    <a href="/services/department-admin/users/{{ user.id }}/services" class="govuk-link">Manage services</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">No users found. <a href="/services/department-admin/users/new">Add a new user</a>.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+{% endblock %} 

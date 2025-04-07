@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = "Add new department admin" %}
+{% set serviceNav = "Departments" %}
+
+{% block pageTitle %}
+  Add new department admin
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Add new department admin</h1>
+
+      {% if error %}
+        <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" data-module="govuk-error-summary">
+          <h2 class="govuk-error-summary__title" id="error-summary-title">
+            There is a problem
+          </h2>
+          <div class="govuk-error-summary__body">
+            <ul class="govuk-list govuk-error-summary__list">
+              <li>
+                <a href="#email">{{ error }}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="POST" action="/departments/{{ department.id }}/admins">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        
+        <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="email">
+            Email address
+          </label>
+          <div id="email-hint" class="govuk-hint">
+            Enter the email address of the user you want to make a department admin. If they don't have an account yet, one will be created for them.
+          </div>
+          {% if error %}
+            <p id="email-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ error }}
+            </p>
+          {% endif %}
+          <input class="govuk-input {% if error %}govuk-input--error{% endif %}" id="email" name="email" type="email" value="{{ email }}" aria-describedby="email-hint{% if error %} email-error{% endif %}" required>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="first_name">
+            First name
+          </label>
+          <input class="govuk-input" id="first_name" name="first_name" type="text" value="{{ first_name }}" required>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="last_name">
+            Last name
+          </label>
+          <input class="govuk-input" id="last_name" name="last_name" type="text" value="{{ last_name }}" required>
+        </div>
+
+        <button type="submit" class="govuk-button" data-module="govuk-button">
+          Add admin
+        </button>
+
+        <a href="/departments/{{ department.id }}/edit" class="govuk-button govuk-button--secondary">
+          Cancel
+        </a>
+      </form>
+    </div>
+  </div>
+{% endblock %} 

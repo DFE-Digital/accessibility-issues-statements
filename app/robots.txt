@@ -1,0 +1,19 @@
+User-agent: *
+Disallow: /
+
+# Allow major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Allow Screaming Frog SEO Spider
+User-agent: Screaming Frog SEO Spider
+Allow: /
+
+# Sitemap location
+Sitemap: https://design.education.gov.uk/sitemap.xml

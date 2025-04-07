@@ -1,0 +1,151 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set serviceNav = "Services" %}
+{% set subnav = 'issues' %}
+{% set pageTitle = "Add new issue" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+{% include "services/department_admin/_subnav.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Add new issue</h1>
+
+      <form action="/services/{{ service.id }}/issues" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="title">
+            Title
+          </label>
+          <input class="govuk-input" id="title" name="title" type="text" required>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="description">
+            Description
+          </label>
+          <textarea class="govuk-textarea" id="description" name="description" rows="5" required></textarea>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="wcag_criterion">
+            WCAG criterion
+          </label>
+          <select class="govuk-select" id="wcag_criterion" name="wcag_criterion" required>
+            <option value="">Select a criterion</option>
+            {% for criterion in wcag_criteria %}
+            <option value="{{ criterion.criterion }}">{{ criterion.criterion }} - {{ criterion.title }} (Level {{ criterion.level }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="source_of_discovery">
+            Source of discovery
+          </label>
+          <select class="govuk-select" id="source_of_discovery" name="source_of_discovery" required>
+            <option value="">Select a source</option>
+            <option value="Automated Testing">Automated Testing</option>
+            <option value="User Feedback">User Feedback</option>
+            <option value="Manual Testing">Manual Testing</option>
+            <option value="Accessibility Audit">Accessibility Audit</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="govuk-form-group">
+          <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend">
+              Do you plan to fix this issue?
+            </legend>
+            <div class="govuk-radios" data-module="govuk-radios">
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="planned_fix_yes" name="planned_fix" type="radio" value="true" data-aria-controls="conditional-planned_fix_yes">
+                <label class="govuk-label govuk-radios__label" for="planned_fix_yes">
+                  Yes
+                </label>
+              </div>
+              <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="conditional-planned_fix_yes">
+                <div class="govuk-form-group">
+                  <label class="govuk-label" for="planned_fix_date">
+                    When do you plan to fix this issue?
+                  </label>
+                  <div class="govuk-hint">
+                    For example, 31 3 2024
+                  </div>
+                  <div class="govuk-date-input" id="planned_fix_date">
+                    <div class="govuk-date-input__item">
+                      <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label" for="planned_fix_date_day">
+                          Day
+                        </label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="planned_fix_date_day" name="planned_fix_date_day" type="text" pattern="[0-9]*" inputmode="numeric">
+                      </div>
+                    </div>
+                    <div class="govuk-date-input__item">
+                      <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label" for="planned_fix_date_month">
+                          Month
+                        </label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="planned_fix_date_month" name="planned_fix_date_month" type="text" pattern="[0-9]*" inputmode="numeric">
+                      </div>
+                    </div>
+                    <div class="govuk-date-input__item">
+                      <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label" for="planned_fix_date_year">
+                          Year
+                        </label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="planned_fix_date_year" name="planned_fix_date_year" type="text" pattern="[0-9]*" inputmode="numeric">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="planned_fix_no" name="planned_fix" type="radio" value="false" data-aria-controls="conditional-planned_fix_no">
+                <label class="govuk-label govuk-radios__label" for="planned_fix_no">
+                  No
+                </label>
+              </div>
+              <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="conditional-planned_fix_no">
+                <div class="govuk-form-group">
+                  <label class="govuk-label" for="not_fixing_reason">
+                    Why don't you plan to fix this issue?
+                  </label>
+                  <div class="govuk-hint">
+                    Explain why this issue won't be fixed, for example if it's a false positive or if it's not applicable to your service.
+                  </div>
+                  <textarea class="govuk-textarea" id="not_fixing_reason" name="not_fixing_reason" rows="5"></textarea>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            Create issue
+          </button>
+          <a href="/services/{{ service.id }}/issues" class="govuk-link">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const plannedFixRadios = document.querySelectorAll('input[name="planned_fix"]');
+    const plannedFixDateGroup = document.getElementById('planned_fix_date_group');
+
+    plannedFixRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        plannedFixDateGroup.style.display = this.value === 'true' ? 'block' : 'none';
+      });
+    });
+  });
+</script>
+{% endblock %} 

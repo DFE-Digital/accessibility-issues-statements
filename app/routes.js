@@ -1,0 +1,144 @@
+const express = require('express');
+const router = express.Router();
+const { isAuthenticated, isDepartmentAdmin, isSuperAdmin } = require('./middleware/auth');
+
+// Import controllers
+const authController = require('./controllers/auth');
+const homeController = require('./controllers/home');
+const dashboardController = require('./controllers/dashboard');
+const servicesController = require('./controllers/services');
+const issuesController = require('./controllers/issues');
+const statementController = require('./controllers/statement');
+const statementTemplatesController = require('./controllers/statement_templates');
+const serviceSettingsController = require('./controllers/service_settings');
+const serviceStatementController = require('./controllers/service_statement');
+const reportingController = require('./controllers/reporting');
+const usersController = require('./controllers/users');
+const departmentAdminController = require('./controllers/department_admin');
+const userServicesController = require('./controllers/user_services');
+const userServiceAssignmentsController = require('./controllers/user_service_assignments');
+const supportController = require('./controllers/support');
+const departmentsController = require('./controllers/departments');
+
+// Import route modules
+const authRoutes = require('./routes/auth');
+
+// Auth routes
+router.use('/auth', authRoutes);
+
+// Public routes
+router.get('/', homeController.g_home);
+
+// Protected routes
+router.get('/dashboard', isAuthenticated, dashboardController.index);
+
+// Services routes
+router.get('/services', isAuthenticated, servicesController.index);
+router.get('/services/new', isDepartmentAdmin, servicesController.newService);
+router.post('/services', isDepartmentAdmin, servicesController.createService);
+router.get('/services/:id', isAuthenticated, servicesController.showService);
+router.get('/services/:id/edit', isDepartmentAdmin, servicesController.editService);
+router.post('/services/:id', isDepartmentAdmin, servicesController.updateService);
+
+// Issue routes
+router.get('/services/:serviceId/issues', isAuthenticated, servicesController.showServiceIssues);
+router.get('/services/:serviceId/issues/new', isDepartmentAdmin, issuesController.showNewIssueForm);
+router.post('/services/:serviceId/issues', isDepartmentAdmin, issuesController.handleCreateIssue);
+router.get('/services/:serviceId/issues/:id', isAuthenticated, issuesController.showIssueDetails);
+router.get('/services/:serviceId/issues/:id/edit', isDepartmentAdmin, issuesController.showEditIssueForm);
+router.post('/services/:serviceId/issues/:id', isDepartmentAdmin, issuesController.handleUpdateIssue);
+
+// Issue comments
+router.post('/services/:serviceId/issues/:id/comments', isAuthenticated, issuesController.addComment);
+router.post('/services/:serviceId/issues/:id/comments/:commentId/delete', isAuthenticated, issuesController.handleDeleteComment);
+
+// Issue status changes
+router.post('/services/:serviceId/issues/:id/close', isAuthenticated, issuesController.handleCloseIssue);
+router.post('/services/:serviceId/issues/:id/reopen', isAuthenticated, issuesController.handleReopenIssue);
+
+// Statement routes
+router.get('/services/:serviceId/statement', isAuthenticated, statementController.showStatementIndex);
+router.get('/s/:numericId', statementController.showPublicStatement);
+
+// Statement template routes (super admin only)
+router.get('/super-admin/statement-templates', isAuthenticated, statementTemplatesController.showTemplateIndex);
+router.get('/super-admin/statement-templates/new', isAuthenticated, statementTemplatesController.showNewTemplate);
+router.post('/super-admin/statement-templates', isAuthenticated, statementTemplatesController.createTemplate);
+router.get('/super-admin/statement-templates/:id/edit', isAuthenticated, statementTemplatesController.showEditTemplate);
+router.put('/super-admin/statement-templates/:id', isAuthenticated, statementTemplatesController.updateTemplateHandler);
+router.post('/super-admin/statement-templates/:id', isAuthenticated , statementTemplatesController.updateTemplateHandler);
+
+// Service settings routes
+router.get('/services/:serviceId/settings', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showServiceSettings);
+
+// Response time settings
+router.get('/services/:serviceId/settings/response-time', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showResponseTime);
+router.post('/services/:serviceId/settings/response-time', isAuthenticated, isDepartmentAdmin, serviceSettingsController.updateResponseTime);
+
+// Complaint contact settings
+router.get('/services/:serviceId/settings/complaint-contact', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showComplaintContact);
+router.post('/services/:serviceId/settings/complaint-contact', isAuthenticated, isDepartmentAdmin, serviceSettingsController.updateComplaintContact);
+
+// Audit settings
+router.get('/services/:serviceId/settings/audit', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showAudit);
+router.post('/services/:serviceId/settings/audit', isAuthenticated, isDepartmentAdmin, serviceSettingsController.updateAudit);
+
+// Contact methods settings
+router.get('/services/:serviceId/settings/contact-methods/new', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showAddContactMethod);
+router.post('/services/:serviceId/settings/contact-methods', isAuthenticated, isDepartmentAdmin, serviceSettingsController.createContactMethod);
+router.get('/services/:serviceId/settings/contact-methods/:methodId/edit', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showEditContactMethod);
+router.post('/services/:serviceId/settings/contact-methods/:methodId', isAuthenticated, isDepartmentAdmin, serviceSettingsController.updateContactMethod);
+router.get('/services/:serviceId/settings/contact-methods/:methodId/delete', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showDeleteContactMethod);
+router.post('/services/:serviceId/settings/contact-methods/:methodId/delete', isAuthenticated, isDepartmentAdmin, serviceSettingsController.deleteContactMethod);
+
+// Service statement routes
+router.get('/services/:serviceId/statement', serviceStatementController.show);
+router.post('/services/:serviceId/validate-url', serviceStatementController.validateServiceUrl);
+
+// Auth routes
+router.get('/auth/sign-in', authController.showSignIn);
+router.post('/auth/sign-in', authController.handleSignIn);
+router.get('/auth/verify', authController.verifyToken);
+router.get('/auth/sign-out', authController.signOut);
+
+// Reporting routes
+router.get('/services/:serviceId/reporting', isAuthenticated, isDepartmentAdmin, reportingController.showWcagHeatmap);
+
+// Department admin routes
+router.get('/services/department-admin', isAuthenticated, isDepartmentAdmin, departmentAdminController.index);
+router.get('/services/department-admin/services', isAuthenticated, isDepartmentAdmin, departmentAdminController.showServices);
+router.get('/services/department-admin/services/:serviceId', isAuthenticated, isDepartmentAdmin, departmentAdminController.showService);
+
+// User management routes (now at department level)
+router.get('/services/department-admin/users', isAuthenticated, isDepartmentAdmin, usersController.index);
+router.get('/services/department-admin/users/new', isAuthenticated, isDepartmentAdmin, usersController.showNewForm);
+router.post('/services/department-admin/users', isAuthenticated, isDepartmentAdmin, usersController.create);
+router.get('/services/department-admin/users/:id/edit', isAuthenticated, isDepartmentAdmin, usersController.showEditForm);
+router.post('/services/department-admin/users/:id', isAuthenticated, isDepartmentAdmin, usersController.update);
+router.post('/services/department-admin/users/:id/delete', isAuthenticated, isDepartmentAdmin, usersController.destroy);
+
+// User service assignment routes
+router.get('/services/department-admin/users/:userId/services', isAuthenticated, isDepartmentAdmin, userServiceAssignmentsController.index);
+router.post('/services/department-admin/users/:userId/services', isAuthenticated, isDepartmentAdmin, userServiceAssignmentsController.update);
+
+// User services routes
+router.get('/services/user', isAuthenticated, userServicesController.index);
+router.get('/services/user/:serviceId', isAuthenticated, userServicesController.showService);
+
+// Department management routes (super admin only)
+router.get('/departments', isAuthenticated, isSuperAdmin, departmentsController.index);
+router.get('/departments/new', isAuthenticated, isSuperAdmin, departmentsController.showNewForm);
+router.post('/departments', isAuthenticated, isSuperAdmin, departmentsController.create);
+router.get('/departments/:id/edit', isAuthenticated, isSuperAdmin, departmentsController.showEditForm);
+router.post('/departments/:id', isAuthenticated, isSuperAdmin, departmentsController.update);
+router.post('/departments/:id/delete', isAuthenticated, isSuperAdmin, departmentsController.remove);
+
+// Department admin management routes
+router.get('/departments/:id/admins/new', isAuthenticated, isSuperAdmin, departmentsController.showNewAdminForm);
+router.post('/departments/:id/admins', isAuthenticated, isSuperAdmin, departmentsController.addAdmin);
+router.post('/departments/:id/admins/:adminId/remove', isAuthenticated, isSuperAdmin, departmentsController.removeAdmin);
+
+// Support routes
+router.get('/support', isAuthenticated, supportController.index);
+
+module.exports = router; 

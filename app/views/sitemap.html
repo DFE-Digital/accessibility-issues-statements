@@ -1,0 +1,23 @@
+{% extends "layouts/layout.html" %}
+
+{% set serviceNav = "Home" %}
+{% set path = "sitemap" %}
+{% set title = "Sitemap" %}
+{% set description = "The sitemap for the DfE Design manual." %}
+
+
+{% block content %}
+    <section style="background-color:#ffffff;">
+        <div class="govuk-width-container">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-three-quarters">
+                    <h1 class="govuk-heading-xl govuk-!-margin-top-5">{{title}}</h1>
+                    <p class="govuk-body-l">{{description}}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% include '_sitemap.html' %}
+
+{% endblock %}
