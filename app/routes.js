@@ -138,4 +138,10 @@ router.post('/departments/:id/admins/:adminId/remove', isAuthenticated, isSuperA
 // Support routes
 router.get('/support', isAuthenticated, supportController.index);
 
+// Users routes
+router.get('/users', isAuthenticated, isDepartmentAdmin, usersController.index);
+router.get('/users/:id/edit', isAuthenticated, isDepartmentAdmin, usersController.showEditForm);
+router.post('/users/:id', isAuthenticated, isDepartmentAdmin, usersController.update);
+router.post('/users/:id/delete', isAuthenticated, isDepartmentAdmin, usersController.destroy);
+
 module.exports = router; 

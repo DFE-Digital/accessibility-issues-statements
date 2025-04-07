@@ -1,0 +1,348 @@
+{% extends "layout.html" %}
+
+{% set pageTitle = "Users" %}
+{% set serviceNav = "Users" %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Edit User</h1>
+
+      {% if errors %}
+        <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+          <h2 class="govuk-error-summary__title" id="error-summary-title">
+            There is a problem
+          </h2>
+          <div class="govuk-error-summary__body">
+            <ul class="govuk-list govuk-error-summary__list">
+              {% for error in errors %}
+                <li>
+                  <a href="#{{ error.param }}">{{ error.msg }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="post" action="/services/department-admin/users/{{ editUser.id }}">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group {% if errors and errors.first_name %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="first_name">
+            First name
+          </label>
+          {% if errors and errors.first_name %}
+            <span id="first_name-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.first_name.msg }}
+            </span>
+          {% endif %}
+          <input class="govuk-input {% if errors and errors.first_name %}govuk-input--error{% endif %}" 
+                 id="first_name" 
+                 name="first_name" 
+                 type="text" 
+                 value="{{ editUser.first_name }}"
+                 {% if errors and errors.first_name %}aria-describedby="first_name-error"{% endif %}>
+        </div>
+
+        <div class="govuk-form-group {% if errors and errors.last_name %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="last_name">
+            Last name
+          </label>
+          {% if errors and errors.last_name %}
+            <span id="last_name-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.last_name.msg }}
+            </span>
+          {% endif %}
+          <input class="govuk-input {% if errors and errors.last_name %}govuk-input--error{% endif %}" 
+                 id="last_name" 
+                 name="last_name" 
+                 type="text" 
+                 value="{{ editUser.last_name }}"
+                 {% if errors and errors.last_name %}aria-describedby="last_name-error"{% endif %}>
+        </div>
+
+        <div class="govuk-form-group {% if errors and errors.email %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="email">
+            Email address
+          </label>
+          {% if errors and errors.email %}
+            <span id="email-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.email.msg }}
+            </span>
+          {% endif %}
+          <input class="govuk-input {% if errors and errors.email %}govuk-input--error{% endif %}" 
+                 id="email" 
+                 name="email" 
+                 type="email" 
+                 value="{{ editUser.email }}"
+                 {% if errors and errors.email %}aria-describedby="email-error"{% endif %}>
+        </div>
+
+        <div class="govuk-form-group {% if errors and errors.role %}govuk-form-group--error{% endif %}">
+          <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+              <h2 class="govuk-fieldset__heading">
+                User role
+              </h2>
+            </legend>
+            {% if errors and errors.role %}
+              <span id="role-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span> {{ errors.role.msg }}
+              </span>
+            {% endif %}
+            <div class="govuk-radios" data-module="govuk-radios">
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="role-user" name="role" type="radio" value="user"
+                  {% if editUser.role === 'user' %}checked{% endif %}>
+                <label class="govuk-label govuk-radios__label" for="role-user">
+                  User
+                </label>
+              </div>
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="role-department-admin" name="role" type="radio" value="department_admin"
+                  {% if editUser.role === 'department_admin' %}checked{% endif %}>
+                <label class="govuk-label govuk-radios__label" for="role-department-admin">
+                  Department admin
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="govuk-button-group">
+          <button class="govuk-button" data-module="govuk-button">
+            Save changes
+          </button>
+
+          {% if not editUser.first_name or not editUser.last_name %}
+            <button type="button" class="govuk-button govuk-button--warning" onclick="openDeleteModal()">
+              Delete user
+            </button>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# Delete User Modal #}
+  <div class="govuk-modal-overlay" id="delete-modal" style="display: none;" role="dialog" aria-labelledby="modal-title"
+    aria-describedby="modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="modal-title">Delete user</h2>
+        <button class="govuk-modal__close" aria-label="Close modal" onclick="closeDeleteModal()">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="govuk-modal__content">
+        <div id="modal-description">
+          <div class="govuk-warning-text">
+            <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+            <strong class="govuk-warning-text__text">
+              <span class="govuk-warning-text__assistive">Warning</span>
+              This action cannot be undone
+            </strong>
+          </div>
+          <p class="govuk-body">Are you sure you want to delete this user?</p>
+        </div>
+        <form id="delete-user-form" method="post" action="/users/{{ editUser.id }}/delete" style="display: inline;">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-button-group">
+            <button type="submit" class="govuk-button govuk-button--warning" data-module="govuk-button"
+              data-prevent-double-click="true">
+              Delete user
+            </button>
+            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button"
+              onclick="closeDeleteModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .govuk-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .govuk-modal {
+      background: white;
+      padding: 30px;
+      border-radius: 5px;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      margin: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .govuk-modal__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .govuk-modal__title {
+      margin: 0;
+      padding-right: 45px;
+    }
+
+    .govuk-modal__close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      padding: 10px;
+      color: #505a5f;
+      font-size: 24px;
+    }
+
+    .govuk-modal__close:hover {
+      color: #0b0c0c;
+      background: #f3f2f1;
+    }
+
+    .govuk-modal__close:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      background-color: #ffdd00;
+    }
+
+    .govuk-modal__content {
+      margin-bottom: 20px;
+    }
+
+    .govuk-button--warning {
+      background-color: #d4351c;
+    }
+
+    .govuk-button--warning:hover {
+      background-color: #aa2a16;
+    }
+
+    @media (max-width: 40.0625em) {
+      .govuk-modal {
+        margin: 15px;
+        padding: 15px;
+        width: 95%;
+      }
+
+      .govuk-modal__close {
+        top: 10px;
+        right: 10px;
+      }
+    }
+
+    /* At 400% zoom, make the modal wider */
+    @media (min-width: 160em) {
+      .govuk-modal {
+        max-width: 95%;
+        width: 95%;
+        margin: 20px;
+        padding: 30px;
+      }
+    }
+
+    /* Hide scrollbar when modal is open */
+    body.modal-open {
+      overflow: hidden;
+    }
+  </style>
+
+  <script>
+    let previousActiveElement;
+
+    function openDeleteModal() {
+      // Store the currently focused element
+      previousActiveElement = document.activeElement;
+
+      const modal = document.getElementById('delete-modal');
+      const body = document.body;
+
+      // Show modal
+      modal.style.display = 'flex';
+      body.classList.add('modal-open');
+
+      // Focus the modal
+      modal.focus();
+
+      // Trap focus within modal
+      trapFocus(modal);
+    }
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('delete-modal');
+      const body = document.body;
+
+      modal.style.display = 'none';
+      body.classList.remove('modal-open');
+
+      // Return focus to the element that opened the modal
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    function trapFocus(modal) {
+      const focusableElements = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstFocusableElement) {
+              lastFocusableElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastFocusableElement) {
+              firstFocusableElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      });
+
+      // Focus first focusable element
+      firstFocusableElement.focus();
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function (event) {
+      const modal = document.querySelector('.govuk-modal');
+      const overlay = document.getElementById('delete-modal');
+      if (event.target === overlay && modal && !modal.contains(event.target)) {
+        closeDeleteModal();
+      }
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.getElementById('delete-modal').style.display === 'flex') {
+        closeDeleteModal();
+      }
+    });
+  </script>
+{% endblock %} 
