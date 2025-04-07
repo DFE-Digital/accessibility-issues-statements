@@ -98,6 +98,7 @@ app.use((req, res, next) => {
   const publicPaths = [
     '/auth/sign-in',
     '/auth/verify',
+    '/auth/complete-profile',
     '/robots.txt',
     '/sitemap.xml',
     '/favicon.ico',

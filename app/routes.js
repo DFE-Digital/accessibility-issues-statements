@@ -3,7 +3,6 @@ const router = express.Router();
 const { isAuthenticated, isDepartmentAdmin, isSuperAdmin } = require('./middleware/auth');
 
 // Import controllers
-const authController = require('./controllers/auth');
 const homeController = require('./controllers/home');
 const dashboardController = require('./controllers/dashboard');
 const servicesController = require('./controllers/services');
@@ -66,7 +65,7 @@ router.get('/super-admin/statement-templates/new', isAuthenticated, statementTem
 router.post('/super-admin/statement-templates', isAuthenticated, statementTemplatesController.createTemplate);
 router.get('/super-admin/statement-templates/:id/edit', isAuthenticated, statementTemplatesController.showEditTemplate);
 router.put('/super-admin/statement-templates/:id', isAuthenticated, statementTemplatesController.updateTemplateHandler);
-router.post('/super-admin/statement-templates/:id', isAuthenticated , statementTemplatesController.updateTemplateHandler);
+router.post('/super-admin/statement-templates/:id', isAuthenticated, statementTemplatesController.updateTemplateHandler);
 
 // Service settings routes
 router.get('/services/:serviceId/settings', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showServiceSettings);
@@ -95,14 +94,12 @@ router.post('/services/:serviceId/settings/contact-methods/:methodId/delete', is
 router.get('/services/:serviceId/statement', serviceStatementController.show);
 router.post('/services/:serviceId/validate-url', serviceStatementController.validateServiceUrl);
 
-// Auth routes
-router.get('/auth/sign-in', authController.showSignIn);
-router.post('/auth/sign-in', authController.handleSignIn);
-router.get('/auth/verify', authController.verifyToken);
-router.get('/auth/sign-out', authController.signOut);
-
 // Reporting routes
 router.get('/services/:serviceId/reporting', isAuthenticated, isDepartmentAdmin, reportingController.showWcagHeatmap);
+
+// Settings routes
+router.get('/settings', isDepartmentAdmin, isAuthenticated, departmentAdminController.showSettings);
+router.post('/settings', isAuthenticated, isDepartmentAdmin, departmentAdminController.updateSettings);
 
 // Department admin routes
 router.get('/services/department-admin', isAuthenticated, isDepartmentAdmin, departmentAdminController.index);

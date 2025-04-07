@@ -12,25 +12,23 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Sign in</h1>
-      
+
       <p class="govuk-body">Enter your email address and we'll send you a secure link to sign in.</p>
 
       <form action="/auth/sign-in" method="post" novalidate>
         <input type="hidden" name="_csrf" value="{{ csrfToken }}">
-        
+
         <div class="govuk-form-group">
           <label class="govuk-label" for="email">
             Email address
           </label>
-          <div id="email-hint" class="govuk-hint">
-            Enter the email address you use to access this service
-          </div>
           <input class="govuk-input" id="email" name="email" type="email" spellcheck="false" aria-describedby="email-hint" autocomplete="email">
         </div>
-
-        <button class="govuk-button" data-module="govuk-button">
+        <div class="govuk-form-group">
+          <button class="govuk-button" data-module="govuk-button">
           Send sign in link
         </button>
+        </div>
       </form>
 
       <h2 class="govuk-heading-m">Problems signing in</h2>

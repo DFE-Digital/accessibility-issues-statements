@@ -123,8 +123,128 @@ const showService = async (req, res) => {
   }
 };
 
+const showSettings = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect('/auth/sign-in');
+    }
+
+    const departmentId = req.session.user.department.id;
+
+    console.log(departmentId);
+
+    // Get user's department and its domains
+    const department = await db('departments')
+      .select('*')
+      .where('id', departmentId)
+      .first();
+
+
+      
+
+    if (!department) {
+      return res.status(404).render('error', {
+        error: 'Department not found'
+      });
+    }
+
+    // Get allowed domains
+    const domains = await db('department_allowed_domains')
+      .select('domain')
+      .where('department_id', departmentId)
+      .orderBy('domain');
+
+    res.render('department_admin/settings/index', {
+      department: {
+        ...department,
+        domains: domains.map(d => d.domain)
+      },
+      user: req.session.user,
+      successMessage: req.session.successMessage,
+      errorMessage: req.session.errorMessage,
+      errors: req.session.errors || {},
+      csrfToken: req.csrfToken()
+    });
+
+    // Clear messages after displaying them
+    delete req.session.successMessage;
+    delete req.session.errorMessage;
+    delete req.session.errors;
+  } catch (error) {
+    console.error('Settings error:', error);
+    res.status(500).render('error', {
+      error: 'There was a problem loading the settings',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+const updateSettings = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect('/auth/sign-in');
+    }
+
+    const { name, domains } = req.body;
+    const departmentId = req.session.user.department.id;
+
+    // Validate input
+    const errors = {};
+    if (!name) {
+      errors.name = 'Enter a department name';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      req.session.errors = errors;
+      return res.redirect('/settings');
+    }
+
+    // Start a transaction
+    await db.transaction(async (trx) => {
+      // Update department name
+      await trx('departments')
+        .where('id', departmentId)
+        .update({
+          name,
+          updated_at: new Date()
+        });
+
+      // Delete existing domains
+      await trx('department_allowed_domains')
+        .where('department_id', departmentId)
+        .delete();
+
+      // Insert new domains
+      if (domains) {
+        const domainArray = domains.split('\n')
+          .map(domain => domain.trim())
+          .filter(domain => domain.length > 0);
+
+        if (domainArray.length > 0) {
+          await trx('department_allowed_domains')
+            .insert(domainArray.map(domain => ({
+              department_id: departmentId,
+              domain,
+              created_at: new Date(),
+              updated_at: new Date()
+            })));
+        }
+      }
+    });
+
+    req.session.successMessage = 'Settings updated successfully';
+    res.redirect('/settings');
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    req.session.errorMessage = 'There was a problem updating the settings';
+    res.redirect('/settings');
+  }
+};
+
 module.exports = {
   index,
   showServices,
-  showService
+  showService,
+  showSettings,
+  updateSettings
 }; 

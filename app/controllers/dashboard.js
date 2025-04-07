@@ -60,6 +60,11 @@ async function index(req, res) {
 
     }
 
+    if (user.role === 'super_admin') {
+      return res.render('dashboard/super_admin/index', sanitizedData);
+
+    }
+
   } catch (error) {
 
     // Handle validation errors specifically

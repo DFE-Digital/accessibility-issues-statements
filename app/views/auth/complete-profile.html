@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  Complete your profile - Accessibility Issues Management
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Complete your profile</h1>
+
+      <p class="govuk-body">Please provide your first and last name to complete your profile.</p>
+
+      {% if errors and (errors.first_name or errors.last_name) %}
+        <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+          <h2 class="govuk-error-summary__title" id="error-summary-title">
+            There is a problem
+          </h2>
+          <div class="govuk-error-summary__body">
+            <ul class="govuk-list govuk-error-summary__list">
+              {% if errors.first_name %}
+                <li>
+                  <a href="#first_name">{{ errors.first_name.msg }}</a>
+                </li>
+              {% endif %}
+              {% if errors.last_name %}
+                <li>
+                  <a href="#last_name">{{ errors.last_name.msg }}</a>
+                </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
+      <form action="/auth/complete-profile" method="post" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        <input type="hidden" name="email" value="{{ email }}">
+
+        <div class="govuk-form-group {% if errors and errors.first_name %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="first_name">
+            First name
+          </label>
+          {% if errors and errors.first_name %}
+            <span id="first_name-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.first_name.msg }}
+            </span>
+          {% endif %}
+          <input class="govuk-input {% if errors and errors.first_name %}govuk-input--error{% endif %}" 
+                 id="first_name" 
+                 name="first_name" 
+                 type="text" 
+                 value="{{ first_name }}"
+                 autocomplete="given-name"
+                 {% if errors and errors.first_name %}aria-describedby="first_name-error"{% endif %}>
+        </div>
+
+        <div class="govuk-form-group {% if errors and errors.last_name %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="last_name">
+            Last name
+          </label>
+          {% if errors and errors.last_name %}
+            <span id="last_name-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.last_name.msg }}
+            </span>
+          {% endif %}
+          <input class="govuk-input {% if errors and errors.last_name %}govuk-input--error{% endif %}" 
+                 id="last_name" 
+                 name="last_name" 
+                 type="text" 
+                 value="{{ last_name }}"
+                 autocomplete="family-name"
+                 {% if errors and errors.last_name %}aria-describedby="last_name-error"{% endif %}>
+        </div>
+
+        <button class="govuk-button" data-module="govuk-button">
+          Save and continue
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock %} 

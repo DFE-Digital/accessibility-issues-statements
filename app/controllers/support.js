@@ -8,6 +8,8 @@ const index = async (req, res) => {
 
     const user = req.session.user;
 
+    console.log('User:', user);
+
     // For super users, show a different message since they don't belong to a department
     if (user.role === 'super_admin') {
       return res.render('support/index', {

@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  Error - Accessibility Issues Management
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">There was a problem</h1>
+      
+      <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+        <h2 class="govuk-error-summary__title" id="error-summary-title">
+          {{ error }}
+        </h2>
+        <div class="govuk-error-summary__body">
+          <p class="govuk-body">Please try again or contact support if the problem persists.</p>
+        </div>
+      </div>
+
+      <p class="govuk-body">
+        <a href="/auth/sign-in" class="govuk-link">Return to sign in</a>
+      </p>
+    </div>
+  </div>
+{% endblock %} 
