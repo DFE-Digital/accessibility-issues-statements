@@ -132,7 +132,15 @@ async function handleSignIn(req, res) {
 // Verify magic link token
 async function verifyToken(req, res) {
   const { token } = req.params;
-  const email = decodeURIComponent(req.query.email);
+  let email = req.query.email;
+
+  // Try to decode the email, but if it fails (already decoded), use as is
+  try {
+    email = decodeURIComponent(email);
+  } catch (e) {
+    // Email is already decoded, use as is
+    console.log('Email already decoded, using as is:', email);
+  }
 
   console.log('verifyToken called with:', { token, email });
 
