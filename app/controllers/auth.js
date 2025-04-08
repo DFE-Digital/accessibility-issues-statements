@@ -129,7 +129,7 @@ async function handleSignIn(req, res) {
 // Verify magic link token
 async function verifyToken(req, res) {
   const { token } = req.params;
-  const { email } = req.query;
+  const email = decodeURIComponent(req.query.email);
 
   console.log('verifyToken called with:', { token, email });
 
