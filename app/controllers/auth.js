@@ -159,23 +159,35 @@ async function verifyToken(req, res) {
 
     console.log('Stored token:', storedToken);
     console.log('Current time (UTC):', new Date().toISOString());
-    console.log('Token expiry (UTC):', storedToken.expires_at.toISOString());
-
+    
     if (!storedToken) {
-      console.log('Token not found');
+      console.log('Token not found or already used');
+      // Check if user is already logged in (token was used but session exists)
+      if (req.session.user && req.session.user.email === email) {
+        console.log('User already logged in, redirecting to dashboard');
+        return res.redirect('/dashboard');
+      }
       return res.status(400).render('auth/error', {
-        error: 'Token not found or expired'
+        error: 'This sign-in link has already been used or has expired'
       });
     }
+
+    console.log('Token expiry (UTC):', storedToken.expires_at.toISOString());
 
     // Check if token is expired
     const now = new Date();
     if (storedToken.expires_at < now) {
       console.log('Token expired');
+      // Delete expired token
       await db('tokens').where({ token }).del();
       return res.status(400).render('auth/error', {
         error: 'Token has expired'
       });
+    }
+
+    // For HEAD requests, just return 200 if token is valid
+    if (req.method === 'HEAD') {
+      return res.status(200).end();
     }
 
     // Get the user with department information
