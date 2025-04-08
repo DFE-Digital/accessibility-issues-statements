@@ -1,5 +1,6 @@
-{% extends "layout.html" %}
+{% extends "layouts/layout_wide.html" %}
 
+{% set mainClasses = 'govuk-!-padding-top-0' %}
 {% set pageTitle = "Support" %}
 {% set serviceNav = "Support" %}
 
@@ -8,9 +9,13 @@
 {% endblock %}
 
 {% block content %}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-l">Support</h1>
+
+{% include "layouts/_pageheader.html" %}
+
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
 
       {% if isSuperUser %}
         <div class="govuk-inset-text">

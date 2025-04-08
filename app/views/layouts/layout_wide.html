@@ -12,6 +12,7 @@
         <link rel="stylesheet" href="/assets/css/govuk-frontend.min.css">
         <link rel="stylesheet" href="/assets/css/dfefrontend-2.0.0.min.css">
         <link rel="stylesheet" href="/assets/css/app.css">
+        <link rel="stylesheet" href="/assets/css/moj-frontend.min.css">
         <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
         {% block head %}{% endblock %}
     </head>
@@ -38,27 +39,31 @@
         {% include 'layouts/_servicenav.html' %}
 
         <main class="govuk-main-wrapper {{mainClasses}}" id="main-content">
-          
-                {%- block content -%}{%- endblock -%}
-      
+
+            {%- block content -%}{%- endblock -%}
+
         </main>
 
         {%- block pageActions -%}{%- endblock -%}
 
-     
-
         {% include 'layouts/_feedback.html' %}
         {% include 'layouts/_footer.html' %}
 
+        <script src="/assets/js/govuk-frontend.min.js"></script>
+        <script type="module" src="/assets/js/moj-frontend.min.js"></script>
+
         <script type="module">
-            import {initAll} from '/assets/js/govuk-frontend.min.js';
-            initAll();
+            import * as GOVUKFrontend from '/assets/js/govuk-frontend.min.js'
+            import * as MOJFrontend from '/assets/js/moj-frontend.min.js'
+
+            GOVUKFrontend.initAll()
+            MOJFrontend.initAll()
         </script>
+
         <script src="/assets/js/dfefrontend-2.0.0.min.js"></script>
         <script src="/assets/js/cookies.js"></script>
         <script src="/assets/js/app.js"></script>
         <script src="/assets/js/feedback.js"></script>
-
 
         {% block scripts %}{% endblock %}
     </body>

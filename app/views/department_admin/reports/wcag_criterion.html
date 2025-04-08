@@ -1,0 +1,68 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set pageTitle = "WCAG " + criterion + " - " + criterionData.title %}
+{% set serviceNav = "Reports" %}
+
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+
+  {% include "layouts/_pageheader.html" %}
+
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">
+          <span class="govuk-caption-xl">WCAG Success Criterion</span>
+          {{ criterion }} - {{ criterionData.title }}
+        </h1>
+
+        <div class="govuk-inset-text">
+          <p class="govuk-body">{{ criterionData.description }}</p>
+        </div>
+
+        <h2 class="govuk-heading-m">Level: {{ criterionData.level }}</h2>
+        <p class="govuk-body">{{ criterionData.level_description }}</p>
+
+        <h2 class="govuk-heading-m">Related Issues</h2>
+        
+        {% if issues.length > 0 %}
+          <table class="govuk-table">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Service</th>
+                <th scope="col" class="govuk-table__header">Issue</th>
+                <th scope="col" class="govuk-table__header">Status</th>
+                <th scope="col" class="govuk-table__header">Reported</th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+              {% for issue in issues %}
+                <tr class="govuk-table__row">
+                  <td class="govuk-table__cell">
+                    <a href="/services/{{ issue.service_id }}/issues" class="govuk-link">{{ issue.service_name }}</a>
+                  </td>
+                  <td class="govuk-table__cell">
+                    <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                  </td>
+                  <td class="govuk-table__cell">
+                    <strong class="govuk-tag govuk-tag--{{ issue.status === 'open' ? 'red' : 'green' }}">
+                      {{ issue.status }}
+                    </strong>
+                  </td>
+                  <td class="govuk-table__cell">{{ issue.created_at | date }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="govuk-body">No issues found for this WCAG criterion.</p>
+        {% endif %}
+
+        <div class="govuk-!-margin-top-6">
+          <a href="/reports" class="govuk-link">Back to reports</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %} 

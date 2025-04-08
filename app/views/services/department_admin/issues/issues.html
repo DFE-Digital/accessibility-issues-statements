@@ -103,25 +103,49 @@
         <thead class="govuk-table__head">
           <tr class="govuk-table__row">
             <th scope="col" class="govuk-table__header govuk-!-width-one-third">Title</th>
-            <th scope="col" class="govuk-table__header">WCAG criteria</th>
-            <th scope="col" class="govuk-table__header">Level</th>
-            <th scope="col" class="govuk-table__header">Created</th>
+            <th scope="col" class="govuk-table__header  govuk-!-width-one-third">Issue Types</th>
+            <th scope="col" class="govuk-table__header">Risk Level</th>
+            <th scope="col" class="govuk-table__header ">Created</th>
           </tr>
         </thead>
         <tbody class="govuk-table__body">
           {% for issue in open_issues %}
           <tr class="govuk-table__row">
-            <td class="govuk-table__cell">
+            <th class="govuk-table__header">
               <a href="/services/{{ service.id }}/issues/{{ issue.id }}" class="govuk-link govuk-link--no-visited-state">
                 #{{ issue.numeric_id }} - {{ issue.title }}
               </a>
-            </td>
+            </th>
             <td class="govuk-table__cell">
-              {{ issue.wcag_criterion }}{% if issue.wcag_title %} - {{ issue.wcag_title }}{% endif %}
+              {% for type in issue.types %}
+                {% if type == 'wcag' %}
+                  <div class="govuk-!-margin-bottom-1">
+                    WCAG{% if issue.wcag_criteria.length > 0 %} - {{ issue.wcag_criteria.length }} criteria{% endif %}
+                  </div>
+                  {% if issue.types.length > 1 %}
+                    <div class="govuk-!-margin-bottom-1">
+                      {{ issue.types.length - 1 }} other type{% if issue.types.length > 2 %}s{% endif %}
+                    </div>
+                  {% endif %}
+                {% elif type == 'best_practice' and not issue.types.includes('wcag') %}
+                  <div class="govuk-!-margin-bottom-1">
+                    Best Practice
+                  </div>
+                {% elif type == 'usability' and not issue.types.includes('wcag') %}
+                  <div class="govuk-!-margin-bottom-1">
+                    Usability
+                  </div>
+                {% elif not issue.types.includes('wcag') %}
+                  <div class="govuk-!-margin-bottom-1">
+                    Not Known
+                  </div>
+                {% endif %}
+              {% endfor %}
             </td>
-            <td class="govuk-table__cell" style="width: 160px;">
-              <strong class="govuk-tag govuk-tag--{% if issue.wcag_level == 'A' %}red{% elif issue.wcag_level == 'AA' %}yellow{% else %}blue{% endif %}">{{ issue.wcag_level }}</strong>
-              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'medium' %}yellow{% else %}blue{% endif %}">{{ issue.risk_level | title }}</strong>
+            <td class="govuk-table__cell" style="width: 120px;">
+              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'high_medium' %}orange{% elif issue.risk_level == 'medium' %}yellow{% else %}green{% endif %}">
+                {{ issue.risk_level | replace('_', ' ') | title }}
+              </strong>
             </td>
             <td class="govuk-table__cell" style="width: 120px;">{{ issue.created_at | date('D MMM YYYY') }}</td>
           </tr>
@@ -156,8 +180,8 @@
         <thead class="govuk-table__head">
           <tr class="govuk-table__row">
             <th scope="col" class="govuk-table__header govuk-!-width-one-third">Title</th>
-            <th scope="col" class="govuk-table__header">WCAG criteria</th>
-            <th scope="col" class="govuk-table__header">Level</th>
+            <th scope="col" class="govuk-table__header">Issue Types</th>
+            <th scope="col" class="govuk-table__header">Risk Level</th>
             <th scope="col" class="govuk-table__header">Created</th>
             <th scope="col" class="govuk-table__header">Closed</th>
           </tr>
@@ -171,11 +195,35 @@
               </a>
             </td>
             <td class="govuk-table__cell">
-              {{ issue.wcag_criterion }}{% if issue.wcag_title %} - {{ issue.wcag_title }}{% endif %}
+              {% for type in issue.types %}
+                {% if type == 'wcag' %}
+                  <div class="govuk-!-margin-bottom-1">
+                    WCAG{% if issue.wcag_criteria.length > 0 %} - {{ issue.wcag_criteria.length }} criteria{% endif %}
+                  </div>
+                  {% if issue.types.length > 1 %}
+                    <div class="govuk-!-margin-bottom-1">
+                      {{ issue.types.length - 1 }} other type{% if issue.types.length > 2 %}s{% endif %}
+                    </div>
+                  {% endif %}
+                {% elif type == 'best_practice' and not issue.types.includes('wcag') %}
+                  <div class="govuk-!-margin-bottom-1">
+                    Best Practice
+                  </div>
+                {% elif type == 'usability' and not issue.types.includes('wcag') %}
+                  <div class="govuk-!-margin-bottom-1">
+                    Usability
+                  </div>
+                {% elif not issue.types.includes('wcag') %}
+                  <div class="govuk-!-margin-bottom-1">
+                    Not Known
+                  </div>
+                {% endif %}
+              {% endfor %}
             </td>
-            <td class="govuk-table__cell" style="width: 160px;">
-              <strong class="govuk-tag govuk-tag--{% if issue.wcag_level == 'A' %}red{% elif issue.wcag_level == 'AA' %}yellow{% else %}blue{% endif %}">{{ issue.wcag_level }}</strong>
-              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'medium' %}yellow{% else %}blue{% endif %}">{{ issue.risk_level | title }}</strong>
+            <td class="govuk-table__cell" style="width: 120px;">
+              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'high_medium' %}orange{% elif issue.risk_level == 'medium' %}yellow{% else %}green{% endif %}">
+                {{ issue.risk_level | replace('_', ' ') | title }}
+              </strong>
             </td>
             <td class="govuk-table__cell" style="width: 120px;">{{ issue.created_at | date('D MMM YYYY') }}</td>
             <td class="govuk-table__cell" style="width: 120px;">{{ issue.closed_at | date('D MMM YYYY') }}</td>

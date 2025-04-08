@@ -45,42 +45,59 @@
 
       <div class="govuk-summary-card">
         <div class="govuk-summary-card__title-wrapper">
-          <h2 class="govuk-summary-card__title">Accessibility issue</h2>
+          <h2 class="govuk-summary-card__title">Issue information</h2>
         </div>
         <div class="govuk-summary-card__content">
           <dl class="govuk-summary-list">
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
-                Version
+                Issue Types
               </dt>
               <dd class="govuk-summary-list__value">
-                WCAG {{ issue.wcag_version }}
+                {% for type in issue.types %}
+                  {% if type == 'wcag' %}
+                    WCAG{% if issue.wcag_criteria.length > 0 %} - {{ issue.wcag_criteria.length }} criteria{% endif %}
+                  {% elif type == 'best_practice' %}
+                    Best Practice
+                  {% elif type == 'usability' %}
+                    Usability
+                  {% else %}
+                    Not Known
+                  {% endif %}
+                  {% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+              </dd>
+            </div>
+            {% if issue.types.includes('wcag') %}
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">
+                WCAG Version
+              </dt>
+              <dd class="govuk-summary-list__value">
+                WCAG {{ issue.wcag_criteria[0].version }}
               </dd>
             </div>
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
-                Criteria
+                WCAG Criteria
               </dt>
               <dd class="govuk-summary-list__value">
-                <a href="{{ issue.guidance_url }}" class="govuk-link govuk-link--no-visited-state">
-                {{ issue.wcag_criterion }} - {{ issue.wcag_title }}</a>
+                {% for criterion in issue.wcag_criteria %}
+                  <a href="{{ criterion.guidance_url }}" class="govuk-link govuk-link--no-visited-state">
+                    {{ criterion.criterion }} - {{ criterion.title }} ({{ criterion.level }})
+                  </a>
+                  {% if not loop.last %}<br>{% endif %}
+                {% endfor %}
               </dd>
             </div>
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key">
-                Level
-              </dt>
-              <dd class="govuk-summary-list__value">
-                {{ issue.wcag_level }}
-              </dd>
-            </div>
+            {% endif %}
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
                 Priority
               </dt>
               <dd class="govuk-summary-list__value">
-                <strong class="govuk-tag {% if issue.risk_level == 'high' %}govuk-tag--red{% elif issue.risk_level == 'medium' %}govuk-tag--yellow{% else %}govuk-tag--green{% endif %}">
-                  {{ issue.risk_level | capitalize }} 
+                <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'high_medium' %}orange{% elif issue.risk_level == 'medium' %}yellow{% else %}green{% endif %}">
+                  {{ issue.risk_level | replace('_', ' ') | title }}
                 </strong> <button 
                   class="govuk-link govuk-link--no-visited-state priority-info-button" 
                   onclick="openPriorityInfoModal(); return false;" 
@@ -407,13 +424,16 @@
     <div class="govuk-modal__content">
       <div id="priority-info-modal-description">
         <h3 class="govuk-heading-s">High priority</h3>
-        <p class="govuk-body">Issues that prevent users from completing essential tasks or accessing critical information. Typically Level A issues.</p>
+        <p class="govuk-body">Issues that prevent users from completing essential tasks or accessing critical information. These issues have the most severe impact on accessibility.</p>
         
+        <h3 class="govuk-heading-s">High / Medium priority</h3>
+        <p class="govuk-body">Issues that significantly impact users' ability to complete tasks but may have workarounds available. These issues require prompt attention.</p>
+
         <h3 class="govuk-heading-s">Medium priority</h3>
-        <p class="govuk-body">Issues that make tasks more difficult but don't prevent users from completing them. Typically Level AA issues.</p>
+        <p class="govuk-body">Issues that make tasks more difficult but don't prevent users from completing them. These issues should be addressed but are less urgent.</p>
         
         <h3 class="govuk-heading-s">Low priority</h3>
-        <p class="govuk-body">Issues that are minor inconveniences or affect non-essential functionality. Typically Level AAA and best practiceissues.</p>
+        <p class="govuk-body">Issues that are minor inconveniences or affect non-essential functionality. These issues should still be fixed but have the least impact on accessibility.</p>
       </div>
       <div class="govuk-button-group">
         <button type="button" class="govuk-button" data-module="govuk-button" onclick="closePriorityInfoModal()">

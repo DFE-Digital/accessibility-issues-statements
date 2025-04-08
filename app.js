@@ -22,6 +22,7 @@ const Airtable = require('airtable');
 const session = require('./app/config/session');
 const csrf = require('csurf');
 const { getNavigationItems } = require('./app/helpers/navigation');
+const { removeFilter, findServiceName, formatDateFilter } = require('./app/filters');
 
 const app = express();
 
@@ -56,8 +57,13 @@ app.use(methodOverride('_method'));
 
 app.use('/favicon.ico', express.static(path.join(__dirname, 'public/assets/images/favicon.ico')));
 
-// Add date filter dateFilter
+// Add date filter
 nunjuckEnv.addFilter('date', dateFilter);
+
+// Add custom filters
+nunjuckEnv.addFilter('removeFilter', removeFilter);
+nunjuckEnv.addFilter('findServiceName', findServiceName);
+nunjuckEnv.addFilter('formatDateFilter', formatDateFilter);
 
 // Register marked and markdown libraries
 marked.use(govukMarkdown({

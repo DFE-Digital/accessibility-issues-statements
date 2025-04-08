@@ -1,7 +1,107 @@
-const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue: updateIssueData } = require('../data/issues');
-const { getDepartmentServices, getService } = require('../data/services');
+const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue: updateIssueData, getDepartmentIssues, getAllIssues, getOpenIssues } = require('../data/issues');
+const { getDepartmentServices, getService, getAllServices } = require('../data/services');
 const { createComment, getIssueComments, deleteComment } = require('../data/comments');
 const { getWcagCriteria } = require('../data/wcag_criteria');
+
+
+const index = async (req, res) => {
+  try {
+    const { user } = req.session;
+    const filters = {
+      wcag_level: req.query.wcag_level || '',
+      service_id: req.query.service_id || '',
+      planned_fix: req.query.planned_fix || '',
+      planned_fix_date: req.query.planned_fix_date || '',
+      search: req.query.search || ''
+    };
+
+    let issues;
+    if (user.role === 'super_admin') {
+      issues = await getAllIssues();
+    } else {
+      // Get department ID from user's department object
+      const departmentId = user.department?.id;
+      if (!departmentId) {
+        throw new Error('User department ID not found');
+      }
+      issues = await getDepartmentIssues(departmentId);
+    }
+
+    // Apply filters
+    if (filters.wcag_level) {
+      // Handle both single value (string) and multiple values (array)
+      const selectedLevels = Array.isArray(filters.wcag_level) ? filters.wcag_level : [filters.wcag_level];
+      issues = issues.filter(issue => selectedLevels.includes(issue.wcag_level));
+    }
+
+    if (filters.service_id) {
+      issues = issues.filter(issue => issue.service_id === filters.service_id);
+    }
+
+    if (filters.planned_fix !== '') {
+      const hasPlannedFix = filters.planned_fix === 'true';
+      issues = issues.filter(issue => issue.planned_fix === hasPlannedFix);
+    }
+
+    if (filters.planned_fix_date) {
+      const now = new Date();
+      issues = issues.filter(issue => {
+        if (!issue.planned_fix_date) return false;
+        const fixDate = new Date(issue.planned_fix_date);
+        
+        switch (filters.planned_fix_date) {
+          case 'overdue':
+            return fixDate < now;
+          case 'next_month':
+            const nextMonth = new Date(now);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            return fixDate >= now && fixDate <= nextMonth;
+          case 'next_3_months':
+            const next3Months = new Date(now);
+            next3Months.setMonth(next3Months.getMonth() + 3);
+            return fixDate >= now && fixDate <= next3Months;
+          case 'next_6_months':
+            const next6Months = new Date(now);
+            next6Months.setMonth(next6Months.getMonth() + 6);
+            return fixDate >= now && fixDate <= next6Months;
+          default:
+            return true;
+        }
+      });
+    }
+
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      issues = issues.filter(issue => 
+        issue.title.toLowerCase().includes(searchTerm) ||
+        issue.service_name?.toLowerCase().includes(searchTerm) ||
+        issue.wcag_level?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Get services for the department
+    let services = [];
+    if (user.role === 'super_admin') {
+      // For super admin, get all services
+      services = await getAllServices();
+    } else {
+      // For department admin, get department services
+      services = await getDepartmentServices(user.department?.id);
+    }
+
+    res.render('department_admin/issues/index', {
+      issues,
+      services,
+      filters
+    });
+  } catch (error) {
+    console.error('Error in issues index:', error);
+    res.status(500).render('error', { error: 'Failed to load issues' });
+  }
+};
+
+
+
 
 /**
  * Show new issue form
@@ -67,52 +167,41 @@ async function handleCreateIssue(req, res) {
       });
     }
 
-    // Get the WCAG criterion to determine risk level
+    // Get the WCAG criteria to determine risk level
     const wcag_criteria = await getWcagCriteria();
-    const selectedCriterion = wcag_criteria.find(c => c.criterion === req.body.wcag_criterion);
     
-    if (!selectedCriterion) {
-      return res.status(400).render('error', {
-        error: {
-          title: 'Invalid WCAG criterion',
-          message: 'The selected WCAG criterion could not be found.'
-        }
-      });
-    }
+    // Use the priority from the form as the risk level
+    const risk_level = req.body.priority || 'low'; // Use priority from form
 
-    // Set risk level based on WCAG level
-    let risk_level;
-    switch (selectedCriterion.level) {
-      case 'A':
-        risk_level = 'high';
-        break;
-      case 'AA':
-        risk_level = 'medium';
-        break;
-      case 'AAA':
-      case 'Best practice':
-        risk_level = 'low';
-        break;
-      default:
-        risk_level = 'low';
-    }
+    // Convert issue types to array if needed
+    const issueTypes = Array.isArray(req.body.issue_types) 
+      ? req.body.issue_types 
+      : [req.body.issue_types];
+
+    // Convert WCAG criteria to array if needed
+    const selectedWcagCriteria = req.body.wcag_criteria 
+      ? (Array.isArray(req.body.wcag_criteria) 
+          ? req.body.wcag_criteria 
+          : [req.body.wcag_criteria])
+      : [];
 
     const issueData = {
       service_id: serviceId,
       title: req.body.title,
       description: req.body.description,
       risk_level: risk_level,
-      wcag_criteria: req.body.wcag_criterion,
-      wcag_criterion: req.body.wcag_criterion,
       source_of_discovery: req.body.source_of_discovery,
       status: 'open',
       created_by: user.id,
       planned_fix: req.body.planned_fix === 'true',
-      planned_fix_date: req.body.planned_fix === 'true' ? `${req.body.planned_fix_date_year}-${req.body.planned_fix_date_month}-${req.body.planned_fix_date_day}` : null,
+      planned_fix_date: req.body.planned_fix === 'true' 
+        ? `${req.body.planned_fix_date_year}-${req.body.planned_fix_date_month}-${req.body.planned_fix_date_day}` 
+        : null,
       not_fixing_reason: req.body.planned_fix === 'false' ? req.body.not_fixing_reason : null
     };
 
-    await createIssueData(issueData);
+    // Create issue with types and WCAG criteria
+    await createIssueData(issueData, selectedWcagCriteria, issueTypes);
 
     res.redirect(`/services/${serviceId}/issues`);
   } catch (error) {
@@ -270,9 +359,7 @@ async function handleUpdateIssue(req, res) {
       title: req.body.title,
       description: req.body.description,
       risk_level: req.body.risk_level,
-      wcag_criteria: req.body.wcag_criterion,
-      wcag_criterion: req.body.wcag_criterion,
-      wcag_level: req.body.wcag_level,
+      issue_type: req.body.issue_type,
       source_of_discovery: req.body.source_of_discovery,
       status: req.body.status,
       planned_fix: req.body.planned_fix === 'true',
@@ -515,6 +602,7 @@ async function handleReopenIssue(req, res) {
 }
 
 module.exports = {
+  index,
   showNewIssueForm,
   handleCreateIssue,
   showIssueDetails,

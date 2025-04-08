@@ -7,7 +7,7 @@ exports.up = function(knex) {
     table.string('status', 20).notNullable().defaultTo('open')
       .checkIn(['open', 'in_progress', 'resolved', 'closed']);
     table.string('risk_level', 20).notNullable()
-      .checkIn(['high', 'medium', 'low']);
+      .checkIn(['high', 'high_medium', 'medium', 'low']);
     table.string('wcag_criteria', 1000).notNullable();
     table.string('source_of_discovery', 255).notNullable();
     table.uuid('created_by').notNullable();

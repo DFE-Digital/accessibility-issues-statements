@@ -1,0 +1,130 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set pageTitle = "Users" %}
+{% set serviceNav = "Users" %}
+
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+
+  {% include "layouts/_pageheader.html" %}
+
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+
+        {# Department Admins Table #}
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">
+              Department admins
+            </h2>
+            <ul class="govuk-summary-card__actions">
+              <li class="govuk-summary-card__action">
+                <a class="govuk-link" href="/users/new">Add user</a>
+              </li>
+            </ul>
+          </div>
+          <div class="govuk-summary-card__content">
+            {% set hasAdmins = false %}
+            {% for user in users %}
+              {% if user.role == 'department_admin' %}
+                {% set hasAdmins = true %}
+              {% endif %}
+            {% endfor %}
+
+            {% if hasAdmins %}
+              <table class="govuk-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Name</th>
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Email</th>
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Last signed in</th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for user in users %}
+                    {% if user.role == 'department_admin' %}
+                      <tr class="govuk-table__row">
+                        <th class="govuk-table__header">
+                          <a href="/users/{{ user.id }}/edit" class="govuk-link">{{ user.first_name }}
+                            {{ user.last_name }}</a>
+                        </th>
+                        <td class="govuk-table__cell">{{ user.email }}</td>
+                        <td class="govuk-table__cell">
+                          {% if user.last_login %}
+                            {{ user.last_login | date('D MMM YYYY HH:mm') }}
+                          {% else %}
+                            Never
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p class="govuk-body">No department admins found.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Regular Users Table #}
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">
+              Standard users
+            </h2>
+            <ul class="govuk-summary-card__actions">
+              <li class="govuk-summary-card__action">
+                <a class="govuk-link" href="/users/new">Add user</a>
+              </li>
+            </ul>
+          </div>
+          <div class="govuk-summary-card__content">
+            {% set hasUsers = false %}
+            {% for user in users %}
+              {% if user.role == 'user' %}
+                {% set hasUsers = true %}
+              {% endif %}
+            {% endfor %}
+
+            {% if hasUsers %}
+              <table class="govuk-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Name</th>
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Email</th>
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Last signed in</th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for user in users %}
+                    {% if user.role == 'user' %}
+                      <tr class="govuk-table__row">
+                        <th class="govuk-table__header">
+                          <a href="/users/{{ user.id }}/edit" class="govuk-link">{{ user.first_name }}
+                            {{ user.last_name }}</a>
+                        </th>
+                        <td class="govuk-table__cell">{{ user.email }}</td>
+                        <td class="govuk-table__cell">
+                          {% if user.last_login %}
+                            {{ user.last_login | date('D MMM YYYY HH:mm') }}
+                          {% else %}
+                            Never
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p class="govuk-body">No regular users found.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

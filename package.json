@@ -15,6 +15,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@ministryofjustice/frontend": "^5.1.0",
     "airtable": "^0.12.2",
     "axios": "^1.7.9",
     "body-parser": "^1.20.3",

@@ -1003,6 +1003,11 @@ font-size: 0.875rem;
   color: #ffffff;
 }
 
+.govuk-tag--orange {
+  background-color: #f47738;
+  color: #ffffff;
+}
+
 .govuk-tag--grey {
   background-color: #505a5f;
   color: #ffffff;

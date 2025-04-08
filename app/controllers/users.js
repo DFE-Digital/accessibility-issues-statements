@@ -253,13 +253,15 @@ const index = async (req, res) => {
         'users.last_name',
         'users.role',
         'users.created_at',
-        'users.updated_at'
+        'users.updated_at',
+        'users.last_login'
       )
       .where('users.department_id', departmentId)
       .orderBy('users.first_name');
 
-    res.render('users/index', {
+    res.render('department_admin/users/index', {
       users,
+      department: req.session.user.department,
       csrfToken: req.csrfToken()
     });
   } catch (error) {
@@ -291,7 +293,7 @@ const showEditForm = async (req, res) => {
       });
     }
 
-    res.render('users/edit', {
+    res.render('department_admin/users/edit', {
       editUser: user,
       csrfToken: req.csrfToken()
     });
@@ -336,7 +338,7 @@ const update = async (req, res) => {
         updated_at: new Date()
       });
 
-    res.redirect('/users');
+    res.redirect('/department_admin/users');
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).render('error', {
@@ -377,7 +379,7 @@ const destroy = async (req, res) => {
       .where({ id })
       .del();
 
-    res.redirect('/users');
+    res.redirect('/department_admin/users');
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).render('error', {

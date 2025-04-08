@@ -328,7 +328,7 @@ async function addAdmin(req, res) {
         .first();
       
       if (existingUser) {
-        if (existingUser.department_id === departmentId && existingUser.role === 'department_admin') {
+        if (existingUser.departmentid === departmentId && existingUser.role === 'department_admin') {
           throw new Error('This user is already an admin of this department');
         }
 

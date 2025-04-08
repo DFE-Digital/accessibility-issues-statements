@@ -33,17 +33,59 @@
         </div>
 
         <div class="govuk-form-group">
-          <label class="govuk-label" for="wcag_criterion">
-            WCAG criterion
-          </label>
-          <select class="govuk-select" id="wcag_criterion" name="wcag_criterion" required>
-            <option value="">Select a criterion</option>
-            {% for criterion in wcag_criteria %}
-            <option value="{{ criterion.criterion }}" {% if criterion.criterion == issue.wcag_criterion %}selected{% endif %}>
-              {{ criterion.criterion }} - {{ criterion.title }} (Level {{ criterion.level }})
-            </option>
-            {% endfor %}
-          </select>
+          <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+              Issue Types
+            </legend>
+            <div class="govuk-checkboxes" data-module="govuk-checkboxes">
+              <div class="govuk-checkboxes__item">
+                <input class="govuk-checkboxes__input" id="issue_type_wcag" name="issue_types" type="checkbox" value="wcag" data-aria-controls="conditional-wcag" {% if 'wcag' in issue.types %}checked{% endif %}>
+                <label class="govuk-label govuk-checkboxes__label" for="issue_type_wcag">
+                  WCAG Issue
+                </label>
+              </div>
+              <div class="govuk-checkboxes__conditional govuk-checkboxes__conditional--hidden" id="conditional-wcag">
+                <div class="govuk-form-group">
+                  <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend">
+                      Select WCAG Criteria
+                    </legend>
+                    <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+                      {% for criterion in wcag_criteria %}
+                      <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="wcag_criterion_{{ criterion.criterion }}" name="wcag_criteria" type="checkbox" value="{{ criterion.criterion }}" {% for wcag in issue.wcag_criteria %}{% if wcag.criterion == criterion.criterion %}checked{% endif %}{% endfor %}>
+                        <label class="govuk-label govuk-checkboxes__label" for="wcag_criterion_{{ criterion.criterion }}">
+                          {{ criterion.criterion }} - {{ criterion.title }} (Level {{ criterion.level }})
+                        </label>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+
+              <div class="govuk-checkboxes__item">
+                <input class="govuk-checkboxes__input" id="issue_type_not_known" name="issue_types" type="checkbox" value="not_known" {% if 'not_known' in issue.types %}checked{% endif %}>
+                <label class="govuk-label govuk-checkboxes__label" for="issue_type_not_known">
+                  WCAG Criteria Not Known
+                </label>
+              </div>
+
+              <div class="govuk-checkboxes__item">
+                <input class="govuk-checkboxes__input" id="issue_type_best_practice" name="issue_types" type="checkbox" value="best_practice" {% if 'best_practice' in issue.types %}checked{% endif %}>
+                <label class="govuk-label govuk-checkboxes__label" for="issue_type_best_practice">
+                  Best Practice Issue
+                </label>
+              </div>
+
+              <div class="govuk-checkboxes__item">
+                <input class="govuk-checkboxes__input" id="issue_type_usability" name="issue_types" type="checkbox" value="usability" {% if 'usability' in issue.types %}checked{% endif %}>
+                <label class="govuk-label govuk-checkboxes__label" for="issue_type_usability">
+                  Usability Issue
+                </label>
+              </div>
+            </div>
+          </fieldset>
         </div>
 
         <div class="govuk-form-group">
@@ -58,6 +100,43 @@
             <option value="Accessibility Audit" {% if issue.source_of_discovery == 'Accessibility Audit' %}selected{% endif %}>Accessibility Audit</option>
             <option value="Other" {% if issue.source_of_discovery == 'Other' %}selected{% endif %}>Other</option>
           </select>
+        </div>
+
+        <div class="govuk-form-group">
+          <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+              Priority
+            </legend>
+            <div class="govuk-hint">
+              Read <a href="https://accessibility.education.gov.uk/knowledge-hub/manage-issues#prioritise-issues" class="govuk-link" target="_blank">guidance on how to prioritise issues</a> (opens in new tab)
+            </div>
+            <div class="govuk-radios">
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="priority_high" name="priority" type="radio" value="high" {% if issue.risk_level == 'high' %}checked{% endif %}>
+                <label class="govuk-label govuk-radios__label" for="priority_high">
+                  High
+                </label>
+              </div>
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="priority_high_medium" name="priority" type="radio" value="high_medium" {% if issue.risk_level == 'high_medium' %}checked{% endif %}>
+                <label class="govuk-label govuk-radios__label" for="priority_high_medium">
+                  High / Medium
+                </label>
+              </div>
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="priority_medium" name="priority" type="radio" value="medium" {% if issue.risk_level == 'medium' %}checked{% endif %}>
+                <label class="govuk-label govuk-radios__label" for="priority_medium">
+                  Medium
+                </label>
+              </div>
+              <div class="govuk-radios__item">
+                <input class="govuk-radios__input" id="priority_low" name="priority" type="radio" value="low" {% if issue.risk_level == 'low' %}checked{% endif %}>
+                <label class="govuk-label govuk-radios__label" for="priority_low">
+                  Low
+                </label>
+              </div>
+            </div>
+          </fieldset>
         </div>
 
         <div class="govuk-form-group">
@@ -137,5 +216,38 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wcagCheckbox = document.getElementById('issue_type_wcag');
+    const wcagCriteriaGroup = document.getElementById('conditional-wcag');
+
+    // Initial state
+    wcagCriteriaGroup.style.display = wcagCheckbox.checked ? 'block' : 'none';
+
+    // Handle WCAG checkbox changes
+    wcagCheckbox.addEventListener('change', function() {
+      wcagCriteriaGroup.style.display = this.checked ? 'block' : 'none';
+      
+      // Clear WCAG criteria checkboxes when unchecking WCAG
+      if (!this.checked) {
+        document.querySelectorAll('input[name="wcag_criteria"]').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+      }
+    });
+
+    const plannedFixRadios = document.querySelectorAll('input[name="planned_fix"]');
+    const plannedFixDateGroup = document.getElementById('conditional-planned_fix_yes');
+    const notFixingReasonGroup = document.getElementById('conditional-planned_fix_no');
+
+    plannedFixRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        plannedFixDateGroup.style.display = this.value === 'true' ? 'block' : 'none';
+        notFixingReasonGroup.style.display = this.value === 'false' ? 'block' : 'none';
+      });
+    });
+  });
+</script>
 
 {% endblock %} 

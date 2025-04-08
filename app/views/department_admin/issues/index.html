@@ -1,0 +1,246 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set pageTitle = "Issues" %}
+{% set serviceNav = "Issues" %}
+
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+
+  {% include "layouts/_pageheader.html" %}
+
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-quarter">
+        
+        <div class="moj-filter" data-module="moj-filter">
+          <div class="moj-filter__header">
+            <div class="moj-filter__header-title">
+              <h2 class="govuk-heading-m">Filter</h2>
+            </div>
+          </div>
+
+          <div class="moj-filter__content">
+            <div class="moj-filter__selected">
+              <div class="moj-filter__selected-heading">
+                <div class="moj-filter__heading-title">
+                  <h2 class="govuk-heading-s">Selected filters</h2>
+                </div>
+                <div class="moj-filter__heading-action">
+                  <p class="govuk-body-s"><a class="govuk-link govuk-link--no-visited-state" href="?">Clear filters</a></p>
+                </div>
+              </div>
+
+              {% if filters.wcag_level %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">WCAG Level</h3>
+                <ul class="moj-filter-tags">
+                  <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('wcag_level') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ filters.wcag_level }}</a></li>
+                </ul>
+              {% endif %}
+
+              {% if filters.service_id %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Service</h3>
+                <ul class="moj-filter-tags">
+                  <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('service_id') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ services | findServiceName(filters.service_id) }}</a></li>
+                </ul>
+              {% endif %}
+
+              {% if filters.planned_fix !== '' %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Planned Fix</h3>
+                <ul class="moj-filter-tags">
+                  <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('planned_fix') }}"><span class="govuk-visually-hidden">Remove this filter</span>{% if filters.planned_fix == 'true' %}Yes{% else %}No{% endif %}</a></li>
+                </ul>
+              {% endif %}
+
+              {% if filters.planned_fix_date %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Planned Fix Date</h3>
+                <ul class="moj-filter-tags">
+                  <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('planned_fix_date') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ filters.planned_fix_date | formatDateFilter }}</a></li>
+                </ul>
+              {% endif %}
+
+              {% if filters.search %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Search</h3>
+                <ul class="moj-filter-tags">
+                  <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('search') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ filters.search }}</a></li>
+                </ul>
+              {% endif %}
+            </div>
+
+            <div class="moj-filter__options">
+              <form method="get" action="">
+                <div class="govuk-form-group">
+                  <label class="govuk-label govuk-label--s" for="search">
+                    Keywords
+                  </label>
+                  <input class="govuk-input" id="search" name="search" type="text" value="{{ filters.search }}">
+                </div>
+
+                <div class="moj-filter__options-content">
+                  <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                      <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+                        WCAG Level
+                      </legend>
+                      <div class="govuk-checkboxes govuk-checkboxes--small">
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="wcag_level_a" name="wcag_level" type="checkbox" value="A" {% if filters.wcag_level == "A" %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="wcag_level_a">
+                            A
+                          </label>
+                        </div>
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="wcag_level_aa" name="wcag_level" type="checkbox" value="AA" {% if filters.wcag_level == "AA" %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="wcag_level_aa">
+                            AA
+                          </label>
+                        </div>
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="wcag_level_aaa" name="wcag_level" type="checkbox" value="AAA" {% if filters.wcag_level == "AAA" %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="wcag_level_aaa">
+                            AAA
+                          </label>
+                        </div>
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="wcag_level_bp" name="wcag_level" type="checkbox" value="BP" {% if filters.wcag_level == "BP" %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="wcag_level_bp">
+                            Best Practice
+                          </label>
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
+
+                  <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                      <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+                        Service
+                      </legend>
+                      <div class="govuk-checkboxes govuk-checkboxes--small" style="max-height: 200px; overflow-y: auto; overflow-x: hidden;">
+                        {% for service in services %}
+                          <div class="govuk-checkboxes__item">
+                            <input class="govuk-checkboxes__input" id="service_{{ service.id }}" name="service_id" type="checkbox" value="{{ service.id }}" {% if filters.service_id == service.id %}checked{% endif %}>
+                            <label class="govuk-label govuk-checkboxes__label" for="service_{{ service.id }}">
+                              {{ service.name }}
+                            </label>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </fieldset>
+                  </div>
+
+                  <div class="govuk-form-group">
+                    <label class="govuk-label govuk-label--s" for="planned_fix">
+                      Planned Fix
+                    </label>
+                    <select class="govuk-select" id="planned_fix" name="planned_fix">
+                      <option value="" {% if filters.planned_fix == "" %}selected{% endif %}>All</option>
+                      <option value="true" {% if filters.planned_fix == "true" %}selected{% endif %}>Yes</option>
+                      <option value="false" {% if filters.planned_fix == "false" %}selected{% endif %}>No</option>
+                    </select>
+                  </div>
+
+                  <div class="govuk-form-group">
+                    <label class="govuk-label govuk-label--s" for="planned_fix_date">
+                      Planned Fix Date
+                    </label>
+                    <select class="govuk-select" id="planned_fix_date" name="planned_fix_date">
+                      <option value="" {% if filters.planned_fix_date == "" %}selected{% endif %}>All dates</option>
+                      <option value="overdue" {% if filters.planned_fix_date == "overdue" %}selected{% endif %}>Overdue</option>
+                      <option value="next_month" {% if filters.planned_fix_date == "next_month" %}selected{% endif %}>Next month</option>
+                      <option value="next_3_months" {% if filters.planned_fix_date == "next_3_months" %}selected{% endif %}>Next 3 months</option>
+                      <option value="next_6_months" {% if filters.planned_fix_date == "next_6_months" %}selected{% endif %}>Next 6 months</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="moj-filter__footer govuk-!-margin-top-5">
+                  <button type="submit" class="govuk-button" data-module="govuk-button">
+                    Apply filters
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="govuk-grid-column-three-quarters">
+
+        <table class="govuk-table" id="issues-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Title</th>
+              <th scope="col" class="govuk-table__header">Service</th>
+              <th scope="col" class="govuk-table__header">Risk Level</th>
+              <th scope="col" class="govuk-table__header">WCAG Level</th>
+              <th scope="col" class="govuk-table__header">WCAG Criterion</th>
+              <th scope="col" class="govuk-table__header">Planned Fix</th>
+              <th scope="col" class="govuk-table__header">Planned Fix Date</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for issue in issues %}
+              <tr class="govuk-table__row">
+                <th class="govuk-table__header">
+                  <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                </th>
+                <td class="govuk-table__cell">{{ issue.service_name }}</td>
+                <td class="govuk-table__cell">
+                  <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'high_medium' %}orange{% elif issue.risk_level == 'medium' %}yellow{% else %}green{% endif %}">
+                    {{ issue.risk_level | replace('_', ' ') | title }}
+                  </strong>
+                </td>
+                <td class="govuk-table__cell">{{ issue.wcag_level }}</td>
+                <td class="govuk-table__cell">{{ issue.wcag_criterion }}</td>
+                <td class="govuk-table__cell">
+                  {% if issue.planned_fix %}
+                    Yes
+                  {% else %}
+                    No
+                  {% endif %}
+                </td>
+                <td class="govuk-table__cell">
+                  {% if issue.planned_fix_date %}
+                    {{ issue.planned_fix_date | date('DD MMM YYYY') }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('search');
+      const table = document.getElementById('issues-table');
+      const rows = table.getElementsByTagName('tr');
+
+      searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const cells = row.getElementsByTagName('td');
+          let found = false;
+          
+          for (let j = 0; j < cells.length; j++) {
+            const cell = cells[j];
+            if (cell.textContent.toLowerCase().indexOf(searchTerm) > -1) {
+              found = true;
+              break;
+            }
+          }
+          
+          row.style.display = found ? '' : 'none';
+        }
+      });
+    });
+  </script>
+{% endblock %}

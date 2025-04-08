@@ -18,6 +18,7 @@ const userServicesController = require('./controllers/user_services');
 const userServiceAssignmentsController = require('./controllers/user_service_assignments');
 const supportController = require('./controllers/support');
 const departmentsController = require('./controllers/departments');
+const reportsController = require('./controllers/reports');
 
 // Import route modules
 const authRoutes = require('./routes/auth');
@@ -143,5 +144,11 @@ router.get('/users', isAuthenticated, isDepartmentAdmin, usersController.index);
 router.get('/users/:id/edit', isAuthenticated, isDepartmentAdmin, usersController.showEditForm);
 router.post('/users/:id', isAuthenticated, isDepartmentAdmin, usersController.update);
 router.post('/users/:id/delete', isAuthenticated, isDepartmentAdmin, usersController.destroy);
+
+// Reports routes
+router.get('/reports', isAuthenticated, isDepartmentAdmin, reportsController.index);
+router.get('/reports/wcag/:criterion', isAuthenticated, isDepartmentAdmin, reportsController.showWcagCriterion);
+
+router.get('/issues', isAuthenticated, isDepartmentAdmin, issuesController.index);
 
 module.exports = router; 

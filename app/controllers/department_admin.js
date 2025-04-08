@@ -9,7 +9,7 @@ const index = async (req, res) => {
     // Get department stats
     const department = await db('departments')
       .select('departments.*')
-      .where('departments.id', req.session.user.department_id)
+      .where('departments.id', req.session.user.department.id)
       .first();
 
     if (!department) {
@@ -20,13 +20,13 @@ const index = async (req, res) => {
 
     // Get service count
     const servicesCount = await db('services')
-      .where('department_id', req.session.user.department_id)
+      .where('department_id', req.session.user.department.id)
       .count('* as count')
       .first();
 
     // Get user count
     const usersCount = await db('users')
-      .where('department_id', req.session.user.department_id)
+      .where('department_id', req.session.user.department.id)
       .count('* as count')
       .first();
 
@@ -57,7 +57,7 @@ const showServices = async (req, res) => {
         db.raw('COUNT(DISTINCT user_services.user_id) as enrolled_users')
       )
       .leftJoin('user_services', 'services.id', 'user_services.service_id')
-      .where('services.department_id', req.session.user.department_id)
+      .where('services.department_id', req.session.user.department.id)
       .groupBy('services.id')
       .orderBy('services.name');
 
@@ -86,7 +86,7 @@ const showService = async (req, res) => {
       .select('services.*')
       .where({
         'services.id': serviceId,
-        'services.department_id': req.session.user.department_id
+        'services.department_id': req.session.user.department.id
       })
       .first();
 
