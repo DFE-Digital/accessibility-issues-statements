@@ -27,8 +27,11 @@ function generateToken() {
 
 // Store token in database with email and expiry
 async function storeToken(email, token) {
+  // Create expiry time in UTC
   const expiry = new Date();
-  expiry.setUTCMinutes(expiry.getUTCMinutes() + 30); // 30 minute expiry in UTC
+  expiry.setTime(expiry.getTime() + (180 * 60 * 1000)); // Add 3 hours in milliseconds
+
+  console.log('Token expiry time (UTC):', expiry.toISOString());
 
   await db('tokens').insert({
     email,
@@ -147,8 +150,8 @@ async function verifyToken(req, res) {
       .first();
 
     console.log('Stored token:', storedToken);
-    console.log('Current time:', new Date());
-    console.log('Token expiry:', storedToken.expires_at);
+    console.log('Current time (UTC):', new Date().toISOString());
+    console.log('Token expiry (UTC):', storedToken.expires_at.toISOString());
 
     if (!storedToken) {
       console.log('Token not found');
@@ -157,7 +160,7 @@ async function verifyToken(req, res) {
       });
     }
 
-    // Check if token is expired using UTC
+    // Check if token is expired
     const now = new Date();
     if (storedToken.expires_at < now) {
       console.log('Token expired');
