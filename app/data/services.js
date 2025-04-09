@@ -1,4 +1,6 @@
 const { db } = require('../db');
+const businessAreasData = require('./business_areas');
+const serviceRepositoriesData = require('./service_repositories');
 
 /**
  * Get all services (for super admin)
@@ -12,10 +14,12 @@ async function getAllServices() {
       db.raw('COUNT(DISTINCT issues.id) as open_issues_count'),
       'owner.first_name as owner_first_name',
       'owner.last_name as owner_last_name',
-      'owner.email as owner_email'
+      'owner.email as owner_email',
+      'business_areas.name as business_area_name'
     )
     .leftJoin('departments', 'services.department_id', 'departments.id')
     .leftJoin('users as owner', 'services.service_owner_id', 'owner.id')
+    .leftJoin('business_areas', 'services.business_area_id', 'business_areas.id')
     .leftJoin('issues', function() {
       this.on('issues.service_id', '=', 'services.id')
           .andOn('issues.status', '<>', db.raw("'closed'"));
@@ -31,10 +35,12 @@ async function getAllServices() {
       'services.updated_at',
       'services.statement_enrolled',
       'services.numeric_id',
+      'services.business_area_id',
       'departments.name',
       'owner.first_name',
       'owner.last_name',
-      'owner.email'
+      'owner.email',
+      'business_areas.name'
     )
     .orderBy('services.name');
 }
@@ -52,10 +58,12 @@ async function getDepartmentServices(departmentId) {
       db.raw('COUNT(DISTINCT issues.id) as open_issues_count'),
       'owner.first_name as owner_first_name',
       'owner.last_name as owner_last_name',
-      'owner.email as owner_email'
+      'owner.email as owner_email',
+      'business_areas.name as business_area_name'
     )
     .leftJoin('departments', 'services.department_id', 'departments.id')
     .leftJoin('users as owner', 'services.service_owner_id', 'owner.id')
+    .leftJoin('business_areas', 'services.business_area_id', 'business_areas.id')
     .leftJoin('issues', function() {
       this.on('issues.service_id', '=', 'services.id')
           .andOn('issues.status', '<>', db.raw("'closed'"));
@@ -72,10 +80,12 @@ async function getDepartmentServices(departmentId) {
       'services.updated_at',
       'services.statement_enrolled',
       'services.numeric_id',
+      'services.business_area_id',
       'departments.name',
       'owner.first_name',
       'owner.last_name',
-      'owner.email'
+      'owner.email',
+      'business_areas.name'
     )
     .orderBy('services.name');
 }
@@ -93,10 +103,12 @@ async function getUserServices(userId) {
       db.raw('COUNT(DISTINCT issues.id) as open_issues_count'),
       'owner.first_name as owner_first_name',
       'owner.last_name as owner_last_name',
-      'owner.email as owner_email'
+      'owner.email as owner_email',
+      'business_areas.name as business_area_name'
     )
     .leftJoin('departments', 'services.department_id', 'departments.id')
     .leftJoin('users as owner', 'services.service_owner_id', 'owner.id')
+    .leftJoin('business_areas', 'services.business_area_id', 'business_areas.id')
     .leftJoin('issues', function() {
       this.on('issues.service_id', '=', 'services.id')
           .andOn('issues.status', '<>', db.raw("'closed'"));
@@ -119,10 +131,12 @@ async function getUserServices(userId) {
       'services.updated_at',
       'services.statement_enrolled',
       'services.numeric_id',
+      'services.business_area_id',
       'departments.name',
       'owner.first_name',
       'owner.last_name',
-      'owner.email'
+      'owner.email',
+      'business_areas.name'
     )
     .orderBy('services.name');
 }
@@ -198,7 +212,14 @@ async function getUserServicesStats(userId) {
  */
 async function createService(serviceData) {
   const [service] = await db('services')
-    .insert(serviceData)
+    .insert({
+      name: serviceData.name,
+      url: serviceData.url,
+      department_id: serviceData.department_id,
+      business_area_id: serviceData.business_area_id,
+      created_at: serviceData.created_at,
+      updated_at: serviceData.updated_at
+    })
     .returning('*');
 
   return service;
@@ -251,11 +272,18 @@ async function getService(id) {
       'departments.name as department_name',
       'owner.first_name as owner_first_name',
       'owner.last_name as owner_last_name',
-      'owner.email as owner_email'
+      'owner.email as owner_email',
+      'business_areas.name as business_area_name'
     )
     .leftJoin('departments', 'services.department_id', 'departments.id')
     .leftJoin('users as owner', 'services.service_owner_id', 'owner.id')
+    .leftJoin('business_areas', 'services.business_area_id', 'business_areas.id')
     .where('services.id', id);
+  
+  if (service) {
+    // Get repositories for the service
+    service.repositories = await serviceRepositoriesData.getServiceRepositories(id);
+  }
   
   return service;
 }

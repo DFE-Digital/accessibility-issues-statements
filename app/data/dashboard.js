@@ -117,7 +117,8 @@ async function getDepartmentServices(departmentId) {
       s.department_id,
       s.service_owner_id,
       s.created_at,
-      s.updated_at
+      s.updated_at,
+      s.business_area_id
   `, [validDepartmentId]);
 
   // Get issue types for each service

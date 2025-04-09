@@ -7,23 +7,28 @@
                         <span class="govuk-caption-m govuk-!-margin-bottom-0">{{ service.department_name }}</span>
                         <h1 class="govuk-heading-l govuk-!-margin-bottom-2">{{ service.name }}</h1>
 
-<table class="govuk-table  compact-table govuk-!-margin-bottom-5">
-  <thead class="govuk-table__head">
-    <tr class="govuk-table__row">
-      <th scope="col" class="govuk-table__header govuk-!-width-one-third">Service URL</th>
-      <th scope="col" class="govuk-table__header">Service owner</th>
-    </tr>
-  </thead>
-  <tbody class="govuk-table__body">
-    <tr class="govuk-table__row">
-     <td class="govuk-table__cell"><a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state">{{ service.url }}</a></td>
-     <td class="govuk-table__cell">{{ service.owner_first_name }} {{ service.owner_last_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change</a></td>
-    </tr>
-  </tbody>
-</table>
+                        <table class="govuk-table  compact-table govuk-!-margin-bottom-5">
+                            <thead class="govuk-table__head">
+                                <tr class="govuk-table__row">
+                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service URL</th>
+                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service owner</th>
+                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Business area</th>
+                                </tr>
+                            </thead>
+                            <tbody class="govuk-table__body">
+                                <tr class="govuk-table__row">
+                                    <td class="govuk-table__cell">
+                                        <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state">{{ service.url }}</a>
+                                    </td>
+                                    <td class="govuk-table__cell">{{ service.owner_first_name }}
+                                        {{ service.owner_last_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change</a>
+                                    </td>
 
+                                    <td class="govuk-table__cell">{{ service.business_area_name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
 
-                      
                     </div>
                 </div>
             </div>
@@ -52,7 +57,7 @@
                                         <strong class="govuk-service-navigation__active-fallback">Issues</strong>
                                     </a>
                                 </li>
-                               
+
                                 <li
                   class="govuk-service-navigation__item {% if subnav == 'reporting' %}govuk-service-navigation__item--active{% endif %}">
                                     <a class="govuk-service-navigation__link" href="/services/{{ service.id }}/reporting">
@@ -78,6 +83,8 @@
                     Service settings
                   </a>
                                 </li>
+
+                              
                             </ul>
                         </nav>
                     </div>
@@ -86,3 +93,4 @@
         </div>
     </div>
 </div>
+

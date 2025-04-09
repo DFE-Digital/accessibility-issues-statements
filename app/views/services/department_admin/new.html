@@ -64,6 +64,27 @@
             <input class="govuk-input {% if fieldErrors.url %}govuk-input--error{% endif %}" id="url" name="url" type="url" value="{{ values.url }}" required
               pattern="https?://.+">
           </div>
+
+          <div class="govuk-form-group {% if fieldErrors.business_area_id %}govuk-form-group--error{% endif %}">
+            <label class="govuk-label" for="business_area_id">
+              Business area
+            </label>
+            {% if fieldErrors.business_area_id %}
+              <span id="business_area_id-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ fieldErrors.business_area_id }}
+              </span>
+            {% endif %}
+            <select class="govuk-select {% if fieldErrors.business_area_id %}govuk-select--error{% endif %}" id="business_area_id" name="business_area_id">
+              <option value="">Select a business area</option>
+              {% for area in businessAreas %}
+                <option value="{{ area.id }}" {% if values.business_area_id == area.id %}selected{% endif %}>
+                  {{ area.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
           <div class="govuk-button-group">
             <button class="govuk-button" data-module="govuk-button">
           Add service

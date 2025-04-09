@@ -1,5 +1,7 @@
 const { db } = require('../db');
 const servicesData = require('../data/services');
+const businessAreasData = require('../data/business_areas');
+const serviceRepositoriesData = require('../data/service_repositories');
 const { getDepartmentServices } = require('../data/services');
 const { getServiceIssues } = require('../data/issues');
 const usersData = require('../data/users');
@@ -61,32 +63,27 @@ const index = async (req, res) => {
 };
 
 /**
- * Show form to create a new service
+ * Show new service form
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
 const newService = async (req, res) => {
   try {
-    // Double check authentication (belt and braces)
     if (!req.session.user) {
       req.session.returnTo = req.originalUrl;
       return res.redirect('/auth/sign-in');
     }
 
     const user = req.session.user;
-    
-    // Only department admins and super admins can create services
-    if (user.role !== 'department_admin' && user.role !== 'super_admin') {
-      return res.status(403).render('error', {
-        error: 'You do not have permission to create services'
-      });
-    }
+    const businessAreas = await businessAreasData.getDepartmentBusinessAreas(user.department.id);
 
     res.render(`services/${user.role}/new`, {
-      user
+      user,
+      businessAreas,
+      csrfToken: req.csrfToken()
     });
   } catch (error) {
-    console.error('New service error:', error);
+    console.error('New service form error:', error);
     res.status(500).render('error', {
       error: 'There was a problem loading the new service form',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -101,90 +98,71 @@ const newService = async (req, res) => {
  */
 const createService = async (req, res) => {
   try {
-    // Double check authentication (belt and braces)
     if (!req.session.user) {
       req.session.returnTo = req.originalUrl;
       return res.redirect('/auth/sign-in');
     }
 
     const user = req.session.user;
-    
-    // Only department admins and super admins can create services
-    if (user.role !== 'department_admin' && user.role !== 'super_admin') {
-      return res.status(403).render('error', {
-        error: 'You do not have permission to create services'
-      });
-    }
-
-    // Get the department ID - for super admins it comes from the form, for department admins it's their department
-    const departmentId = user.role === 'super_admin' ? req.body.department_id : user.department.id;
-
-    if (!departmentId) {
-      return res.status(400).render('error', {
-        error: 'Department ID is required'
-      });
-    }
+    const { name, url, business_area_id } = req.body;
 
     // Validate input
     const errorSummary = [];
     const fieldErrors = {};
-    const values = {
-      name: req.body.name,
-      url: req.body.url
-    };
+    const values = { name, url, business_area_id };
 
-    // Name validation
-    if (!values.name || values.name.trim() === '') {
+    if (!name || name.trim() === '') {
       const message = 'Enter a service name';
       errorSummary.push({ field: 'name', message });
       fieldErrors.name = message;
-    } else if (values.name.length > 255) {
+    } else if (name.length > 255) {
       const message = 'Service name must be 255 characters or less';
       errorSummary.push({ field: 'name', message });
       fieldErrors.name = message;
     }
 
-    // URL validation
-    if (!values.url || values.url.trim() === '') {
+    if (!url || url.trim() === '') {
       const message = 'Enter a service URL';
       errorSummary.push({ field: 'url', message });
       fieldErrors.url = message;
-    } else if (!values.url.match(/^https?:\/\/.+/)) {
+    } else if (!url.match(/^https?:\/\/.+/)) {
       const message = 'Enter a valid URL starting with http:// or https://';
-      errorSummary.push({ field: 'url', message });
-      fieldErrors.url = message;
-    } else if (values.url.length > 1000) {
-      const message = 'URL must be 1000 characters or less';
       errorSummary.push({ field: 'url', message });
       fieldErrors.url = message;
     }
 
     // If there are validation errors, render the form again with errors
     if (errorSummary.length > 0) {
+      const businessAreas = await businessAreasData.getDepartmentBusinessAreas(user.department.id);
       return res.render(`services/${user.role}/new`, {
         user,
+        businessAreas,
         errors: errorSummary,
         fieldErrors,
-        values
+        values,
+        csrfToken: req.csrfToken()
       });
     }
 
-    const serviceData = {
-      name: values.name.trim(),
-      url: values.url.trim(),
-      department_id: departmentId,
-      service_owner_id: user.id,
-      created_at: new Date(),
-      updated_at: new Date(),
-      statement_enrolled: false
-    };
+    // Start a transaction
+    await db.transaction(async (trx) => {
+      // Create the service
+      const serviceData = {
+        name: name.trim(),
+        url: url.trim(),
+        department_id: user.department.id,
+        business_area_id: business_area_id || null,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
 
-    const service = await servicesData.createService(serviceData);
-    
-    // Log the creation
-    await servicesData.logServiceAction(service.id, user.id, 'create', serviceData);
+      const [service] = await servicesData.createService(serviceData);
 
-    res.redirect(`/services/${service.id}`);
+      // Log the creation
+      await servicesData.logServiceAction(service.id, user.id, 'create', serviceData);
+    });
+
+    res.redirect('/services');
   } catch (error) {
     console.error('Create service error:', error);
     res.status(500).render('error', {
@@ -370,10 +348,14 @@ const editService = async (req, res) => {
     // Get department users for the service owner dropdown
     const departmentUsers = await usersData.getDepartmentUsers(service.department_id);
 
+    // Get business areas for the department
+    const businessAreas = await businessAreasData.getDepartmentBusinessAreas(service.department_id);
+
     res.render(`services/${user.role}/edit`, {
       user,
       service,
       departmentUsers,
+      businessAreas,
       csrfToken: req.csrfToken()
     });
   } catch (error) {
@@ -422,7 +404,9 @@ const updateService = async (req, res) => {
     const fieldErrors = {};
     const values = {
       name: req.body.name,
-      url: req.body.url
+      url: req.body.url,
+      service_owner_id: req.body.service_owner_id,
+      business_area_id: req.body.business_area_id || null
     };
 
     // Name validation
@@ -467,27 +451,63 @@ const updateService = async (req, res) => {
       }
     }
 
+    // Service owner validation
+    if (!values.service_owner_id) {
+      const message = 'Select a service owner';
+      errorSummary.push({ field: 'service_owner_id', message });
+      fieldErrors.service_owner_id = message;
+    }
+
     // If there are validation errors, render the form again with errors
     if (errorSummary.length > 0) {
+      // Get business areas for the department
+      const businessAreas = await businessAreasData.getDepartmentBusinessAreas(existingService.department_id);
+      
       return res.render(`services/${user.role}/edit`, {
         user,
         service: existingService,
+        departmentUsers: await usersData.getDepartmentUsers(existingService.department_id),
+        businessAreas,
         errors: errorSummary,
         fieldErrors,
-        values
+        values,
+        repositories: req.body.repositories || existingService.repositories
       });
     }
 
-    const serviceData = {
-      name: values.name.trim(),
-      url: values.url.trim(),
-      updated_at: new Date()
-    };
+    // Start a transaction
+    await db.transaction(async (trx) => {
+      // Update the service
+      const serviceData = {
+        name: values.name.trim(),
+        url: values.url.trim(),
+        service_owner_id: values.service_owner_id,
+        business_area_id: values.business_area_id,
+        updated_at: new Date()
+      };
 
-    await servicesData.updateService(serviceId, serviceData);
-    
-    // Log the update
-    await servicesData.logServiceAction(serviceId, user.id, 'update', serviceData);
+      await servicesData.updateService(serviceId, serviceData);
+
+      // Handle repositories
+      const repositories = req.body.repositories || [];
+      
+      // Delete existing repositories
+      await serviceRepositoriesData.deleteServiceRepositories(serviceId);
+      
+      // Add new repositories
+      for (const repo of repositories) {
+        if (repo.url && repo.type) {
+          await serviceRepositoriesData.addRepository({
+            serviceId,
+            url: repo.url.trim(),
+            type: repo.type
+          });
+        }
+      }
+
+      // Log the update
+      await servicesData.logServiceAction(serviceId, user.id, 'update', serviceData);
+    });
 
     res.redirect(`/services/${serviceId}`);
   } catch (error) {

@@ -19,6 +19,7 @@ const userServiceAssignmentsController = require('./controllers/user_service_ass
 const supportController = require('./controllers/support');
 const departmentsController = require('./controllers/departments');
 const reportsController = require('./controllers/reports');
+const businessAreasController = require('./controllers/business_areas');
 
 // Import route modules
 const authRoutes = require('./routes/auth');
@@ -152,5 +153,13 @@ router.get('/reports', isAuthenticated, isDepartmentAdmin, reportsController.ind
 router.get('/reports/wcag/:criterion', isAuthenticated, isDepartmentAdmin, reportsController.showWcagCriterion);
 
 router.get('/issues', isAuthenticated, isDepartmentAdmin, issuesController.index);
+
+// Business areas routes
+router.get('/business-areas', isAuthenticated, isDepartmentAdmin, businessAreasController.index);
+router.get('/business-areas/new', isAuthenticated, isDepartmentAdmin, businessAreasController.showNewForm);
+router.post('/business-areas', isAuthenticated, isDepartmentAdmin, businessAreasController.create);
+router.get('/business-areas/:id/edit', isAuthenticated, isDepartmentAdmin, businessAreasController.showEditForm);
+router.post('/business-areas/:id', isAuthenticated, isDepartmentAdmin, businessAreasController.update);
+router.post('/business-areas/:id/delete', isAuthenticated, isDepartmentAdmin, businessAreasController.destroy);
 
 module.exports = router; 

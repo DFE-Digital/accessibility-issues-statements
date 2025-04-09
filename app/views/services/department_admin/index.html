@@ -41,6 +41,7 @@
               <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                   <th scope="col" class="govuk-table__header govuk-!-width-one-third">Service name</th>
+                  <th scope="col" class="govuk-table__header">Business area</th>
                   <th scope="col" class="govuk-table__header">Open issues</th>
                   <th scope="col" class="govuk-table__header">Owner</th>
                   <th scope="col" class="govuk-table__header">Statement service</th>
@@ -54,6 +55,9 @@
                        {{ service.name }}
                       </a>
                     </th>
+                    <td class="govuk-table__cell">
+                      {{ service.business_area_name }}
+                    </td>
                     <td class="govuk-table__cell">
                       {{ service.open_issues_count if service.open_issues_count != undefined else 0 }}
                     </td>
