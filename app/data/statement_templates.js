@@ -1,28 +1,29 @@
 const { db } = require('../db');
 
 /**
- * Get the next version number for today
- * Format: YYYYMMDD_N where N is incremented if date exists
+ * Get the next version number for a template
  */
-async function getNextVersionNumber() {
+async function getNextVersionNumber(templateName) {
   const today = new Date();
   const datePrefix = today.getFullYear().toString() +
     (today.getMonth() + 1).toString().padStart(2, '0') +
     today.getDate().toString().padStart(2, '0');
 
-  // Get all versions for today
-  const versions = await db('statement_templates')
+  // Get the latest version for this template name on today's date
+  const latestVersion = await db('statement_templates')
+    .where({ name: templateName })
     .where('version', 'like', `${datePrefix}_%`)
-    .orderBy('version', 'desc');
+    .orderBy('version', 'desc')
+    .first()
+    .select('version');
 
-  if (versions.length === 0) {
+  if (!latestVersion) {
     return `${datePrefix}_1`;
   }
 
-  // Extract the highest N value
-  const latestVersion = versions[0].version;
-  const currentN = parseInt(latestVersion.split('_')[1]);
-  return `${datePrefix}_${currentN + 1}`;
+  // Extract the current version number and increment it
+  const currentVersion = parseInt(latestVersion.version.split('_')[1]);
+  return `${datePrefix}_${currentVersion + 1}`;
 }
 
 /**
@@ -44,47 +45,78 @@ async function getTemplate(id) {
 }
 
 /**
- * Get the currently active template
+ * Get the active template for a specific name
  */
-async function getActiveTemplate() {
+async function getActiveTemplateByName(name) {
   return db('statement_templates')
-    .where({ is_active: true })
+    .where({ 
+      name,
+      is_active: true 
+    })
     .orderBy('version', 'desc')
     .first();
+}
+
+/**
+ * Deactivate other templates of the same type
+ */
+async function deactivateOtherTemplatesOfType(templateType) {
+  return db('statement_templates')
+    .where({ 
+      name: templateType,
+      is_active: true 
+    })
+    .update({ is_active: false });
 }
 
 /**
  * Create a new template
  */
 async function createTemplate(templateData) {
-  // If this template is being set as active, deactivate all others
+  console.log('Data layer - Creating template with data:', templateData);
+
+  // If this template is being set as active, deactivate other templates of the same type
   if (templateData.is_active) {
-    await db('statement_templates')
-      .update({ is_active: false });
+    await deactivateOtherTemplatesOfType(templateData.name);
   }
 
-  const [id] = await db('statement_templates')
-    .insert(templateData)
-    .returning('id');
-
-  return id;
+  try {
+    const [id] = await db('statement_templates')
+      .insert({
+        name: templateData.name,
+        content: templateData.content,
+        version: templateData.version,
+        is_active: templateData.is_active,
+        created_by: templateData.created_by,
+        updated_by: templateData.updated_by
+      })
+      .returning('id');
+    
+    console.log('Data layer - Created template with ID:', id);
+    return id;
+  } catch (error) {
+    console.error('Data layer - Error creating template:', error);
+    throw error;
+  }
 }
 
 /**
  * Update an existing template
  */
 async function updateTemplate(id, templateData) {
-  // If this template is being set as active, deactivate all others
+  // If this template is being set as active, deactivate other templates of the same type
   if (templateData.is_active) {
-    await db('statement_templates')
-      .whereNot({ id })
-      .update({ is_active: false });
+    await deactivateOtherTemplatesOfType(templateData.name);
   }
 
   await db('statement_templates')
     .where({ id })
     .update({
-      ...templateData,
+      name: templateData.name,
+      content: templateData.content,
+      version: templateData.version,
+      is_active: templateData.is_active,
+      updated_by: templateData.updated_by,
       updated_at: db.fn.now()
     });
 }
@@ -92,8 +124,9 @@ async function updateTemplate(id, templateData) {
 module.exports = {
   getTemplates,
   getTemplate,
-  getActiveTemplate,
+  getActiveTemplateByName,
   createTemplate,
   updateTemplate,
-  getNextVersionNumber
+  getNextVersionNumber,
+  deactivateOtherTemplatesOfType
 }; 

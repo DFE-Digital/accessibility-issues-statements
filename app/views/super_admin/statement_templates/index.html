@@ -1,59 +1,330 @@
 {% extends "layouts/layout_wide.html" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
 
 {% set pageTitle = "Statement templates" %}
 
+{% set serviceNav = "Statements" %}
+
 {% block content %}
+{% include "layouts/_pageheader.html" %}
+
+
   <div class="govuk-width-container">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-xl">Statement templates</h1>
 
         {% if templates.length > 0 %}
-          {% for template in templates %}
-            <div class="govuk-summary-card">
-              <div class="govuk-summary-card__title-wrapper">
-                <h2 class="govuk-summary-card__title">{{ template.name }}</h2>
-                <ul class="govuk-summary-card__actions">
-                  <li class="govuk-summary-card__action">
-                    <a class="govuk-link govuk-link--no-visited-state" href="/super-admin/statement-templates/{{ template.id }}/edit">
-                  Edit<span class="govuk-visually-hidden">
-                        {{ template.name }}</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div class="govuk-summary-card__content">
-                <dl class="govuk-summary-list">
-                  <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key">Version</dt>
-                    <dd class="govuk-summary-list__value">{{ template.version }}</dd>
-                  </div>
-                  <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key">Status</dt>
-                    <dd class="govuk-summary-list__value">
-                      {% if template.is_active %}
-                        <strong class="govuk-tag govuk-tag--green">Active</strong>
-                      {% else %}
-                        <strong class="govuk-tag govuk-tag--grey">Inactive</strong>
+          {# Active Templates Card #}
+          <div class="govuk-summary-card">
+            <div class="govuk-summary-card__title-wrapper">
+              <h2 class="govuk-summary-card__title">Active templates</h2>
+            </div>
+            <div class="govuk-summary-card__content">
+              <div class="govuk-table__container">
+                <table class="govuk-table">
+                  <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                      <th scope="col" class="govuk-table__header govuk-!-width-one-third">Name</th>
+                      <th scope="col" class="govuk-table__header govuk-!-width-one-third">Version</th>
+                    </tr>
+                  </thead>
+                  <tbody class="govuk-table__body">
+                    {% for template in templates %}
+                      {% if template.is_active and template.name == 'Compliant' %}
+                        <tr class="govuk-table__row">
+                          <td class="govuk-table__cell"> <a href="/super-admin/statement-templates/{{ template.id }}/edit" class="govuk-link govuk-!-margin-right-3">{{ template.name }}</a></td>
+                          <td class="govuk-table__cell">{{ template.version }}</td>
+                        </tr>
                       {% endif %}
-                    </dd>
-                  </div>
-                  <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key">Last updated</dt>
-                    <dd class="govuk-summary-list__value">{{ template.updated_at | date("D MMMM YYYY") }}</dd>
-                  </div>
-                </dl>
+                    {% endfor %}
+                    
+                    {% for template in templates %}
+                      {% if template.is_active and template.name == 'Partially compliant' %}
+                        <tr class="govuk-table__row">
+                          <td class="govuk-table__cell"> <a href="/super-admin/statement-templates/{{ template.id }}/edit" class="govuk-link govuk-!-margin-right-3">{{ template.name }}</a></td>
+                          <td class="govuk-table__cell">{{ template.version }}</td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                    
+                    {% for template in templates %}
+                      {% if template.is_active and template.name == 'Non-compliant' %}
+                        <tr class="govuk-table__row">
+                          <td class="govuk-table__cell"> <a href="/super-admin/statement-templates/{{ template.id }}/edit" class="govuk-link govuk-!-margin-right-3">{{ template.name }}</a></td>
+                          <td class="govuk-table__cell">{{ template.version }}</td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
               </div>
             </div>
-          {% endfor %}
+          </div>
+
+          {# Previous Versions Card #}
+          <div class="govuk-summary-card">
+            <div class="govuk-summary-card__title-wrapper">
+              <div class="app-toggle-header">
+                <button class="app-toggle-button" aria-expanded="false" aria-controls="previous-versions-content">
+                  <svg class="app-toggle-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <polyline points="6 12 10 8 6 4"/>
+                  </svg>
+                </button>
+                <h2 class="govuk-summary-card__title">Previous versions</h2>
+              </div>
+            </div>
+            <div class="govuk-summary-card__content" id="previous-versions-content" hidden>
+              <div class="govuk-table__container">
+                <table class="govuk-table">
+                  <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                      <th scope="col" class="govuk-table__header govuk-!-width-one-third">Name</th>
+                      <th scope="col" class="govuk-table__header govuk-!-width-one-third">Version</th>
+                      <th scope="col" class="govuk-table__header govuk-!-width-one-third">Last updated</th>
+                    </tr>
+                  </thead>
+                  <tbody class="govuk-table__body">
+                    {% for template in templates %}
+                      {% if not template.is_active and template.name == 'Compliant' %}
+                        <tr class="govuk-table__row">
+                          <td class="govuk-table__cell">{{ template.name }}</td>
+                          <td class="govuk-table__cell">{{ template.version }}</td>
+                          <td class="govuk-table__cell">{{ template.updated_at | date("D MMMM YYYY") }}</td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                    
+                    {% for template in templates %}
+                      {% if not template.is_active and template.name == 'Partially compliant' %}
+                        <tr class="govuk-table__row">
+                          <td class="govuk-table__cell">{{ template.name }}</td>
+                          <td class="govuk-table__cell">{{ template.version }}</td>
+                          <td class="govuk-table__cell">{{ template.updated_at | date("D MMMM YYYY") }}</td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                    
+                    {% for template in templates %}
+                      {% if not template.is_active and template.name == 'Non-compliant' %}
+                        <tr class="govuk-table__row">
+                          <td class="govuk-table__cell">{{ template.name }}</td>
+                          <td class="govuk-table__cell">{{ template.version }}</td>
+                          <td class="govuk-table__cell">{{ template.updated_at | date("D MMMM YYYY") }}</td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         {% else %}
           <p class="govuk-body">No statement templates found.</p>
         {% endif %}
 
         <a href="/super-admin/statement-templates/new" role="button" draggable="false" class="govuk-button govuk-button--primary" data-module="govuk-button">
-      Create new template
-    </a>
+          Create new template
+        </a>
       </div>
     </div>
   </div>
+
+  {# Delete Modal #}
+  <div class="govuk-modal-overlay" id="delete-modal" style="display: none;" role="dialog" aria-labelledby="modal-title"
+    aria-describedby="modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="modal-title">Delete template</h2>
+        <button class="govuk-modal__close" aria-label="Close modal" onclick="closeDeleteModal()">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="govuk-modal__content">
+        <div id="modal-description">
+          <div class="govuk-warning-text">
+            <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+            <strong class="govuk-warning-text__text">
+              <span class="govuk-warning-text__assistive">Warning</span>
+              This action cannot be undone
+            </strong>
+          </div>
+          <p class="govuk-body">Are you sure you want to delete this template?</p>
+          <p class="govuk-body" id="template-preview"></p>
+        </div>
+        <form id="delete-form" method="post" style="display: inline;">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-button-group">
+            <button type="submit" class="govuk-button govuk-button--warning" data-module="govuk-button"
+              data-prevent-double-click="true">
+              Delete template
+            </button>
+            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button"
+              onclick="closeDeleteModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .govuk-table__container {
+      overflow-x: auto;
+      margin-bottom: 30px;
+    }
+
+    .govuk-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+
+    .govuk-table__header {
+      font-weight: 700;
+      padding: 10px 20px 10px 0;
+      border-bottom: 2px solid #b1b4b6;
+      text-align: left;
+    }
+
+    .govuk-table__cell {
+      padding: 15px 20px 15px 0;
+      border-bottom: 1px solid #b1b4b6;
+      vertical-align: top;
+    }
+
+    .govuk-table__row:last-child .govuk-table__cell {
+      border-bottom: none;
+    }
+
+    /* Add toggle button styles */
+    .app-toggle-button {
+      background: none;
+      border: none;
+      padding: 4px;
+      margin-right: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 4px;
+    }
+
+    .app-toggle-button:hover {
+      background-color: #f3f2f1;
+    }
+
+    .app-toggle-button:focus {
+      outline: 3px solid #fd0;
+      outline-offset: 0;
+      background: none;
+    }
+
+    .app-toggle-icon {
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    .app-toggle-button[aria-expanded="true"] .app-toggle-icon {
+      transform: rotate(90deg);
+    }
+
+    .app-toggle-section[hidden] {
+      display: none;
+    }
+
+    .app-toggle-header {
+      display: flex;
+      align-items: center;
+    }
+
+    @media (max-width: 40.0625em) {
+      .govuk-table__header,
+      .govuk-table__cell {
+        padding: 10px 15px 10px 0;
+      }
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleButton = document.querySelector('.app-toggle-button');
+      const content = document.getElementById('previous-versions-content');
+
+      toggleButton.addEventListener('click', function() {
+        const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
+        toggleButton.setAttribute('aria-expanded', !isExpanded);
+        content.hidden = isExpanded;
+      });
+    });
+
+    let previousActiveElement;
+
+    function openDeleteModal(templateId, templateName) {
+      previousActiveElement = document.activeElement;
+      const modal = document.getElementById('delete-modal');
+      const body = document.body;
+
+      modal.style.display = 'flex';
+      body.classList.add('modal-open');
+
+      document.getElementById('delete-form').action = `/super-admin/statement-templates/${templateId}/delete`;
+      document.getElementById('template-preview').textContent = `"${templateName}"`;
+
+      modal.focus();
+      trapFocus(modal);
+    }
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('delete-modal');
+      const body = document.body;
+
+      modal.style.display = 'none';
+      body.classList.remove('modal-open');
+
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    function trapFocus(modal) {
+      const focusableElements = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstFocusableElement) {
+              lastFocusableElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastFocusableElement) {
+              firstFocusableElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      });
+
+      firstFocusableElement.focus();
+    }
+
+    document.addEventListener('click', function (event) {
+      const modal = document.querySelector('.govuk-modal');
+      const overlay = document.getElementById('delete-modal');
+      if (event.target === overlay && modal && !modal.contains(event.target)) {
+        closeDeleteModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.getElementById('delete-modal').style.display === 'flex') {
+        closeDeleteModal();
+      }
+    });
+  </script>
 {% endblock %}

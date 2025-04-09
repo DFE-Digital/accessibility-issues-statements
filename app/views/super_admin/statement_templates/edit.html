@@ -1,8 +1,12 @@
 {% extends "layouts/layout_wide.html" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
 
 {% set pageTitle = "Edit statement template" %}
+{% set serviceNav = "Statements" %}
 
 {% block content %}
+{% include "layouts/_pageheader.html" %}
+
   <div class="govuk-width-container">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
@@ -14,47 +18,62 @@
 
           <div class="govuk-form-group {% if errors.name %}govuk-form-group--error{% endif %}">
             <label class="govuk-label govuk-label--m" for="name">
-          Template name
-        </label>
+              Template name
+            </label>
+            <div id="name-hint" class="govuk-hint">
+              Give this template a descriptive name
+            </div>
             {% if errors.name %}
               <p id="name-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">Error:</span>
-                {{ errors.name.text }}
+                <span class="govuk-visually-hidden">Error:</span> {{ errors.name.text }}
               </p>
             {% endif %}
-            <input class="govuk-input {% if errors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ template.name }}">
+            <input class="govuk-input {% if errors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ template.name }}" aria-describedby="name-hint">
           </div>
 
           <div class="govuk-form-group {% if errors.content %}govuk-form-group--error{% endif %}">
             <label class="govuk-label govuk-label--m" for="content">
-          Template content
-        </label>
+              Template content
+            </label>
             <div id="content-hint" class="govuk-hint">
-          Use markdown for formatting. Available variables: {{ name_of_service }}, {{ department_name }}, {{ contact_email }}
+              Use markdown for formatting. Available variables: {{ name_of_service }}, {{ department_name }}, {{ contact_email }}
             </div>
             {% if errors.content %}
               <p id="content-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">Error:</span>
-                {{ errors.content.text }}
+                <span class="govuk-visually-hidden">Error:</span> {{ errors.content.text }}
               </p>
             {% endif %}
             <textarea class="govuk-textarea {% if errors.content %}govuk-textarea--error{% endif %}" id="content" name="content" rows="20" aria-describedby="content-hint">{{ template.content }}</textarea>
           </div>
 
           <div class="govuk-form-group">
-            <div class="govuk-checkboxes" data-module="govuk-checkboxes">
-              <div class="govuk-checkboxes__item">
-                <input class="govuk-checkboxes__input" id="is_active" name="is_active" type="checkbox" value="true" {% if template.is_active %}checked{% endif %}>
-                <label class="govuk-label govuk-checkboxes__label" for="is_active">
-              Set as active template
-            </label>
+            <fieldset class="govuk-fieldset">
+              <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                Template status
+              </legend>
+              <div class="govuk-radios" data-module="govuk-radios">
+                <div class="govuk-radios__item">
+                  <input class="govuk-radios__input" id="is_active_true" name="is_active" type="radio" value="true" {% if template.is_active %}checked{% endif %}>
+                  <label class="govuk-label govuk-radios__label" for="is_active_true">
+                    Set as active template for this type
+                  </label>
+                  <div class="govuk-hint govuk-radios__hint">
+                    This will deactivate any other active template of the same type
+                  </div>
+                </div>
+                <div class="govuk-radios__item">
+                  <input class="govuk-radios__input" id="is_active_false" name="is_active" type="radio" value="false" {% if not template.is_active %}checked{% endif %}>
+                  <label class="govuk-label govuk-radios__label" for="is_active_false">
+                    Save as inactive version
+                  </label>
+                </div>
               </div>
-            </div>
+            </fieldset>
           </div>
 
           <button type="submit" class="govuk-button" data-module="govuk-button">
-        Save changes
-      </button>
+            Save changes
+          </button>
 
           <p class="govuk-body">
             <a href="/super-admin/statement-templates" class="govuk-link govuk-link--no-visited-state">Cancel</a>

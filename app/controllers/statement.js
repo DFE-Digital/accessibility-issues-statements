@@ -1,6 +1,6 @@
 const { getDepartmentServices, getService, getServiceByNumericId } = require('../data/services');
-const { getOpenIssues } = require('../data/issues');
-const { getActiveTemplate } = require('../data/statement_templates');
+const { getOpenIssues, getServiceIssues } = require('../data/issues');
+const { getActiveTemplate, getActiveTemplateByName } = require('../data/statement_templates');
 const { getServiceStatementSettings, getServiceContactSettings } = require('../data/service_statement_settings');
 const marked = require('marked');
 
@@ -103,20 +103,67 @@ function formatContactMethods(contactMethods) {
   return formattedMethods.join('\n');
 }
 
-async function replaceTemplateParameters(template, service) {
-  let content = template.content;
-  
-  // Get statement settings for the service
-  const settings = await getServiceStatementSettings(service.id);
-  
+async function replaceTemplateParameters(serviceId, content) {
+  const service = await getService(serviceId);
+  const issues = await getServiceIssues(serviceId);
+  const openIssues = issues.filter(issue => issue.status === 'open');
+  const settings = await getServiceStatementSettings(serviceId);
+  const serviceContactSettings = await getServiceContactSettings(serviceId);
+
   // Get today's date in the correct format
   const today = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   });
+
+  // Format the basic issues list
+  const basicIssuesList = openIssues.map(issue => {
+    return `- ${issue.title}`;
+  }).join('\n');
+
+  // Format the detailed issues list
+  const detailedIssuesList = openIssues.length > 0 ? 
+    `| Issue | Description | WCAG Criteria | Resolution Information |
+|-------|-------------|---------------|------------------------|
+${openIssues.map(issue => {
+  const description = issue.description || 'No description provided';
+  const wcagCriteria = issue.wcag_criteria && issue.wcag_criteria.length > 0
+    ? issue.wcag_criteria.map(criterion => 
+        `${criterion.criterion} - ${criterion.title} (${criterion.level})`
+      ).join('<br>')
+    : 'WCAG criterion not specified';
   
-  // Replace all template variables with service data
+  let resolutionInfo = 'No resolution information provided';
+  if (issue.planned_fix === true && issue.planned_fix_date) {
+    const fixDate = new Date(issue.planned_fix_date).toLocaleDateString('en-GB', {
+      month: 'long',
+      year: 'numeric'
+    });
+    resolutionInfo = `Planning to resolve by ${fixDate}`;
+  } else if (issue.planned_fix === false && issue.not_fixing_reason) {
+    resolutionInfo = `${issue.not_fixing_reason}`;
+  }
+  
+  return `| ${issue.title} | ${description} | ${wcagCriteria} | ${resolutionInfo} |`;
+}).join('\n')}` : 'No open issues';
+
+  // Determine which template to use based on number of issues
+  let templateName;
+  if (openIssues.length === 0) {
+    templateName = 'Compliant';
+  } else if (openIssues.length <= 10) {
+    templateName = 'Partially compliant';
+  } else {
+    templateName = 'Non-compliant';
+  }
+
+  // Get the appropriate template
+  const template = await getActiveTemplateByName(templateName);
+  if (!template) {
+    throw new Error(`No active template found for ${templateName}`);
+  }
+
   const replacements = {
     '{{ name_of_service }}': service.name,
     '{{ department_name }}': service.department_name,
@@ -128,15 +175,18 @@ async function replaceTemplateParameters(template, service) {
     '{{ last_audit_date }}': formatDate(settings?.last_audit_date),
     '{{ last_audit_by }}': settings?.last_audit_by || '[Auditor not specified]',
     '{{ last_audit_method }}': settings?.last_audit_method || '[Audit method not specified]',
-    '{{ contact_methods }}': formatContactMethods(settings?.contactMethods),
-    '{{ today }}': today
+    '{{ contact_methods }}': formatContactMethods(serviceContactSettings),
+    '{{ today }}': today,
+    '{{ issues_basic }}': basicIssuesList || 'No open issues',
+    '{{ issues_detailed }}': detailedIssuesList || 'No open issues'
   };
 
-  for (const [placeholder, value] of Object.entries(replacements)) {
-    content = content.replace(new RegExp(placeholder, 'g'), value || '[Not provided]');
+  let replacedContent = content;
+  for (const [key, value] of Object.entries(replacements)) {
+    replacedContent = replacedContent.replace(new RegExp(key, 'g'), value || '[Not provided]');
   }
 
-  return content;
+  return replacedContent;
 }
 
 /**
@@ -154,14 +204,28 @@ async function showPublicStatement(req, res) {
     }
 
     const openIssues = await getOpenIssues(service.id);
-    const template = await getActiveTemplate();
+    
+    // Determine which template to use based on number of issues
+
+    console.log(openIssues);
+
+    let templateName;
+    if (openIssues.length === 0) {
+      templateName = 'Compliant';
+    } else if (openIssues.length <= 10) {
+      templateName = 'Partially compliant';
+    } else {
+      templateName = 'Non-compliant';
+    }
+
+    const template = await getActiveTemplateByName(templateName);
 
     if (!template) {
       return res.status(404).render('404');
     }
 
     // Replace template parameters and convert to HTML
-    const statementHtml = await replaceTemplateParameters(template, service);
+    const statementHtml = await replaceTemplateParameters(service.id, template.content);
 
     res.render('public/statement', {
       service,

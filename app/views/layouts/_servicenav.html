@@ -23,6 +23,9 @@
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Users' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/admin/users">Users</a>
                             </li>
+                             <li class="govuk-service-navigation__item {% if serviceNav == 'Statements' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/super-admin/statement-templates">Statement templates</a>
+                            </li>
                         {% elseif user.role == 'department_admin' %}
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>

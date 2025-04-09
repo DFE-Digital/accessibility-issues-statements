@@ -1,9 +1,18 @@
-const { getTemplates, getTemplate, updateTemplate, createTemplate: createTemplateInDb, getNextVersionNumber } = require('../data/statement_templates');
+const { getTemplates, getTemplate, updateTemplate, createTemplate: createTemplateInDb, getNextVersionNumber, deactivateOtherTemplatesOfType, getActiveTemplateByName } = require('../data/statement_templates');
 
 async function showTemplateIndex(req, res) {
   try {
     const templates = await getTemplates();
-    res.render('super_admin/statement_templates/index', { templates });
+    // Group templates by type for the view
+    const activeTemplates = templates.filter(t => t.is_active);
+    const previousVersions = templates.filter(t => !t.is_active)
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+    
+    res.render('super_admin/statement_templates/index', { 
+      templates,
+      activeTemplates,
+      previousVersions
+    });
   } catch (error) {
     console.error('Error showing templates:', error);
     res.status(500).render('error');
@@ -14,7 +23,6 @@ async function showNewTemplate(req, res) {
   res.render('super_admin/statement_templates/new', {
     template: {
       name: '',
-      version: '',
       content: '',
       is_active: false
     },
@@ -25,6 +33,13 @@ async function showNewTemplate(req, res) {
 async function createTemplate(req, res) {
   const { name, content, is_active } = req.body;
 
+  console.log('Creating template with data:', {
+    name,
+    content,
+    is_active,
+    user_id: req.session.user.id
+  });
+
   try {
     // Validate required fields
     const errors = {};
@@ -32,6 +47,7 @@ async function createTemplate(req, res) {
     if (!content) errors.content = { text: 'Enter template content' };
 
     if (Object.keys(errors).length > 0) {
+      console.log('Validation errors:', errors);
       return res.render('super_admin/statement_templates/new', {
         template: { name, content, is_active: is_active === 'true' },
         errors
@@ -39,19 +55,23 @@ async function createTemplate(req, res) {
     }
 
     // Get the next version number
-    const version = await getNextVersionNumber();
+    const version = await getNextVersionNumber(name);
+    console.log('Generated version:', version);
 
     // Create template
-    await createTemplateInDb({
+    const templateData = {
       name,
       version,
       content,
       is_active: is_active === 'true',
       created_by: req.session.user.id,
       updated_by: req.session.user.id
-    });
+    };
+    console.log('Creating template with data:', templateData);
 
-   
+    const templateId = await createTemplateInDb(templateData);
+    console.log('Created template with ID:', templateId);
+
     res.redirect('/super-admin/statement-templates');
   } catch (error) {
     console.error('Error creating template:', error);
@@ -104,7 +124,12 @@ async function updateTemplateHandler(req, res) {
     }
 
     // Get the next version number
-    const version = await getNextVersionNumber();
+    const version = await getNextVersionNumber(name);
+
+    // If setting as active, deactivate other templates of the same type
+    if (is_active === 'true') {
+      await deactivateOtherTemplatesOfType(name);
+    }
 
     // Create new template version
     await createTemplateInDb({
@@ -115,7 +140,6 @@ async function updateTemplateHandler(req, res) {
       created_by: req.session.user.id,
       updated_by: req.session.user.id
     });
-
 
     res.redirect('/super-admin/statement-templates');
   } catch (error) {
