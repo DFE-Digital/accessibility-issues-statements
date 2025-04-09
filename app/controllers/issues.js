@@ -3,6 +3,7 @@ const { getDepartmentServices, getService, getAllServices } = require('../data/s
 const { createComment, getIssueComments, deleteComment } = require('../data/comments');
 const { getWcagCriteria } = require('../data/wcag_criteria');
 const { db } = require('../db');
+const { sendEmail } = require('../middleware/notify');
 
 
 const index = async (req, res) => {
@@ -633,6 +634,7 @@ async function assignIssue(req, res) {
     }
 
     let assignedUserId = assign_to;
+    let assignedUserEmail = new_user_email;
 
     // If assigning to a new user, create the user first
     if (new_user_email) {
@@ -643,6 +645,7 @@ async function assignIssue(req, res) {
 
       if (existingUser) {
         assignedUserId = existingUser.id;
+        assignedUserEmail = existingUser.email;
       } else {
         // Create new user
         const [newUser] = await db('users')
@@ -656,7 +659,16 @@ async function assignIssue(req, res) {
           .returning('*');
         
         assignedUserId = newUser.id;
+        assignedUserEmail = newUser.email;
       }
+    } else {
+      // Get the email of the existing user being assigned
+      const assignedUser = await db('users')
+        .where('id', assignedUserId)
+        .select('email')
+        .first();
+      
+      assignedUserEmail = assignedUser.email;
     }
 
     // Check if the assigned_to column exists
@@ -687,6 +699,20 @@ async function assignIssue(req, res) {
         content: comment
       });
     }
+
+    // Send email notification
+    const issueUrl = `${req.protocol}://${req.get('host')}/services/${serviceId}/issues/${id}`;
+    
+    await sendEmail(
+      assignedUserEmail,
+      process.env.GOVUK_NOTIFY_ISSUE_ASSIGNED_ID,
+      {
+        title: issue.title,
+        description: issue.description,
+        issueUrl: issueUrl,
+        comments: comment || ''
+      }
+    );
 
     res.redirect(`/services/${serviceId}/issues/${id}`);
   } catch (error) {
