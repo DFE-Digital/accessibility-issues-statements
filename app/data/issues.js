@@ -128,6 +128,16 @@ async function createIssue(issueData, wcagCriteria = [], issueTypes = []) {
   const trx = await db.transaction();
 
   try {
+    // Get the department_id from the service
+    const service = await trx('services')
+      .select('department_id')
+      .where('id', issueData.service_id)
+      .first();
+
+    if (!service) {
+      throw new Error('Service not found');
+    }
+
     // Create the issue
     const [issue] = await trx('issues')
       .insert({
@@ -149,7 +159,8 @@ async function createIssue(issueData, wcagCriteria = [], issueTypes = []) {
       await trx('issue_wcag_criteria')
         .insert(wcagCriteria.map(criterion => ({
           issue_id: issue.id,
-          wcag_criterion: criterion
+          wcag_criterion: criterion,
+          department_id: service.department_id
         })));
     }
 
@@ -158,7 +169,8 @@ async function createIssue(issueData, wcagCriteria = [], issueTypes = []) {
       await trx('issue_types')
         .insert(issueTypes.map(type => ({
           issue_id: issue.id,
-          type: type
+          type: type,
+          department_id: service.department_id
         })));
     }
 

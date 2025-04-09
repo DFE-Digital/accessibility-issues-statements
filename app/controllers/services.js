@@ -2,6 +2,7 @@ const { db } = require('../db');
 const servicesData = require('../data/services');
 const { getDepartmentServices } = require('../data/services');
 const { getServiceIssues } = require('../data/issues');
+const usersData = require('../data/users');
 
 /**
  * Get services for the current user's department
@@ -366,9 +367,14 @@ const editService = async (req, res) => {
       });
     }
 
+    // Get department users for the service owner dropdown
+    const departmentUsers = await usersData.getDepartmentUsers(service.department_id);
+
     res.render(`services/${user.role}/edit`, {
       user,
-      service
+      service,
+      departmentUsers,
+      csrfToken: req.csrfToken()
     });
   } catch (error) {
     console.error('Edit service error:', error);

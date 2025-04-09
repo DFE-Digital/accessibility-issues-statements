@@ -2,8 +2,10 @@ const { db } = require('../db');
 
 /**
  * Get all users in a department
+ * @param {string} departmentId - Department ID
+ * @returns {Promise<Array>} Array of users
  */
-async function getUsers(departmentId) {
+async function getDepartmentUsers(departmentId) {
   return db('users')
     .where('department_id', departmentId)
     .orderBy('email', 'asc');
@@ -53,7 +55,7 @@ async function deleteUser(userId) {
 }
 
 module.exports = {
-  getUsers,
+  getDepartmentUsers,
   getUserById,
   createUser,
   updateUser,
