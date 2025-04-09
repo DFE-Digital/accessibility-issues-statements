@@ -55,6 +55,7 @@ router.post('/services/:serviceId/issues/:id/comments/:commentId/delete', isAuth
 // Issue status changes
 router.post('/services/:serviceId/issues/:id/close', isAuthenticated, issuesController.handleCloseIssue);
 router.post('/services/:serviceId/issues/:id/reopen', isAuthenticated, issuesController.handleReopenIssue);
+router.post('/services/:serviceId/issues/:id/assign', isAuthenticated, issuesController.assignIssue);
 
 // Statement routes
 router.get('/services/:serviceId/statement', isAuthenticated, statementController.showStatementIndex);
@@ -142,8 +143,9 @@ router.get('/support', isAuthenticated, supportController.index);
 // Users routes
 router.get('/users', isAuthenticated, isDepartmentAdmin, usersController.index);
 router.get('/users/:id/edit', isAuthenticated, isDepartmentAdmin, usersController.showEditForm);
-router.post('/users/:id', isAuthenticated, isDepartmentAdmin, usersController.update);
-router.post('/users/:id/delete', isAuthenticated, isDepartmentAdmin, usersController.destroy);
+
+// Super admin users routes
+router.get('/admin/users', isAuthenticated, isSuperAdmin, usersController.superAdminIndex);
 
 // Reports routes
 router.get('/reports', isAuthenticated, isDepartmentAdmin, reportsController.index);

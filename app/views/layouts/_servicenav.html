@@ -17,17 +17,11 @@
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>
                             </li>
-                            <li class="govuk-service-navigation__item {% if serviceNav == 'Reports' %}govuk-service-navigation__item--active{% endif %}">
-                                <a class="govuk-service-navigation__link" href="/reports">Reports</a>
-                            </li>
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Departments' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/departments">Departments</a>
                             </li>
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Users' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/admin/users">Users</a>
-                            </li>
-                            <li class="govuk-service-navigation__item {% if serviceNav == 'Support' %}govuk-service-navigation__item--active{% endif %}">
-                                <a class="govuk-service-navigation__link" href="/support">Support</a>
                             </li>
                         {% elseif user.role == 'department_admin' %}
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">

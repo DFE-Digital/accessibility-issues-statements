@@ -20,7 +20,7 @@
       {% if isSuperUser %}
         <div class="govuk-inset-text">
           <p class="govuk-body">As a super user, you have access to all departments and services in the system.</p>
-          <p class="govuk-body">If you need support, please contact the <a href="mailto:design.ops@education.gov.uk" class="govuk-link">DfE DesignOps team</a>.</p>
+          <p class="govuk-body">If you need support, please contact the <a href="mailto:design.ops@education.gov.uk" class="govuk-link govuk-link--no-visited-state">DfE DesignOps team</a>.</p>
         </div>
       {% else %}
         <h2 class="govuk-heading-m">Your department admins</h2>
@@ -37,7 +37,7 @@
                 <tr class="govuk-table__row">
                   <th class="govuk-table__header">{{ admin.first_name }} {{ admin.last_name }}</th>
                   <td class="govuk-table__cell">
-                    <a href="mailto:{{ admin.email }}" class="govuk-link">{{ admin.email }}</a>
+                    <a href="mailto:{{ admin.email }}" class="govuk-link govuk-link--no-visited-state">{{ admin.email }}</a>
                   </td>
                 </tr>
               {% endfor %}
@@ -50,9 +50,9 @@
 
       <h2 class="govuk-heading-m govuk-!-margin-top-6">Helpful links</h2>
       <ul class="govuk-list govuk-list--bullet">
-        <li><a href="/services" class="govuk-link">View your services</a></li>
-        <li><a href="https://www.gov.uk/guidance/accessibility-requirements-for-public-sector-websites-and-apps" class="govuk-link" target="_blank">Accessibility requirements guidance (opens in new tab)</a></li>
-        <li><a href="https://www.w3.org/WAI/standards-guidelines/wcag/" class="govuk-link" target="_blank">WCAG guidelines (opens in new tab)</a></li>
+        <li><a href="/services" class="govuk-link govuk-link--no-visited-state">View your services</a></li>
+        <li><a href="https://www.gov.uk/guidance/accessibility-requirements-for-public-sector-websites-and-apps" class="govuk-link govuk-link--no-visited-state" target="_blank">Accessibility requirements guidance (opens in new tab)</a></li>
+        <li><a href="https://www.w3.org/WAI/standards-guidelines/wcag/" class="govuk-link govuk-link--no-visited-state" target="_blank">WCAG guidelines (opens in new tab)</a></li>
       </ul>
 
       <h2 class="govuk-heading-m govuk-!-margin-top-6">Need more help?</h2>

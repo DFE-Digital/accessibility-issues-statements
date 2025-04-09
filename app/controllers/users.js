@@ -258,6 +258,7 @@ const index = async (req, res) => {
       )
       .where('users.department_id', departmentId)
       .orderBy('users.first_name');
+      
 
     res.render('department_admin/users/index', {
       users,
@@ -389,8 +390,38 @@ const destroy = async (req, res) => {
   }
 };
 
+const superAdminIndex = async (req, res) => {
+  try {
+    // Get all users across all departments
+    const users = await db('users')
+      .select(
+        'users.*',
+        'departments.name as department_name'
+      )
+      .leftJoin('departments', 'users.department_id', 'departments.id')
+      .orderBy('users.first_name');
+
+    // Get all departments for the filter dropdown
+    const departments = await db('departments')
+      .select('id', 'name')
+      .orderBy('name');
+
+    res.render('super_admin/users/index', {
+      users,
+      departments,
+      currentUserId: req.session.user.id,
+      title: 'Manage Users',
+      serviceNavigation: false
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.redirect('/');
+  }
+};
+
 module.exports = {
   index,
+  superAdminIndex,
   showEditForm,
   update,
   destroy,

@@ -260,6 +260,50 @@ async function getService(id) {
   return service;
 }
 
+/**
+ * Get a service by its name
+ * @param {string} name - Service name
+ * @returns {Promise<Object>} Service object
+ */
+async function getServiceByName(name) {
+  const [service] = await db('services')
+    .select('*')
+    .where('name', name);
+  
+  return service;
+}
+
+/**
+ * Get a service by its URL
+ * @param {string} url - Service URL
+ * @returns {Promise<Object>} Service object
+ */
+async function getServiceByUrl(url) {
+  const [service] = await db('services')
+    .select('*')
+    .where('url', url);
+  
+  return service;
+}
+
+/**
+ * Update a service
+ * @param {string} id - Service ID (UUID)
+ * @param {Object} serviceData - Service data to update
+ * @returns {Promise<Object>} Updated service
+ */
+async function updateService(id, serviceData) {
+  const [service] = await db('services')
+    .where('id', id)
+    .update({
+      ...serviceData,
+      updated_at: new Date()
+    })
+    .returning('*');
+  
+  return service;
+}
+
 module.exports = {
   getAllServices,
   getDepartmentServices,
@@ -270,5 +314,8 @@ module.exports = {
   createService,
   logServiceAction,
   getServiceByNumericId,
-  getService
+  getService,
+  getServiceByName,
+  getServiceByUrl,
+  updateService
 }; 

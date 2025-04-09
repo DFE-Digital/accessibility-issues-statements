@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  {{ title }} - GOV.UK
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <h1 class="govuk-heading-xl">{{ title }}</h1>
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="department-filter">
+            Filter by department
+          </label>
+          <select class="govuk-select" id="department-filter">
+            <option value="">All departments</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}">{{ department.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="role-filter">
+            Filter by role
+          </label>
+          <select class="govuk-select" id="role-filter">
+            <option value="">All roles</option>
+            <option value="department_admin">Department Admin</option>
+            <option value="service_admin">Service Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="search">
+            Search users
+          </label>
+          <input class="govuk-input" id="search" type="text" placeholder="Search by name or email">
+        </div>
+      </div>
+    </div>
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Name</th>
+              <th scope="col" class="govuk-table__header">Email</th>
+              <th scope="col" class="govuk-table__header">Department</th>
+              <th scope="col" class="govuk-table__header">Role</th>
+              <th scope="col" class="govuk-table__header">Status</th>
+              <th scope="col" class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for user in users %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ user.name }}</td>
+              <td class="govuk-table__cell">{{ user.email }}</td>
+              <td class="govuk-table__cell">{{ user.department_name or 'No department' }}</td>
+              <td class="govuk-table__cell">
+                <span class="govuk-tag govuk-tag--{{ user.role === 'department_admin' ? 'blue' : user.role === 'service_admin' ? 'green' : 'grey' }}">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td class="govuk-table__cell">
+                <span class="govuk-tag govuk-tag--{{ user.is_active ? 'green' : 'red' }}">
+                  {{ user.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="govuk-table__cell">
+                <a href="/admin/users/{{ user.id }}/edit" class="govuk-link">Edit</a>
+                {% if user.is_active %}
+                <a href="/admin/users/{{ user.id }}/deactivate" class="govuk-link govuk-link--destructive">Deactivate</a>
+                {% else %}
+                <a href="/admin/users/{{ user.id }}/activate" class="govuk-link">Activate</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block pageScripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const departmentFilter = document.getElementById('department-filter');
+    const roleFilter = document.getElementById('role-filter');
+    const searchInput = document.getElementById('search');
+    const tableRows = document.querySelectorAll('.govuk-table__row');
+
+    function filterTable() {
+      const departmentValue = departmentFilter.value.toLowerCase();
+      const roleValue = roleFilter.value.toLowerCase();
+      const searchValue = searchInput.value.toLowerCase();
+
+      tableRows.forEach(row => {
+        if (row.querySelector('.govuk-table__head')) return; // Skip header row
+
+        const department = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+        const role = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+        const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+        const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+
+        const departmentMatch = !departmentValue || department.includes(departmentValue);
+        const roleMatch = !roleValue || role.includes(roleValue);
+        const searchMatch = !searchValue || name.includes(searchValue) || email.includes(searchValue);
+
+        row.style.display = departmentMatch && roleMatch && searchMatch ? '' : 'none';
+      });
+    }
+
+    departmentFilter.addEventListener('change', filterTable);
+    roleFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
+  });
+</script>
+{% endblock %}
+{% endblock %} 

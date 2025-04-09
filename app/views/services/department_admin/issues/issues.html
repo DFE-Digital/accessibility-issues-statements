@@ -36,7 +36,7 @@
       <h2 class="govuk-summary-card__title">Open issues</h2>
       <ul class="govuk-summary-card__actions">
         <li class="govuk-summary-card__action">
-          <a class="govuk-link" href="/services/{{ service.id }}/issues/new">Add new issue</a>
+          <a class="govuk-link govuk-link--no-visited-state" href="/services/{{ service.id }}/issues/new">Add new issue</a>
         </li>
         <li class="govuk-summary-card__action">
           <div class="app-sort">
@@ -99,12 +99,12 @@
 
     <div class="govuk-summary-card__content">
       {% if (open_issues | length) > 0 %}
-      <table class="govuk-table">
+      <table class="govuk-table  compact-table">
         <thead class="govuk-table__head">
           <tr class="govuk-table__row">
             <th scope="col" class="govuk-table__header govuk-!-width-one-third">Title</th>
-            <th scope="col" class="govuk-table__header  govuk-!-width-one-third">Issue Types</th>
-            <th scope="col" class="govuk-table__header">Risk Level</th>
+            <th scope="col" class="govuk-table__header  govuk-!-width-one-third">Issue types</th>
+            <th scope="col" class="govuk-table__header">Priority</th>
             <th scope="col" class="govuk-table__header ">Created</th>
           </tr>
         </thead>
@@ -113,7 +113,7 @@
           <tr class="govuk-table__row">
             <th class="govuk-table__header">
               <a href="/services/{{ service.id }}/issues/{{ issue.id }}" class="govuk-link govuk-link--no-visited-state">
-                #{{ issue.numeric_id }} - {{ issue.title }}
+                {{ issue.title }}
               </a>
             </th>
             <td class="govuk-table__cell">
@@ -143,7 +143,7 @@
               {% endfor %}
             </td>
             <td class="govuk-table__cell" style="width: 120px;">
-              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'high_medium' %}orange{% elif issue.risk_level == 'medium' %}yellow{% else %}green{% endif %}">
+              <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'high_medium' %}orange{% elif issue.risk_level == 'medium' %}yellow{% else %}blue{% endif %}">
                 {{ issue.risk_level | replace('_', ' ') | title }}
               </strong>
             </td>
@@ -176,7 +176,7 @@
 
     <div class="govuk-summary-card__content" id="closed-issues-content" hidden>
       {% if (closed_issues | length) > 0 %}
-      <table class="govuk-table">
+      <table class="govuk-table compact-table">
         <thead class="govuk-table__head">
           <tr class="govuk-table__row">
             <th scope="col" class="govuk-table__header govuk-!-width-one-third">Title</th>

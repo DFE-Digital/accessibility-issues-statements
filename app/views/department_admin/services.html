@@ -33,11 +33,11 @@
               <tr class="govuk-table__row">
                 <td class="govuk-table__cell">{{ service.name }}</td>
                 <td class="govuk-table__cell">
-                  <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+                  <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state" target="_blank">{{ service.url }}</a>
                 </td>
                 <td class="govuk-table__cell">{{ service.enrolled_users }}</td>
                 <td class="govuk-table__cell">
-                  <a href="/services/department-admin/services/{{ service.id }}" class="govuk-link">View</a>
+                  <a href="/services/department-admin/services/{{ service.id }}" class="govuk-link govuk-link--no-visited-state">View</a>
                   <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-!-margin-left-2">Edit</a>
                 </td>
               </tr>

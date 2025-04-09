@@ -21,7 +21,7 @@
             </h2>
             <ul class="govuk-summary-card__actions">
               <li class="govuk-summary-card__action">
-                <a class="govuk-link" href="/users/new">Add user</a>
+                <a class="govuk-link govuk-link--no-visited-state" href="/users/new">Add user</a>
               </li>
             </ul>
           </div>
@@ -34,7 +34,7 @@
             {% endfor %}
 
             {% if hasAdmins %}
-              <table class="govuk-table">
+              <table class="govuk-table compact-table">
                 <thead class="govuk-table__head">
                   <tr class="govuk-table__row">
                     <th scope="col" class="govuk-table__header govuk-!-width-one-third">Name</th>
@@ -47,7 +47,7 @@
                     {% if user.role == 'department_admin' %}
                       <tr class="govuk-table__row">
                         <th class="govuk-table__header">
-                          <a href="/users/{{ user.id }}/edit" class="govuk-link">{{ user.first_name }}
+                          <a href="/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }}
                             {{ user.last_name }}</a>
                         </th>
                         <td class="govuk-table__cell">{{ user.email }}</td>
@@ -77,7 +77,7 @@
             </h2>
             <ul class="govuk-summary-card__actions">
               <li class="govuk-summary-card__action">
-                <a class="govuk-link" href="/users/new">Add user</a>
+                <a class="govuk-link govuk-link--no-visited-state" href="/users/new">Add user</a>
               </li>
             </ul>
           </div>
@@ -90,7 +90,7 @@
             {% endfor %}
 
             {% if hasUsers %}
-              <table class="govuk-table">
+              <table class="govuk-table compact-table">
                 <thead class="govuk-table__head">
                   <tr class="govuk-table__row">
                     <th scope="col" class="govuk-table__header govuk-!-width-one-third">Name</th>
@@ -103,7 +103,7 @@
                     {% if user.role == 'user' %}
                       <tr class="govuk-table__row">
                         <th class="govuk-table__header">
-                          <a href="/users/{{ user.id }}/edit" class="govuk-link">{{ user.first_name }}
+                          <a href="/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }}
                             {{ user.last_name }}</a>
                         </th>
                         <td class="govuk-table__cell">{{ user.email }}</td>

@@ -63,34 +63,58 @@ async function getOpenIssues(serviceId) {
  * @returns {Promise<Object>} Issue object
  */
 async function getIssue(issueId) {
+  // First get the basic issue data
   const issue = await db('issues')
-    .select(
-      'issues.*',
-      db.raw("CONCAT(users.first_name, ' ', users.last_name) as created_by_name"),
-      'services.name as service_name',
-      'services.department_id'
-    )
-    .leftJoin('users', 'issues.created_by', 'users.id')
-    .leftJoin('services', 'issues.service_id', 'services.id')
-    .where('issues.id', issueId)
+    .where('id', issueId)
     .first();
 
-  if (issue) {
-    // Get WCAG criteria
-    issue.wcag_criteria = await db('issue_wcag_criteria')
-      .select('wcag_criteria.*')
-      .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
-      .where('issue_wcag_criteria.issue_id', issueId);
-
-    // Get issue types
-    const types = await db('issue_types')
-      .select('type')
-      .where('issue_id', issueId);
-    
-    issue.types = types.map(t => t.type);
+  if (!issue) {
+    return null;
   }
 
-  return issue;
+  // Get the created by user name
+  const createdBy = await db('users')
+    .where('id', issue.created_by)
+    .select(db.raw("CONCAT(first_name, ' ', last_name) as name"))
+    .first();
+
+  // Get the service data
+  const service = await db('services')
+    .where('id', issue.service_id)
+    .select('name', 'department_id')
+    .first();
+
+  // Get the assigned user name if there is one
+  let assignedToName = null;
+  if (issue.assigned_to) {
+    const assignedUser = await db('users')
+      .where('id', issue.assigned_to)
+      .select(db.raw("CONCAT(first_name, ' ', last_name) as name"))
+      .first();
+    assignedToName = assignedUser?.name || null;
+  }
+
+  // Get WCAG criteria
+  const criteria = await db('issue_wcag_criteria')
+    .select('wcag_criteria.*')
+    .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+    .where('issue_wcag_criteria.issue_id', issueId);
+
+  // Get issue types
+  const types = await db('issue_types')
+    .select('type')
+    .where('issue_id', issueId);
+
+  // Combine all the data
+  return {
+    ...issue,
+    created_by_name: createdBy?.name || null,
+    service_name: service?.name || null,
+    department_id: service?.department_id || null,
+    assigned_to_name: assignedToName,
+    wcag_criteria: criteria || [],
+    types: types.map(t => t.type)
+  };
 }
 
 /**

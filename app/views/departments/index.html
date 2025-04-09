@@ -1,4 +1,6 @@
-{% extends "layout.html" %}
+{% extends "layouts/layout_wide.html" %}
+
+{% set mainClasses = 'govuk-!-padding-top-0' %}
 
 {% set pageTitle = "Departments" %}
 {% set serviceNav = "Departments" %}
@@ -8,65 +10,74 @@
 {% endblock %}
 
 {% block content %}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-      <h1 class="govuk-heading-l">Departments</h1>
 
-<div class="govuk-summary-card">
-  <div class="govuk-summary-card__title-wrapper">
-    <h2 class="govuk-summary-card__title">
-      Department management
-    </h2>
-    <ul class="govuk-summary-card__actions">
-      <li class="govuk-summary-card__action">
-        <a class="govuk-link" href="/departments/new">Add department</a>
-      </li>
-    </ul>
-  </div>
-  <div class="govuk-summary-card__content">
-     {% if departments.length > 0 %}
-        <table class="govuk-table">
-          <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-              <th scope="col" class="govuk-table__header govuk-!-width-one-third">Department name</th>
-              <th scope="col" class="govuk-table__header">Email domains</th>
-              <th scope="col" class="govuk-table__header">Department admins</th>
-              <th scope="col" class="govuk-table__header">Services</th>
-            </tr>
-          </thead>
-          <tbody class="govuk-table__body">
-            {% for department in departments %}
-              <tr class="govuk-table__row">
-                <th class="govuk-table__header"> <a href="/departments/{{ department.id }}/edit" class="govuk-link">{{ department.name }}</a></th>
-                <td class="govuk-table__cell">{{ department.domains_count | default('0') }}</td>
-                <td class="govuk-table__cell">{{ department.admins_count | default('0') }}</td>
-                <td class="govuk-table__cell">{{ department.services_count }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="govuk-body">No departments found.</p>
-      {% endif %}
-  </div>
-</div>
+  {% include "layouts/_pageheader.html" %}
 
-      {% if successMessage %}
-        <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
-          <div class="govuk-notification-banner__header">
-            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-              Success
-            </h2>
+  <div class="govuk-width-container">
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">Departments</h2>
+            <ul class="govuk-summary-card__actions">
+              <li class="govuk-summary-card__action">
+                <a class="govuk-link govuk-link--no-visited-state" href="/departments/new">Add department</a>
+              </li>
+            </ul>
           </div>
-          <div class="govuk-notification-banner__content">
-            <p class="govuk-notification-banner__heading">
-              {{ successMessage }}
-            </p>
+          <div class="govuk-summary-card__content">
+            {% if departments.length > 0 %}
+              <table class="govuk-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Department name</th>
+                    <th scope="col" class="govuk-table__header">Admins</th>
+                    <th scope="col" class="govuk-table__header">Services</th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for department in departments %}
+                    <tr class="govuk-table__row">
+                      <th class="govuk-table__header">
+                        <a href="/departments/{{ department.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ department.name }}</a>
+                      </th>
+                      {# show the admins for the department #}
+                      <td class="govuk-table__cell">
+                        {% for admin in department.admins %}
+                          <a href="/users/{{ admin.id }}" class="govuk-link govuk-link--no-visited-state">{{ admin.first_name }} {{ admin.last_name }}</a>
+                          {%- if not loop.last -%}
+                           ,
+                          {%- endif -%}
+                        {% endfor %}
+                      </td>
+                      <td class="govuk-table__cell">{{ department.services_count }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p class="govuk-body">No departments found.</p>
+            {% endif %}
           </div>
         </div>
-      {% endif %}
 
-    
+        {% if successMessage %}
+          <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+            <div class="govuk-notification-banner__header">
+              <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Success
+            </h2>
+            </div>
+            <div class="govuk-notification-banner__content">
+              <p class="govuk-notification-banner__heading">
+                {{ successMessage }}
+              </p>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
     </div>
   </div>
-{% endblock %} 
+{% endblock %}

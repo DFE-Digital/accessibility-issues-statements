@@ -174,7 +174,7 @@
               {% endif %}
             </p>
             <p class="govuk-body-s">{{ comment.created_at | date('D MMMM YYYY, HH:mm') }} |
-              <a href="#" class="govuk-link"
+              <a href="#" class="govuk-link govuk-link--no-visited-state"
                 onclick="openDeleteModal('{{ comment.id }}', '{{ comment.content | truncate(50) }}'); return false;">Delete
                 comment</a>
             </p>
@@ -197,13 +197,13 @@
         <div class="govuk-summary-card__content">
           <ul class="govuk-list govuk-list--spaced">
             <li>
-              <a href="/services/{{ service.id }}/issues/{{ issue.id }}/edit" class="govuk-link">Edit issue</a>
+              <a href="/services/{{ service.id }}/issues/{{ issue.id }}/edit" class="govuk-link govuk-link--no-visited-state">Edit issue</a>
             </li>
             <li>
               {% if issue.status == 'closed' %}
-              <a href="#" class="govuk-link" onclick="openReopenModal(); return false;">Reopen issue</a>
+              <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openReopenModal(); return false;">Reopen issue</a>
               {% else %}
-              <a href="#" class="govuk-link" onclick="openCloseModal(); return false;">Close issue</a>
+              <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openCloseModal(); return false;">Close issue</a>
               {% endif %}
             </li>
           </ul>
@@ -218,9 +218,23 @@
         </div>
         <div class="govuk-summary-card__content">
           <dl class="govuk-summary-list">
-           
-            
-           
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">
+                Assigned to
+              </dt>
+              <dd class="govuk-summary-list__value">
+                {% if issue.assigned_to %}
+                  {{ issue.assigned_to_name }}
+                {% else %}
+                  Not assigned
+                {% endif %}
+              </dd>
+              <dd class="govuk-summary-list__actions">
+                <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openAssignModal(); return false;">
+                  {% if issue.assigned_to %}Reassign{% else %}Assign{% endif %}
+                </a>
+              </dd>
+            </div>
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
                 Source of discovery
@@ -439,6 +453,67 @@
         <button type="button" class="govuk-button" data-module="govuk-button" onclick="closePriorityInfoModal()">
           Close
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Assign Issue Modal #}
+<div class="govuk-modal-overlay" id="assign-modal" style="display: none;" role="dialog"
+  aria-labelledby="assign-modal-title" aria-describedby="assign-modal-description" aria-modal="true" tabindex="-1">
+  <div class="govuk-modal">
+    <div class="govuk-modal__header">
+      <h2 class="govuk-modal__title" id="assign-modal-title">Assign issue</h2>
+      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeAssignModal()">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div class="govuk-modal__content">
+      <div id="assign-modal-description">
+        <form id="assign-issue-form" method="post" action="/services/{{ service.id }}/issues/{{ issue.id }}/assign">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="assign-to">
+              Assign to
+            </label>
+            <div id="assign-to-hint" class="govuk-hint">
+              Select a user from your department or enter a new email address
+            </div>
+            <select class="govuk-select" id="assign-to" name="assign_to" aria-describedby="assign-to-hint">
+              <option value="">Select a user</option>
+              {% for user in users %}
+                <option value="{{ user.id }}" {% if issue.assigned_to == user.id %}selected{% endif %}>
+                  {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="new-user-email">
+              Or enter a new email address
+            </label>
+            <input class="govuk-input" id="new-user-email" name="new_user_email" type="email" autocomplete="email">
+          </div>
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="assign-comment">
+              Assignment comment
+            </label>
+            <div id="assign-comment-hint" class="govuk-hint">
+              Add a note about why you're assigning this issue
+            </div>
+            <textarea class="govuk-textarea" id="assign-comment" name="comment" rows="3"
+              aria-describedby="assign-comment-hint"></textarea>
+          </div>
+          <div class="govuk-button-group">
+            <button type="submit" class="govuk-button" data-module="govuk-button" data-prevent-double-click="true">
+              Assign issue
+            </button>
+            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button"
+              onclick="closeAssignModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -813,6 +888,58 @@
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape' && document.getElementById('priority-info-modal').style.display === 'flex') {
       closePriorityInfoModal();
+    }
+  });
+
+  function openAssignModal() {
+    previousActiveElement = document.activeElement;
+
+    const modal = document.getElementById('assign-modal');
+    const body = document.body;
+
+    modal.style.display = 'flex';
+    body.classList.add('modal-open');
+
+    modal.focus();
+    trapFocus(modal);
+  }
+
+  function closeAssignModal() {
+    const modal = document.getElementById('assign-modal');
+    const body = document.body;
+
+    modal.style.display = 'none';
+    body.classList.remove('modal-open');
+
+    if (previousActiveElement) {
+      previousActiveElement.focus();
+    }
+  }
+
+  // Add event listener for assign modal
+  document.addEventListener('click', function (event) {
+    const assignModal = document.querySelector('#assign-modal .govuk-modal');
+    const assignOverlay = document.getElementById('assign-modal');
+
+    if (event.target === assignOverlay && assignModal && !assignModal.contains(event.target)) {
+      closeAssignModal();
+    }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && document.getElementById('assign-modal').style.display === 'flex') {
+      closeAssignModal();
+    }
+  });
+
+  // Handle form submission
+  document.getElementById('assign-issue-form').addEventListener('submit', function(e) {
+    const select = document.getElementById('assign-to');
+    const email = document.getElementById('new-user-email');
+    
+    if (!select.value && !email.value) {
+      e.preventDefault();
+      alert('Please select a user or enter an email address');
     }
   });
 </script>

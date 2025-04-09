@@ -64,10 +64,10 @@
               <tr class="govuk-table__row">
                 <td class="govuk-table__cell">{{ service.name }}</td>
                 <td class="govuk-table__cell">
-                  <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+                  <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state" target="_blank">{{ service.url }}</a>
                 </td>
                 <td class="govuk-table__cell">
-                  <a href="/services/{{ service.id }}/issues" class="govuk-link">View Issues</a>
+                  <a href="/services/{{ service.id }}/issues" class="govuk-link govuk-link--no-visited-state">View Issues</a>
                 </td>
               </tr>
             {% endfor %}
@@ -96,7 +96,7 @@
               <tr class="govuk-table__row">
                 <td class="govuk-table__cell">{{ issue.service_name }}</td>
                 <td class="govuk-table__cell">
-                  <a href="/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                  <a href="/issues/{{ issue.id }}" class="govuk-link govuk-link--no-visited-state">{{ issue.title }}</a>
                 </td>
                 <td class="govuk-table__cell">
                   {% for type in issue.types %}

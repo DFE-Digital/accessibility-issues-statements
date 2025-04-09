@@ -29,7 +29,7 @@
                 {{ settings.response_time_sla }} working days
               </dd>
               <dd class="govuk-summary-list__actions">
-                <a href="/services/{{ service.id }}/settings/response-time" class="govuk-link">Change<span class="govuk-visually-hidden"> response time SLA</span></a>
+                <a href="/services/{{ service.id }}/settings/response-time" class="govuk-link govuk-link--no-visited-state">Change<span class="govuk-visually-hidden"> response time SLA</span></a>
               </dd>
             </div>
           </dl>
@@ -51,7 +51,7 @@
                 {{ settings.complaint_contact }}
               </dd>
               <dd class="govuk-summary-list__actions">
-                <a href="/services/{{ service.id }}/settings/complaint-contact" class="govuk-link">Change<span class="govuk-visually-hidden"> complaint contact</span></a>
+                <a href="/services/{{ service.id }}/settings/complaint-contact" class="govuk-link govuk-link--no-visited-state">Change<span class="govuk-visually-hidden"> complaint contact</span></a>
               </dd>
             </div>
           </dl>
@@ -77,7 +77,7 @@
                 {% endif %}
               </dd>
               <dd class="govuk-summary-list__actions">
-                <a href="/services/{{ service.id }}/settings/audit" class="govuk-link">Change<span class="govuk-visually-hidden"> audit details</span></a>
+                <a href="/services/{{ service.id }}/settings/audit" class="govuk-link govuk-link--no-visited-state">Change<span class="govuk-visually-hidden"> audit details</span></a>
               </dd>
             </div>
             <div class="govuk-summary-list__row">
@@ -92,7 +92,7 @@
                 {% endif %}
               </dd>
               <dd class="govuk-summary-list__actions">
-                <a href="/services/{{ service.id }}/settings/audit" class="govuk-link">Change<span class="govuk-visually-hidden"> audit details</span></a>
+                <a href="/services/{{ service.id }}/settings/audit" class="govuk-link govuk-link--no-visited-state">Change<span class="govuk-visually-hidden"> audit details</span></a>
               </dd>
             </div>
             <div class="govuk-summary-list__row">
@@ -107,7 +107,7 @@
                 {% endif %}
               </dd>
               <dd class="govuk-summary-list__actions">
-                <a href="/services/{{ service.id }}/settings/audit" class="govuk-link">Change<span class="govuk-visually-hidden"> audit details</span></a>
+                <a href="/services/{{ service.id }}/settings/audit" class="govuk-link govuk-link--no-visited-state">Change<span class="govuk-visually-hidden"> audit details</span></a>
               </dd>
             </div>
           </dl>
@@ -118,7 +118,7 @@
         <div class="govuk-summary-card__title-wrapper">
           <h2 class="govuk-summary-card__title">Contact methods</h2>
           <div class="govuk-summary-card__actions">
-            <a href="/services/{{ service.id }}/settings/contact-methods/new" class="govuk-link">Add contact method</a>
+            <a href="/services/{{ service.id }}/settings/contact-methods/new" class="govuk-link govuk-link--no-visited-state">Add contact method</a>
           </div>
         </div>
         <div class="govuk-summary-card__content">
@@ -135,12 +135,12 @@
                   <dd class="govuk-summary-list__actions">
                     <ul class="govuk-summary-list__actions-list">
                       <li class="govuk-summary-list__actions-list-item">
-                        <a class="govuk-link" href="/services/{{ service.id }}/settings/contact-methods/{{ method.id }}/edit">
+                        <a class="govuk-link govuk-link--no-visited-state" href="/services/{{ service.id }}/settings/contact-methods/{{ method.id }}/edit">
                           Change<span class="govuk-visually-hidden"> {{ method.contact_type }} contact method</span>
                         </a>
                       </li>
                       <li class="govuk-summary-list__actions-list-item">
-                        <a class="govuk-link" href="#" onclick="openDeleteModal('{{ method.id }}', '{{ method.contact_type | replace('_', ' ') | title }}', '{{ method.contact_value }}'); return false;">
+                        <a class="govuk-link govuk-link--no-visited-state" href="#" onclick="openDeleteModal('{{ method.id }}', '{{ method.contact_type | replace('_', ' ') | title }}', '{{ method.contact_value }}'); return false;">
                           Delete<span class="govuk-visually-hidden"> {{ method.contact_type }} contact method</span>
                         </a>
                       </li>

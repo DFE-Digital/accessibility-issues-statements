@@ -124,9 +124,53 @@ const createService = async (req, res) => {
       });
     }
 
-    const serviceData = {
+    // Validate input
+    const errorSummary = [];
+    const fieldErrors = {};
+    const values = {
       name: req.body.name,
-      url: req.body.url,
+      url: req.body.url
+    };
+
+    // Name validation
+    if (!values.name || values.name.trim() === '') {
+      const message = 'Enter a service name';
+      errorSummary.push({ field: 'name', message });
+      fieldErrors.name = message;
+    } else if (values.name.length > 255) {
+      const message = 'Service name must be 255 characters or less';
+      errorSummary.push({ field: 'name', message });
+      fieldErrors.name = message;
+    }
+
+    // URL validation
+    if (!values.url || values.url.trim() === '') {
+      const message = 'Enter a service URL';
+      errorSummary.push({ field: 'url', message });
+      fieldErrors.url = message;
+    } else if (!values.url.match(/^https?:\/\/.+/)) {
+      const message = 'Enter a valid URL starting with http:// or https://';
+      errorSummary.push({ field: 'url', message });
+      fieldErrors.url = message;
+    } else if (values.url.length > 1000) {
+      const message = 'URL must be 1000 characters or less';
+      errorSummary.push({ field: 'url', message });
+      fieldErrors.url = message;
+    }
+
+    // If there are validation errors, render the form again with errors
+    if (errorSummary.length > 0) {
+      return res.render(`services/${user.role}/new`, {
+        user,
+        errors: errorSummary,
+        fieldErrors,
+        values
+      });
+    }
+
+    const serviceData = {
+      name: values.name.trim(),
+      url: values.url.trim(),
       department_id: departmentId,
       service_owner_id: user.id,
       created_at: new Date(),
@@ -297,32 +341,40 @@ const showServiceIssues = async (req, res) => {
  */
 const editService = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = req.session.user;
+    // Double check authentication (belt and braces)
+    if (!req.session.user) {
+      req.session.returnTo = req.originalUrl;
+      return res.redirect('/auth/sign-in');
+    }
 
-    // Get the service and verify department access
-    const services = await getDepartmentServices(user.department.id);
-    const service = services.find(s => s.id === id);
+    const user = req.session.user;
+    const serviceId = req.params.id;
+
+    // Get the service
+    const service = await servicesData.getService(serviceId);
 
     if (!service) {
       return res.status(404).render('error', {
-        error: {
-          title: 'Service not found',
-          message: 'The service you are looking for could not be found.'
-        }
+        error: 'Service not found'
       });
     }
 
-    res.render('services/department_admin/edit', {
+    // Check if user has permission to edit this service
+    if (user.role !== 'super_admin' && service.department_id !== user.department.id) {
+      return res.status(403).render('error', {
+        error: 'You do not have permission to edit this service'
+      });
+    }
+
+    res.render(`services/${user.role}/edit`, {
+      user,
       service
     });
   } catch (error) {
-    console.error('Error showing edit service form:', error);
+    console.error('Edit service error:', error);
     res.status(500).render('error', {
-      error: {
-        title: 'Error',
-        message: 'There was a problem loading the edit service form.'
-      }
+      error: 'There was a problem loading the edit service form',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -334,42 +386,186 @@ const editService = async (req, res) => {
  */
 const updateService = async (req, res) => {
   try {
-    const { id } = req.params;
+    // Double check authentication (belt and braces)
+    if (!req.session.user) {
+      req.session.returnTo = req.originalUrl;
+      return res.redirect('/auth/sign-in');
+    }
+
     const user = req.session.user;
+    const serviceId = req.params.id;
 
-    // Get the service and verify department access
-    const services = await getDepartmentServices(user.department.id);
-    const service = services.find(s => s.id === id);
+    // Get the existing service
+    const existingService = await servicesData.getService(serviceId);
 
-    if (!service) {
+    if (!existingService) {
       return res.status(404).render('error', {
-        error: {
-          title: 'Service not found',
-          message: 'The service you are looking for could not be found.'
-        }
+        error: 'Service not found'
+      });
+    }
+
+    // Check if user has permission to edit this service
+    if (user.role !== 'super_admin' && existingService.department_id !== user.department.id) {
+      return res.status(403).render('error', {
+        error: 'You do not have permission to edit this service'
+      });
+    }
+
+    // Validate input
+    const errorSummary = [];
+    const fieldErrors = {};
+    const values = {
+      name: req.body.name,
+      url: req.body.url
+    };
+
+    // Name validation
+    if (!values.name || values.name.trim() === '') {
+      const message = 'Enter a service name';
+      errorSummary.push({ field: 'name', message });
+      fieldErrors.name = message;
+    } else if (values.name.length > 255) {
+      const message = 'Service name must be 255 characters or less';
+      errorSummary.push({ field: 'name', message });
+      fieldErrors.name = message;
+    } else if (values.name !== existingService.name) {
+      // Check if name is already taken
+      const existingServiceWithName = await servicesData.getServiceByName(values.name);
+      if (existingServiceWithName && existingServiceWithName.id !== serviceId) {
+        const message = 'A service with this name already exists';
+        errorSummary.push({ field: 'name', message });
+        fieldErrors.name = message;
+      }
+    }
+
+    // URL validation
+    if (!values.url || values.url.trim() === '') {
+      const message = 'Enter a service URL';
+      errorSummary.push({ field: 'url', message });
+      fieldErrors.url = message;
+    } else if (!values.url.match(/^https?:\/\/.+/)) {
+      const message = 'Enter a valid URL starting with http:// or https://';
+      errorSummary.push({ field: 'url', message });
+      fieldErrors.url = message;
+    } else if (values.url.length > 1000) {
+      const message = 'URL must be 1000 characters or less';
+      errorSummary.push({ field: 'url', message });
+      fieldErrors.url = message;
+    } else if (values.url !== existingService.url) {
+      // Check if URL is already taken
+      const existingServiceWithUrl = await servicesData.getServiceByUrl(values.url);
+      if (existingServiceWithUrl && existingServiceWithUrl.id !== serviceId) {
+        const message = 'A service with this URL already exists';
+        errorSummary.push({ field: 'url', message });
+        fieldErrors.url = message;
+      }
+    }
+
+    // If there are validation errors, render the form again with errors
+    if (errorSummary.length > 0) {
+      return res.render(`services/${user.role}/edit`, {
+        user,
+        service: existingService,
+        errors: errorSummary,
+        fieldErrors,
+        values
       });
     }
 
     const serviceData = {
-      name: req.body.name,
-      url: req.body.url,
+      name: values.name.trim(),
+      url: values.url.trim(),
       updated_at: new Date()
     };
 
-    await servicesData.updateService(id, serviceData);
+    await servicesData.updateService(serviceId, serviceData);
     
     // Log the update
-    await servicesData.logServiceAction(id, user.id, 'update', serviceData);
+    await servicesData.logServiceAction(serviceId, user.id, 'update', serviceData);
 
-    res.redirect(`/services/${id}`);
+    res.redirect(`/services/${serviceId}`);
   } catch (error) {
-    console.error('Error updating service:', error);
+    console.error('Update service error:', error);
     res.status(500).render('error', {
-      error: {
-        title: 'Error',
-        message: 'There was a problem updating the service.'
-      }
+      error: 'There was a problem updating the service',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+const assignIssue = async (req, res) => {
+  try {
+    const { serviceId, issueId } = req.params;
+    const { assign_to, new_user_email, comment } = req.body;
+    const userId = req.session.user.id;
+
+    // Validate input
+    if (!assign_to && !new_user_email) {
+      req.flash('error', 'Please select a user or enter an email address');
+      return res.redirect(`/services/${serviceId}/issues/${issueId}`);
+    }
+
+    // Check if user has permission to assign issues
+    const service = await db('services')
+      .where('id', serviceId)
+      .first();
+
+    if (!service) {
+      req.flash('error', 'Service not found');
+      return res.redirect('/services');
+    }
+
+    // If assigning to a new user, create the user first
+    let assignedToId = assign_to;
+    if (new_user_email) {
+      // Check if user already exists
+      let user = await db('users')
+        .where('email', new_user_email)
+        .first();
+
+      if (!user) {
+        // Create new user
+        const [newUserId] = await db('users')
+          .insert({
+            email: new_user_email,
+            department_id: service.department_id,
+            role: 'user',
+            created_at: new Date(),
+            updated_at: new Date()
+          })
+          .returning('id');
+
+        assignedToId = newUserId;
+      } else {
+        assignedToId = user.id;
+      }
+    }
+
+    // Update the issue
+    await db('issues')
+      .where('id', issueId)
+      .update({
+        assigned_to: assignedToId,
+        updated_at: new Date()
+      });
+
+    // Add assignment comment
+    if (comment) {
+      await db('issue_comments')
+        .insert({
+          issue_id: issueId,
+          user_id: userId,
+          comment: comment,
+          created_at: new Date()
+        });
+    }
+
+    req.flash('success', 'Issue assigned successfully');
+    res.redirect(`/services/${serviceId}/issues/${issueId}`);
+  } catch (error) {
+    console.error('Error assigning issue:', error);
+    req.flash('error', 'Failed to assign issue');
+    res.redirect(`/services/${req.params.serviceId}/issues/${req.params.issueId}`);
   }
 };
 
@@ -381,5 +577,6 @@ module.exports = {
   showService,
   showServiceIssues,
   editService,
-  updateService
+  updateService,
+  assignIssue
 }; 

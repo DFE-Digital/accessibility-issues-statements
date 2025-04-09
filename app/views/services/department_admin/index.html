@@ -1,6 +1,6 @@
 {% extends "layouts/layout_wide.html" %}
 
-{% set pageTitle = "Your services" %}
+{% set pageTitle = "Services" %}
 {% set serviceNav = "Services" %}
 {% set mainClasses = 'govuk-!-padding-top-0' %}
 
@@ -11,6 +11,10 @@
     0
   ) %}
 {% endfor %}
+
+{% block head %}
+
+{% endblock %}
 
 {% block content %}
 
@@ -23,17 +27,17 @@
         <div class="govuk-summary-card">
           <div class="govuk-summary-card__title-wrapper">
             <h2 class="govuk-summary-card__title">
-     Your services
+     Services
     </h2>
             <ul class="govuk-summary-card__actions">
               <li class="govuk-summary-card__action">
-                <a class="govuk-link" href="/services/new">Add service</a>
+                <a class="govuk-link govuk-link--no-visited-state" href="/services/new">Add service</a>
               </li>
             </ul>
           </div>
           <div class="govuk-summary-card__content">
 
-            <table class="govuk-table">
+            <table class="govuk-table compact-table">
               <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                   <th scope="col" class="govuk-table__header govuk-!-width-one-third">Service name</th>
@@ -45,11 +49,11 @@
               <tbody class="govuk-table__body">
                 {% for service in services %}
                   <tr class="govuk-table__row">
-                    <td class="govuk-table__cell">
+                    <th class="govuk-table__header">
                       <a href="/services/{{ service.id }}" class="govuk-link govuk-link--no-visited-state">
                        {{ service.name }}
                       </a>
-                    </td>
+                    </th>
                     <td class="govuk-table__cell">
                       {{ service.open_issues_count if service.open_issues_count != undefined else 0 }}
                     </td>

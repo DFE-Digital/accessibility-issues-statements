@@ -17,7 +17,7 @@
         <div class="govuk-summary-list__row">
           <dt class="govuk-summary-list__key">URL</dt>
           <dd class="govuk-summary-list__value">
-            <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+            <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state" target="_blank">{{ service.url }}</a>
           </dd>
         </div>
         <div class="govuk-summary-list__row">
@@ -35,7 +35,7 @@
       <h2 class="govuk-heading-m">Accessibility statement</h2>
       {% if service.statement_enrolled %}
         <p class="govuk-body">
-          <a href="/s/{{ service.numeric_id }}" class="govuk-link">View accessibility statement</a>
+          <a href="/s/{{ service.numeric_id }}" class="govuk-link govuk-link--no-visited-state">View accessibility statement</a>
         </p>
       {% else %}
         <p class="govuk-body">This service is not yet enrolled in the accessibility statement system.</p>
@@ -43,7 +43,7 @@
 
       <h2 class="govuk-heading-m">Issues</h2>
       <p class="govuk-body">
-        <a href="/services/{{ service.id }}/issues" class="govuk-link">View accessibility issues</a>
+        <a href="/services/{{ service.id }}/issues" class="govuk-link govuk-link--no-visited-state">View accessibility issues</a>
       </p>
     </div>
   </div>

@@ -37,6 +37,17 @@ const index = async (req, res) => {
         .orderBy('domain')
     );
 
+    // Get admins for each department where the role is department_admin
+    const adminsPromises = departments.map(dept =>
+      db('users')
+        .select('id', 'first_name', 'last_name', 'email')
+        .where('department_id', dept.id)
+        .where('role', 'department_admin')
+        .orderBy('first_name')
+    );
+
+    const adminsResults = await Promise.all(adminsPromises);
+
     const domainsResults = await Promise.all(domainsPromises);
 
     // Combine the results
@@ -45,10 +56,17 @@ const index = async (req, res) => {
       domains: domainsResults[index].map(d => d.domain).join(', ')
     }));
 
+    // Combine the admins with the departments
+    const departmentsWithAdmins = departmentsWithDetails.map((dept, index) => ({
+      ...dept,
+      admins: adminsResults[index]
+    }));
+
     res.render('departments/index', {
-      departments: departmentsWithDetails,
+      departments: departmentsWithAdmins,
       user: req.session.user,
-      successMessage: req.session.successMessage
+      successMessage: req.session.successMessage,
+
     });
     delete req.session.successMessage;
   } catch (error) {

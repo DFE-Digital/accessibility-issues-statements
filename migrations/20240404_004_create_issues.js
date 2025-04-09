@@ -11,6 +11,7 @@ exports.up = function(knex) {
     table.string('wcag_criteria', 1000).notNullable();
     table.string('source_of_discovery', 255).notNullable();
     table.uuid('created_by').notNullable();
+    table.uuid('assigned_to').nullable();
     table.dateTime('created_at').notNullable().defaultTo(knex.fn.now());
     table.dateTime('updated_at').notNullable().defaultTo(knex.fn.now());
 
@@ -20,6 +21,10 @@ exports.up = function(knex) {
       .inTable('services');
     
     table.foreign('created_by')
+      .references('id')
+      .inTable('users');
+      
+    table.foreign('assigned_to')
       .references('id')
       .inTable('users');
   });

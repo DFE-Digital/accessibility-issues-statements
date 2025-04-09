@@ -168,44 +168,62 @@
 
       <div class="govuk-grid-column-three-quarters">
 
-        <table class="govuk-table" id="issues-table">
+        <table class="govuk-table compact-table" id="issues-table">
           <thead class="govuk-table__head">
             <tr class="govuk-table__row">
-              <th scope="col" class="govuk-table__header">Title</th>
-              <th scope="col" class="govuk-table__header">Service</th>
-              <th scope="col" class="govuk-table__header">Risk Level</th>
-              <th scope="col" class="govuk-table__header">WCAG Level</th>
-              <th scope="col" class="govuk-table__header">WCAG Criterion</th>
-              <th scope="col" class="govuk-table__header">Planned Fix</th>
-              <th scope="col" class="govuk-table__header">Planned Fix Date</th>
+              <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Title</th>
+              <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service</th>
+              <th scope="col" class="govuk-table__header">Issue types</th>
+              <th scope="col" class="govuk-table__header">Priority</th>
+              <th scope="col" class="govuk-table__header">Fixing</th>
             </tr>
           </thead>
           <tbody class="govuk-table__body">
             {% for issue in issues %}
               <tr class="govuk-table__row">
                 <th class="govuk-table__header">
-                  <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                  <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link govuk-link--no-visited-state">{{ issue.title }}</a>
                 </th>
-                <td class="govuk-table__cell">{{ issue.service_name }}</td>
+                <td class="govuk-table__cell">
+                  <a href="/services/{{ issue.service_id }}" class="govuk-link govuk-link--no-visited-state">{{ issue.service_name }}</a>
+                 
+                </td>    <td class="govuk-table__cell">
+                  {% for type in issue.types %}
+                    {% if type == 'wcag' %}
+                      <div class="govuk-!-margin-bottom-1">
+                        WCAG{% if issue.wcag_criteria.length > 0 %} - {{ issue.wcag_criteria.length }} criteria{% endif %}
+                      </div>
+                      {% if issue.types.length > 1 %}
+                        <div class="govuk-!-margin-bottom-1">
+                          {{ issue.types.length - 1 }} other type{% if issue.types.length > 2 %}s{% endif %}
+                        </div>
+                      {% endif %}
+                    {% elif type == 'best_practice' and not issue.types.includes('wcag') %}
+                      <div class="govuk-!-margin-bottom-1">
+                        Best Practice
+                      </div>
+                    {% elif type == 'usability' and not issue.types.includes('wcag') %}
+                      <div class="govuk-!-margin-bottom-1">
+                        Usability
+                      </div>
+                    {% elif not issue.types.includes('wcag') %}
+                      <div class="govuk-!-margin-bottom-1">
+                        Not Known
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </td>
                 <td class="govuk-table__cell">
                   <strong class="govuk-tag govuk-tag--{% if issue.risk_level == 'high' %}red{% elif issue.risk_level == 'high_medium' %}orange{% elif issue.risk_level == 'medium' %}yellow{% else %}green{% endif %}">
                     {{ issue.risk_level | replace('_', ' ') | title }}
                   </strong>
                 </td>
-                <td class="govuk-table__cell">{{ issue.wcag_level }}</td>
-                <td class="govuk-table__cell">{{ issue.wcag_criterion }}</td>
+            
                 <td class="govuk-table__cell">
                   {% if issue.planned_fix %}
                     Yes
                   {% else %}
                     No
-                  {% endif %}
-                </td>
-                <td class="govuk-table__cell">
-                  {% if issue.planned_fix_date %}
-                    {{ issue.planned_fix_date | date('DD MMM YYYY') }}
-                  {% else %}
-                    -
                   {% endif %}
                 </td>
               </tr>
@@ -215,6 +233,92 @@
       </div>
     </div>
   </div>
+
+  {# Service URL Modal #}
+  <div class="govuk-modal-overlay" id="service-url-modal" style="display: none;" role="dialog"
+    aria-labelledby="service-url-modal-title" aria-describedby="service-url-modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="service-url-modal-title">Service URL</h2>
+        <button class="govuk-modal__close" aria-label="Close modal" onclick="closeServiceUrlModal()">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="govuk-modal__content">
+        <div id="service-url-modal-description">
+          <p class="govuk-body" id="service-url-content"></p>
+          <div class="govuk-button-group">
+            <a href="#" id="service-url-link" class="govuk-button" target="_blank" rel="noopener noreferrer">Visit service</a>
+            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" onclick="closeServiceUrlModal()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .service-url-button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      color: #505A5F;
+      text-decoration: none;
+      min-width: 22px;
+      min-height: 22px;
+      width: 22px;
+      height: 22px;
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+    }
+
+    .service-url-button:hover {
+      color: #0b0c0c;
+    }
+
+    .service-url-button:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      background-color: #ffdd00;
+      color: #0b0c0c;
+    }
+
+    .service-url-button::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0b0c0c;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 14px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .service-url-button:hover::after {
+      opacity: 1;
+    }
+
+    .service-url-icon {
+      vertical-align: middle;
+      margin: 0;
+      position: relative;
+      top: 1px;
+    }
+  </style>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -241,6 +345,60 @@
           row.style.display = found ? '' : 'none';
         }
       });
+    });
+
+    function openServiceUrlModal(url) {
+      previousActiveElement = document.activeElement;
+      const button = previousActiveElement;
+      button.setAttribute('aria-expanded', 'true');
+
+      const modal = document.getElementById('service-url-modal');
+      const body = document.body;
+      const urlContent = document.getElementById('service-url-content');
+      const urlLink = document.getElementById('service-url-link');
+
+      // Set the URL content and link
+      urlContent.textContent = url;
+      urlLink.href = url;
+
+      modal.style.display = 'flex';
+      body.classList.add('modal-open');
+
+      modal.focus();
+      trapFocus(modal);
+    }
+
+    function closeServiceUrlModal() {
+      const modal = document.getElementById('service-url-modal');
+      const body = document.body;
+      const button = document.querySelector('.service-url-button');
+      
+      if (button) {
+        button.setAttribute('aria-expanded', 'false');
+      }
+
+      modal.style.display = 'none';
+      body.classList.remove('modal-open');
+
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    // Add event listener for service URL modal
+    document.addEventListener('click', function (event) {
+      const serviceUrlModal = document.querySelector('#service-url-modal .govuk-modal');
+      const serviceUrlOverlay = document.getElementById('service-url-modal');
+
+      if (event.target === serviceUrlOverlay && serviceUrlModal && !serviceUrlModal.contains(event.target)) {
+        closeServiceUrlModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.getElementById('service-url-modal').style.display === 'flex') {
+        closeServiceUrlModal();
+      }
     });
   </script>
 {% endblock %}

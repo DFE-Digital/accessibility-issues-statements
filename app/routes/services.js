@@ -6,7 +6,8 @@ const {
   createService,
   showService,
   editService,
-  updateService
+  updateService,
+  assignIssue
 } = require('../controllers/services');
 const { 
   showNewIssueForm,
@@ -14,7 +15,8 @@ const {
   showIssueDetails,
   showEditIssueForm,
   handleUpdateIssue,
-  addComment
+  addComment,
+  assignIssue
 } = require('../controllers/issues');
 
 // Middleware to check if user is authenticated
@@ -65,5 +67,8 @@ router.post('/:serviceId/issues/:id/comments',
   isAuthenticated,
   addComment
 );
+
+// Issue assignment
+router.post('/:serviceId/issues/:issueId/assign', isAuthenticated, assignIssue);
 
 module.exports = router; 

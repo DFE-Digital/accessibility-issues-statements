@@ -36,10 +36,10 @@
                 <td class="govuk-table__cell">{{ user.email }}</td>
                 <td class="govuk-table__cell">{{ user.role }}</td>
                 <td class="govuk-table__cell">
-                  <a href="/services/department-admin/users/{{ user.id }}/edit" class="govuk-link">Edit</a>
+                  <a href="/services/department-admin/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">Edit</a>
                   {% if user.role === 'user' %}
                     <span class="govuk-!-margin-left-2 govuk-!-margin-right-2">|</span>
-                    <a href="/services/department-admin/users/{{ user.id }}/services" class="govuk-link">Manage services</a>
+                    <a href="/services/department-admin/users/{{ user.id }}/services" class="govuk-link govuk-link--no-visited-state">Manage services</a>
                   {% endif %}
                 </td>
               </tr>

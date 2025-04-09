@@ -65,7 +65,7 @@
               <tr class="govuk-table__row">
                 <td class="govuk-table__cell">{{ admin.first_name }} {{ admin.last_name }}</td>
                 <td class="govuk-table__cell">
-                  <a href="mailto:{{ admin.email }}" class="govuk-link">{{ admin.email }}</a>
+                  <a href="mailto:{{ admin.email }}" class="govuk-link govuk-link--no-visited-state">{{ admin.email }}</a>
                 </td>
                 <td class="govuk-table__cell">
                   <button type="button" class="govuk-button govuk-button--warning govuk-!-margin-bottom-0" onclick="openRemoveAdminModal('{{ admin.id }}', '{{ admin.first_name }} {{ admin.last_name }}')">
@@ -77,7 +77,7 @@
           </tbody>
         </table>
       {% else %}
-        <p class="govuk-body">No department admins found. <a href="/departments/{{ department.id }}/admins/new" class="govuk-link">Add a new admin</a>.</p>
+        <p class="govuk-body">No department admins found. <a href="/departments/{{ department.id }}/admins/new" class="govuk-link govuk-link--no-visited-state">Add a new admin</a>.</p>
       {% endif %}
     </div>
   </div>

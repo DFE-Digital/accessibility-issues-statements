@@ -40,10 +40,10 @@
               {% for issue in issues %}
                 <tr class="govuk-table__row">
                   <td class="govuk-table__cell">
-                    <a href="/services/{{ issue.service_id }}/issues" class="govuk-link">{{ issue.service_name }}</a>
+                    <a href="/services/{{ issue.service_id }}/issues" class="govuk-link govuk-link--no-visited-state">{{ issue.service_name }}</a>
                   </td>
                   <td class="govuk-table__cell">
-                    <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                    <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link govuk-link--no-visited-state">{{ issue.title }}</a>
                   </td>
                   <td class="govuk-table__cell">
                     <strong class="govuk-tag govuk-tag--{{ issue.status === 'open' ? 'red' : 'green' }}">
@@ -60,7 +60,7 @@
         {% endif %}
 
         <div class="govuk-!-margin-top-6">
-          <a href="/reports" class="govuk-link">Back to reports</a>
+          <a href="/reports" class="govuk-link govuk-link--no-visited-state">Back to reports</a>
         </div>
       </div>
     </div>

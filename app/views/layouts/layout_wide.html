@@ -14,6 +14,22 @@
         <link rel="stylesheet" href="/assets/css/app.css">
         <link rel="stylesheet" href="/assets/css/moj-frontend.min.css">
         <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+            }
+            body {
+                display: flex;
+                flex-direction: column;
+            }
+            .govuk-main-wrapper {
+                flex: 1 0 auto;
+            }
+            .dfe-feedback, .govuk-footer {
+                flex-shrink: 0;
+            }
+        </style>
         {% block head %}{% endblock %}
     </head>
 
@@ -32,16 +48,14 @@
 
         {% include 'layouts/_cookiebanner.html'%}
         <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
-        {% include 'layouts/_topnav.html' %}
+        {# {% include 'layouts/_topnav.html' %} #}
         {% include 'layouts/_services.html' %}
-        {% include 'layouts/_header.html' %}
+        {% include 'layouts/_govheader.html' %}
 
         {% include 'layouts/_servicenav.html' %}
 
         <main class="govuk-main-wrapper {{mainClasses}}" id="main-content">
-
             {%- block content -%}{%- endblock -%}
-
         </main>
 
         {%- block pageActions -%}{%- endblock -%}

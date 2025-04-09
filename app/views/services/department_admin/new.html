@@ -1,54 +1,333 @@
-{% extends "layouts/layout.html" %}
+{% extends "layouts/layout_wide.html" %}
 
-{% block pageTitle %}
-  Add a new service - {{ serviceName }}
-{% endblock %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
 
-{% block beforeContent %}
-  <div class="govuk-breadcrumbs">
-    <ol class="govuk-breadcrumbs__list">
-      <li class="govuk-breadcrumbs__list-item">
-        <a class="govuk-breadcrumbs__link" href="/">Home</a>
-      </li>
-      <li class="govuk-breadcrumbs__list-item">
-        <a class="govuk-breadcrumbs__link" href="/services">Services</a>
-      </li>
-      <li class="govuk-breadcrumbs__list-item">
-        Add a new service
-      </li>
-    </ol>
-  </div>
-{% endblock %}
+{% set pageTitle = "Add a new service" %}
+{% set serviceNav = "Services" %}
 
 {% block content %}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-xl">Add a new service</h1>
 
-      <form action="/services" method="post">
-        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
-        
-        <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--m" for="name">
-            Service name
-          </label>
-          <input class="govuk-input govuk-input--width-30" id="name" name="name" type="text">
-        </div>
+  {% include "layouts/_pageheader.html" %}
 
-        <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--m" for="url">
-            Service URL
-          </label>
-          <div id="url-hint" class="govuk-hint">
-            Enter the full URL including https://
+  <div class="govuk-width-container">
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {% if errors %}
+          <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+            <h2 class="govuk-error-summary__title" id="error-summary-title">
+            There is a problem
+          </h2>
+            <div class="govuk-error-summary__body">
+              <ul class="govuk-list govuk-error-summary__list">
+                {% for error in errors %}
+                  <li>
+                    <a href="#{{ error.field }}">{{ error.message }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
           </div>
-          <input class="govuk-input govuk-input--width-30" id="url" name="url" type="text" aria-describedby="url-hint">
-        </div>
+        {% endif %}
 
-        <button class="govuk-button" data-module="govuk-button">
+        <p class="govuk-body">
+        Add a new service to your department. At the moment, you can only add services manually.
+      </p>
+
+        <form action="/services" method="post" novalidate>
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+          <div class="govuk-form-group {% if fieldErrors.name %}govuk-form-group--error{% endif %}">
+            <label class="govuk-label" for="name">
+              Service name
+            </label>
+            {% if fieldErrors.name %}
+              <span id="name-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ fieldErrors.name }}
+              </span>
+            {% endif %}
+            <input class="govuk-input {% if fieldErrors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ values.name }}" required>
+          </div>
+
+          <div class="govuk-form-group {% if fieldErrors.url %}govuk-form-group--error{% endif %}">
+            <label class="govuk-label" for="url">
+              Service URL
+            </label>
+            {% if fieldErrors.url %}
+              <span id="url-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ fieldErrors.url }}
+              </span>
+            {% endif %}
+            <input class="govuk-input {% if fieldErrors.url %}govuk-input--error{% endif %}" id="url" name="url" type="url" value="{{ values.url }}" required
+              pattern="https?://.+">
+          </div>
+          <div class="govuk-button-group">
+            <button class="govuk-button" data-module="govuk-button">
           Add service
         </button>
-      </form>
+            <a href="/services" class="govuk-link">
+          Cancel
+        </a>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-{% endblock %} 
+
+  {# Service URL Info Modal #}
+  <div class="govuk-modal-overlay" id="service-url-info-modal" style="display: none;" role="dialog"
+  aria-labelledby="service-url-info-modal-title" aria-describedby="service-url-info-modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="service-url-info-modal-title">About service URLs</h2>
+        <button class="govuk-modal__close" aria-label="Close modal" onclick="closeServiceUrlInfoModal()">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="govuk-modal__content">
+        <div id="service-url-info-modal-description">
+          <p class="govuk-body">When adding a service URL, please ensure:</p>
+          <ul class="govuk-list govuk-list--bullet">
+            <li>The URL is complete and includes the protocol (https://)</li>
+            <li>The URL points to the main entry point of the service</li>
+            <li>The URL is publicly accessible</li>
+            <li>The URL is the production version of the service</li>
+          </ul>
+          <p class="govuk-body">Example: https://www.example.service.gov.uk</p>
+        </div>
+        <div class="govuk-button-group">
+          <button type="button" class="govuk-button" data-module="govuk-button" onclick="closeServiceUrlInfoModal()">
+          Close
+        </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .service-url-button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      color: #505A5F;
+      text-decoration: none;
+      min-width: 22px;
+      min-height: 22px;
+      width: 22px;
+      height: 22px;
+      vertical-align: middle;
+      position: relative;
+      top: -4px;
+    }
+
+    .service-url-button:hover {
+      color: #0b0c0c;
+    }
+
+    .service-url-button:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      background-color: #ffdd00;
+      color: #0b0c0c;
+    }
+
+    .service-url-button::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0b0c0c;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 14px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .service-url-button:hover::after {
+      opacity: 1;
+    }
+
+    .service-url-icon {
+      vertical-align: middle;
+      margin: 0;
+      position: relative;
+      top: 1px;
+    }
+
+    .govuk-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .govuk-modal {
+      background: white;
+      padding: 30px;
+      border-radius: 5px;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      margin: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .govuk-modal__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .govuk-modal__title {
+      margin: 0;
+      padding-right: 45px;
+    }
+
+    .govuk-modal__close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      padding: 10px;
+      color: #505a5f;
+      font-size: 24px;
+    }
+
+    .govuk-modal__close:hover {
+      color: #0b0c0c;
+      background: #f3f2f1;
+    }
+
+    .govuk-modal__close:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      background-color: #ffdd00;
+    }
+
+    .govuk-modal__content {
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 40.0625em) {
+      .govuk-modal {
+        margin: 15px;
+        padding: 15px;
+        width: 95%;
+      }
+
+      .govuk-modal__close {
+        top: 10px;
+        right: 10px;
+      }
+    }
+  </style>
+
+  <script>
+    let previousActiveElement;
+
+    function openServiceUrlInfoModal() {
+      previousActiveElement = document.activeElement;
+      const button = previousActiveElement;
+      button.setAttribute('aria-expanded', 'true');
+
+      const modal = document.getElementById('service-url-info-modal');
+      const body = document.body;
+
+      modal.style.display = 'flex';
+      body
+        .classList
+        .add('modal-open');
+
+      modal.focus();
+      trapFocus(modal);
+    }
+
+    function closeServiceUrlInfoModal() {
+      const modal = document.getElementById('service-url-info-modal');
+      const body = document.body;
+      const button = document.querySelector('.service-url-button');
+
+      if (button) {
+        button.setAttribute('aria-expanded', 'false');
+      }
+
+      modal.style.display = 'none';
+      body
+        .classList
+        .remove('modal-open');
+
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    function trapFocus(modal) {
+      const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstFocusableElement) {
+              lastFocusableElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastFocusableElement) {
+              firstFocusableElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      });
+
+      firstFocusableElement.focus();
+    }
+
+    // Add event listener for service URL info modal
+    document.addEventListener('click', function (event) {
+      const serviceUrlModal = document.querySelector('#service-url-info-modal .govuk-modal');
+      const serviceUrlOverlay = document.getElementById('service-url-info-modal');
+
+      if (event.target === serviceUrlOverlay && serviceUrlModal && !serviceUrlModal.contains(event.target)) {
+        closeServiceUrlInfoModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.getElementById('service-url-info-modal').style.display === 'flex') {
+        closeServiceUrlInfoModal();
+      }
+    });
+  </script>
+
+{% endblock %}

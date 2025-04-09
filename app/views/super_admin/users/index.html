@@ -1,0 +1,116 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set pageTitle = "Users" %}
+{% set serviceNav = "Users" %}
+
+{% block head %}
+<style>
+  .compact-table {
+    font-size: 1rem;
+  }
+  .compact-table .govuk-table__header,
+  .compact-table .govuk-table__cell {
+    padding: 8px;
+  }
+  .compact-table .govuk-tag {
+    font-size: 0.9rem;
+    padding: 2px 8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+  {% include "layouts/_pageheader.html" %}
+
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        {% if successMessage %}
+          <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+            <div class="govuk-notification-banner__header">
+              <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Success
+            </h2>
+            </div>
+            <div class="govuk-notification-banner__content">
+              <p class="govuk-notification-banner__heading">
+                {{ successMessage }}
+              </p>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Department Admins Card -->
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">Department Admins</h2>
+            <ul class="govuk-summary-card__actions">
+              <li class="govuk-summary-card__action">
+                <a class="govuk-link govuk-link--no-visited-state" href="/users/new?role=department_admin">Add department admin</a>
+              </li>
+            </ul>
+          </div>
+          <div class="govuk-summary-card__content">
+            <table class="govuk-table compact-table" id="admins-table">
+              <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                  <th scope="col" class="govuk-table__header">Name</th>
+                  <th scope="col" class="govuk-table__header">Email</th>
+                  <th scope="col" class="govuk-table__header">Department</th>
+                </tr>
+              </thead>
+              <tbody class="govuk-table__body">
+                {% for user in users %}
+                  {% if user.role == 'department_admin' and user.id != currentUserId %}
+                    <tr class="govuk-table__row">
+                      <th class="govuk-table__header"><a href="/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }} {{ user.last_name }}</a></th>
+                      <td class="govuk-table__cell">{{ user.email }}</td>
+                      <td class="govuk-table__cell">{{ user.department_name }}</td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Users Card -->
+        <div class="govuk-summary-card govuk-!-margin-top-6">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">Users</h2>
+            <ul class="govuk-summary-card__actions">
+              <li class="govuk-summary-card__action">
+                <a class="govuk-link govuk-link--no-visited-state" href="/users/new?role=user">Add user</a>
+              </li>
+            </ul>
+          </div>
+          <div class="govuk-summary-card__content">
+            <table class="govuk-table compact-table" id="users-table">
+              <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                  <th scope="col" class="govuk-table__header">Name</th>
+                  <th scope="col" class="govuk-table__header">Email</th>
+                  <th scope="col" class="govuk-table__header">Department</th>
+                </tr>
+              </thead>
+              <tbody class="govuk-table__body">
+                {% for user in users %}
+                  {% if user.role == 'user' and user.id != currentUserId %}
+                    <tr class="govuk-table__row">
+                      <th class="govuk-table__header"><a href="/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }} {{ user.last_name }}</a></th>
+                      <td class="govuk-table__cell">{{ user.email }}</td>
+                      <td class="govuk-table__cell">{{ user.department_name }}</td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

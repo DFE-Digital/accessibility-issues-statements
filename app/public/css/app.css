@@ -1023,30 +1023,7 @@ font-size: 0.875rem;
   color: #0b0c0c;
 }
 
-/* Buttons */
-.govuk-button {
-  background: var(--govuk-brand);
-  color: #ffffff;
-  border: none;
-  height: 38px;
-  padding: 0 var(--spacing-3);
-  font-size: 0.875rem;
-  font-weight: 400;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  transition: all 0.2s ease;
-  margin: 0;
-  white-space: nowrap;
-  min-width: 150px;
-  justify-content: center;
-}
 
-.govuk-button:hover {
-  background: var(--govuk-dark-blue);
-  color: #ffffff;
-}
 
 .govuk-button--secondary {
   background: #f3f2f1;
@@ -1188,4 +1165,20 @@ font-size: 0.875rem;
   display: flex;
   align-items: center;
   position: relative;
+}
+
+
+.compact-table, .compact-table th, .compact-table td, .compact-table a,  .compact-table .govuk-tag {
+  font-size: 1rem;
+  vertical-align: middle;
+  margin: 0;
+}
+
+.compact-table .govuk-table__header,
+.compact-table .govuk-table__cell {
+  padding: 8px;
+}
+.compact-table .govuk-tag {
+  font-size: 0.9rem;
+  padding: 2px 8px;
 }

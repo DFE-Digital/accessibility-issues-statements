@@ -2,6 +2,7 @@ const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue: u
 const { getDepartmentServices, getService, getAllServices } = require('../data/services');
 const { createComment, getIssueComments, deleteComment } = require('../data/comments');
 const { getWcagCriteria } = require('../data/wcag_criteria');
+const { db } = require('../db');
 
 
 const index = async (req, res) => {
@@ -253,9 +254,17 @@ async function showIssueDetails(req, res) {
     const comments = await getIssueComments(id);
     issue.comments = comments;
 
+    // Get users for the department
+    const users = await db('users')
+      .where('department_id', user.department.id)
+      .select('id', 'email', 'first_name', 'last_name')
+      .orderBy('first_name', 'asc')
+      .orderBy('last_name', 'asc');
+
     res.render('services/department_admin/issues/show', {
       service,
-      issue
+      issue,
+      users
     });
   } catch (error) {
     console.error('Error showing issue:', error);
@@ -601,6 +610,91 @@ async function handleReopenIssue(req, res) {
   }
 }
 
+/**
+ * Assign an issue to a user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function assignIssue(req, res) {
+  try {
+    const { serviceId, id } = req.params;
+    const { assign_to, new_user_email, comment } = req.body;
+    const user = req.session.user;
+
+    // Validate input
+    if (!assign_to && !new_user_email) {
+      return res.redirect(`/services/${serviceId}/issues/${id}`);
+    }
+
+    // Get the issue to verify it exists and belongs to the user's department
+    const issue = await getIssue(id);
+    if (!issue) {
+      return res.redirect(`/services/${serviceId}/issues/${id}`);
+    }
+
+    let assignedUserId = assign_to;
+
+    // If assigning to a new user, create the user first
+    if (new_user_email) {
+      // Check if user already exists
+      const existingUser = await db('users')
+        .where('email', new_user_email)
+        .first();
+
+      if (existingUser) {
+        assignedUserId = existingUser.id;
+      } else {
+        // Create new user
+        const [newUser] = await db('users')
+          .insert({
+            email: new_user_email,
+            role: 'department_user',
+            department_id: user.department.id,
+            created_at: db.fn.now(),
+            updated_at: db.fn.now()
+          })
+          .returning('*');
+        
+        assignedUserId = newUser.id;
+      }
+    }
+
+    // Check if the assigned_to column exists
+    const columnExists = await db.schema.hasColumn('issues', 'assigned_to');
+    if (!columnExists) {
+      // Add the column if it doesn't exist
+      await db.schema.alterTable('issues', function(table) {
+        table.uuid('assigned_to').nullable();
+        table.foreign('assigned_to')
+          .references('id')
+          .inTable('users');
+      });
+    }
+
+    // Update the issue with the assigned user
+    await db('issues')
+      .where('id', id)
+      .update({
+        assigned_to: assignedUserId,
+        updated_at: db.fn.now()
+      });
+
+    // Add comment if provided
+    if (comment) {
+      await createComment({
+        issue_id: id,
+        user_id: user.id,
+        content: comment
+      });
+    }
+
+    res.redirect(`/services/${serviceId}/issues/${id}`);
+  } catch (error) {
+    console.error('Error assigning issue:', error);
+    res.redirect(`/services/${req.params.serviceId}/issues/${req.params.id}`);
+  }
+}
+
 module.exports = {
   index,
   showNewIssueForm,
@@ -611,5 +705,6 @@ module.exports = {
   addComment,
   handleDeleteComment,
   handleCloseIssue,
-  handleReopenIssue
+  handleReopenIssue,
+  assignIssue
 }; 
