@@ -45,6 +45,7 @@
             <option value="">Select a type</option>
             <option value="email" {% if method.contact_type == 'email' %}selected{% endif %}>Email</option>
             <option value="phone" {% if method.contact_type == 'phone' %}selected{% endif %}>Phone</option>
+            <option value="post" {% if method.contact_type == 'post' %}selected{% endif %}>Post</option>
             <option value="online_form" {% if method.contact_type == 'online_form' %}selected{% endif %}>Online form</option>
           </select>
         </div>
