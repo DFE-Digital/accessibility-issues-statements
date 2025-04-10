@@ -45,14 +45,30 @@ async function validateServiceUrl(req, res) {
     }
 
     // Get the service's URL content
-    const response = await axios.get(service.url);
+    const response = await axios.get(service.url, {
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Accessibility Issues Management; +https://github.com/your-repo)'
+      }
+    });
     const html = response.data;
 
-    // Get the statement URL
-    const statementUrl = `${req.protocol}://${req.get('host')}/s/${service.numeric_id}`;
+    // Get the statement URL in different formats
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const statementUrl = `${baseUrl}/s/${service.numeric_id}`;
+    
+    // Create different variations of the URL to check for
+    const urlVariations = [
+      statementUrl,                                    // Full URL
+      statementUrl.replace('https://', 'http://'),     // HTTP version
+      statementUrl.replace(/^https?:\/\//, ''),        // Without protocol
+      statementUrl.replace(/^https?:\/\//, '//'),      // Protocol-relative
+      encodeURI(statementUrl),                         // URL encoded
+      encodeURIComponent(statementUrl)                 // Full URL encoded
+    ];
 
-    // Check if the statement URL exists in the page
-    const hasStatementLink = html.includes(statementUrl);
+    // Check if any variation of the URL exists in the page
+    const hasStatementLink = urlVariations.some(url => html.includes(url));
 
     if (hasStatementLink) {
       // Update service enrolled status directly in the database
@@ -65,11 +81,35 @@ async function validateServiceUrl(req, res) {
 
       return res.json({ success: true });
     } else {
-      return res.json({ success: false });
+      return res.json({ 
+        success: false,
+        message: 'Statement URL not found on the service page',
+        expectedUrl: statementUrl,
+        variations: urlVariations
+      });
     }
   } catch (error) {
     console.error('Error validating service URL:', error);
-    return res.status(500).json({ success: false, message: 'Error validating service URL' });
+    
+    if (error.code === 'ECONNABORTED') {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Connection to service URL timed out' 
+      });
+    }
+    
+    if (error.response) {
+      return res.status(500).json({ 
+        success: false, 
+        message: `Service returned status code ${error.response.status}` 
+      });
+    }
+    
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error validating service URL',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }
 
