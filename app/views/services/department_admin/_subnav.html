@@ -13,6 +13,7 @@
                                     <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service URL</th>
                                     <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service owner</th>
                                     <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Business area</th>
+                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Statement enrolled</th>
                                 </tr>
                             </thead>
                             <tbody class="govuk-table__body">
@@ -24,7 +25,37 @@
                                         {{ service.owner_last_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change</a>
                                     </td>
 
-                                    <td class="govuk-table__cell">{{ service.business_area_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change</a></td>
+                                    <td class="govuk-table__cell">{{ service.business_area_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change</a>
+                                    </td>
+                                    <td class="govuk-table__cell">
+                                        {% if service.statement_enrolled %}
+                                            <strong class="govuk-tag govuk-tag--green">Enrolled</strong>
+                                        {% else %}
+                                            <strong class="govuk-tag govuk-tag--red">Not enrolled</strong>  - <a href="/services/{{ service.id }}/statement" class="govuk-link govuk-link--no-visited-state">Manage</a>
+                                        {% endif %}
+                                        <button 
+                                            class="govuk-link govuk-link--no-visited-state enrollment-info-button" 
+                                            onclick="openEnrollmentInfoModal(); return false;" 
+                                            aria-label="Open information about statement enrollment"
+                                            aria-expanded="false"
+                                            aria-controls="enrollment-info-modal"
+                                            aria-haspopup="dialog"
+                                            data-tooltip="More information about statement enrollment">
+                                            <svg 
+                                                class="enrollment-info-icon" 
+                                                width="22" 
+                                                height="22" 
+                                                viewBox="0 0 16 16" 
+                                                fill="none" 
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                aria-hidden="true"
+                                                focusable="false">
+                                                <path d="M8 0C3.6 0 0 3.6 0 8C0 12.4 3.6 16 8 16C12.4 16 16 12.4 16 8C16 3.6 12.4 0 8 0ZM8.8 12H7.2V7.2H8.8V12ZM8 6C7.6 6 7.2 5.6 7.2 5.2C7.2 4.8 7.6 4.4 8 4.4C8.4 4.4 8.8 4.8 8.8 5.2C8.8 5.6 8.4 6 8 6Z" 
+                                                    fill="#505A5F"/>
+                                            </svg>
+                                            <span class="govuk-visually-hidden">Open information about statement enrollment</span>
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -84,7 +115,6 @@
                   </a>
                                 </li>
 
-                              
                             </ul>
                         </nav>
                     </div>
@@ -93,4 +123,213 @@
         </div>
     </div>
 </div>
+
+{# Enrollment Info Modal #}
+<div class="govuk-modal-overlay" id="enrollment-info-modal" style="display: none;" role="dialog"
+  aria-labelledby="enrollment-info-modal-title" aria-describedby="enrollment-info-modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+        <div class="govuk-modal__header">
+            <h2 class="govuk-modal__title" id="enrollment-info-modal-title">About statement enrollment</h2>
+            <button class="govuk-modal__close" aria-label="Close modal" onclick="closeEnrollmentInfoModal()">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+        <div class="govuk-modal__content">
+            <div id="enrollment-info-modal-description">
+                <h3 class="govuk-heading-s">What is statement enrollment?</h3>
+                <p class="govuk-body">Statement enrollment means that your service is linking to your accessibility statement in this service.</p>
+                
+                {% if service.statement_enrolled %}
+                    <p class="govuk-body">We have verified your statement is linked to from your service.</p>
+                {% else %}
+                    <p class="govuk-body">Your service is not currently linking to your accessibility statement in this service.</p>
+                    <p class="govuk-body"><a href="/services/{{ service.id }}/statement" class="govuk-link govuk-link--no-visited-state">Verify your statement</a> is linked to from your service.</p>
+                {% endif %}
+                
+                <div class="govuk-button-group">
+                    <button type="button" class="govuk-button" data-module="govuk-button" onclick="closeEnrollmentInfoModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .enrollment-info-button {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 8px;
+        color: #505A5F;
+        text-decoration: none;
+        min-width: 22px;
+        min-height: 22px;
+        width: 22px;
+        height: 22px;
+        vertical-align: middle;
+        position: relative;
+        top: -1px;
+    }
+
+    .enrollment-info-button:hover {
+        color: #0b0c0c;
+    }
+
+    .enrollment-info-button:focus {
+        outline: 3px solid #ffdd00;
+        outline-offset: 0;
+        background-color: #ffdd00;
+        color: #0b0c0c;
+    }
+
+    .enrollment-info-button::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #0b0c0c;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 14px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        z-index: 100;
+    }
+
+    .enrollment-info-button:hover::after {
+        opacity: 1;
+    }
+
+    .enrollment-info-icon {
+        vertical-align: middle;
+        margin: 0;
+        position: relative;
+        top: 1px;
+    }
+
+    .govuk-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .govuk-modal {
+        background: white;
+        padding: 20px;
+        border-radius: 4px;
+        max-width: 500px;
+        width: 90%;
+        position: relative;
+    }
+
+    .govuk-modal__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .govuk-modal__close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .govuk-modal__content {
+        margin-bottom: 20px;
+    }
+</style>
+
+<script>
+    let previousActiveElement;
+
+    function openEnrollmentInfoModal() {
+        previousActiveElement = document.activeElement;
+        const button = previousActiveElement;
+        button.setAttribute('aria-expanded', 'true');
+
+        const modal = document.getElementById('enrollment-info-modal');
+        const body = document.body;
+
+        modal.style.display = 'flex';
+        body.classList.add('modal-open');
+
+        modal.focus();
+        trapFocus(modal);
+    }
+
+    function closeEnrollmentInfoModal() {
+        const modal = document.getElementById('enrollment-info-modal');
+        const body = document.body;
+        const button = document.querySelector('.enrollment-info-button');
+
+        if (button) {
+            button.setAttribute('aria-expanded', 'false');
+        }
+
+        modal.style.display = 'none';
+        body.classList.remove('modal-open');
+
+        if (previousActiveElement) {
+            previousActiveElement.focus();
+        }
+    }
+
+    function trapFocus(element) {
+        const focusableElements = element.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstFocusableElement = focusableElements[0];
+        const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+        element.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusableElement) {
+                        e.preventDefault();
+                        lastFocusableElement.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastFocusableElement) {
+                        e.preventDefault();
+                        firstFocusableElement.focus();
+                    }
+                }
+            }
+        });
+    }
+
+    // Add event listeners for enrollment info modal
+    document.addEventListener('click', function(event) {
+        const enrollmentModal = document.querySelector('#enrollment-info-modal .govuk-modal');
+        const enrollmentOverlay = document.getElementById('enrollment-info-modal');
+
+        if (event.target === enrollmentOverlay && enrollmentModal && !enrollmentModal.contains(event.target)) {
+            closeEnrollmentInfoModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && document.getElementById('enrollment-info-modal').style.display === 'flex') {
+            closeEnrollmentInfoModal();
+        }
+    });
+</script>
 
