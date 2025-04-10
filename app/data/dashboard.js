@@ -228,25 +228,33 @@ async function getCommonIssues(departmentId, limit = 5) {
   const validDepartmentId = validateDepartmentId(departmentId);
   const validLimit = validateLimit(limit);
   
-  // Use SQL Server string aggregation with STRING_AGG
+  // Get counts of issues by WCAG criterion
   const issues = await db('issues')
     .join('services', 'issues.service_id', 'services.id')
-    .leftJoin('issue_types', 'issues.id', 'issue_types.issue_id')
+    .join('issue_wcag_criteria', 'issues.id', 'issue_wcag_criteria.issue_id')
+    .join('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
     .where('services.department_id', validDepartmentId)
     .where('issues.status', 'open')
     .select(
-      'issues.title',
-      db.raw('COUNT(*) as count'),
-      db.raw('STRING_AGG(CONVERT(NVARCHAR(MAX), issue_types.type), \',\') as types')
+      'wcag_criteria.criterion',
+      'wcag_criteria.title',
+      'wcag_criteria.level',
+      db.raw('COUNT(DISTINCT issues.id) as count')
     )
-    .groupBy('issues.title')
+    .groupBy(
+      'wcag_criteria.criterion',
+      'wcag_criteria.title',
+      'wcag_criteria.level'
+    )
     .orderBy('count', 'desc')
     .limit(validLimit);
 
+
   return issues.map(issue => ({
+    criterion: issue.criterion,
     title: issue.title,
-    count: parseInt(issue.count),
-    type: (issue.types || '').split(',')[0] || 'Unknown' // Use first type or 'Unknown'
+    level: issue.level,
+    count: parseInt(issue.count)
   }));
 }
 

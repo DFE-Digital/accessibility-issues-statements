@@ -1,5 +1,7 @@
 const dashboardData = require('../data/dashboard');
 const validator = require('validator');
+const { getDepartmentServices } = require('../data/services');
+const { getServiceIssues } = require('../data/issues');
 
 /**
  * Safely escape a string value, returning empty string for undefined/null
@@ -86,8 +88,12 @@ async function index(req, res) {
       commonIssues: (commonIssues || []).map(issue => ({
         count: issue.count || 0,
         title: safeEscape(issue.title),
+        criterion: issue.criterion || '',
+        level: issue.level || '',
         type: issue.type || 'Unknown'
       })),
+
+
       
       // Recent issues
       recentIssues: (recentIssues || []).map(issue => ({
@@ -96,6 +102,8 @@ async function index(req, res) {
         service_name: safeEscape(issue.service_name)
       }))
     };
+
+    console.log(commonIssues);
 
     // Render appropriate dashboard based on user role
     if (user.role === 'department_admin') {
@@ -143,6 +151,83 @@ function determineServiceStatus(service) {
   return 'partially';
 }
 
+async function getDashboardData(req, res) {
+  try {
+    const user = req.session.user;
+    const services = await getDepartmentServices(user.department.id);
+    
+    // Get all issues for the department
+    const allIssues = [];
+    for (const service of services) {
+      const issues = await getServiceIssues(service.id);
+      allIssues.push(...issues);
+    }
+
+    // Count services
+    const servicesCount = services.length;
+
+    // Count open issues
+    const openIssues = allIssues.filter(issue => issue.status === 'open');
+    const openIssuesCount = openIssues.length;
+
+    // Count overdue issues
+    const today = new Date();
+    const overdueIssuesCount = openIssues.filter(issue => 
+      issue.planned_fix === true && 
+      issue.planned_fix_date && 
+      new Date(issue.planned_fix_date) < today
+    ).length;
+
+    // Count issues by WCAG level
+    const wcagLevels = {};
+    openIssues.forEach(issue => {
+      if (issue.wcag_criteria) {
+        issue.wcag_criteria.forEach(criterion => {
+          wcagLevels[criterion.level] = (wcagLevels[criterion.level] || 0) + 1;
+        });
+      }
+    });
+
+    // Format WCAG levels data for chart
+    const wcagLevelsData = Object.entries(wcagLevels).map(([level, count]) => ({
+      level,
+      count
+    }));
+
+    // Count issues by WCAG criterion
+    const wcagCriteria = {};
+    openIssues.forEach(issue => {
+      if (issue.wcag_criteria) {
+        issue.wcag_criteria.forEach(criterion => {
+          const key = `${criterion.criterion} - ${criterion.title}`;
+          wcagCriteria[key] = (wcagCriteria[key] || 0) + 1;
+        });
+      }
+    });
+
+    // Get top 5 WCAG criteria
+    const topWcagCriteria = Object.entries(wcagCriteria)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([criterion, count]) => ({
+        criterion,
+        count
+      }));
+
+    res.json({
+      servicesCount,
+      openIssuesCount,
+      overdueIssuesCount,
+      wcagLevels: wcagLevelsData,
+      topWcagCriteria
+    });
+  } catch (error) {
+    console.error('Error getting dashboard data:', error);
+    res.status(500).json({ error: 'Failed to get dashboard data' });
+  }
+}
+
 module.exports = {
-  index
+  index,
+  getDashboardData
 }; 
