@@ -12,23 +12,222 @@
   ) %}
 {% endfor %}
 
-{% block head %}
-
-{% endblock %}
+{% block head %}{% endblock %}
 
 {% block content %}
 
-{% include "layouts/_pageheader.html" %}
+  {% include "layouts/_pageheader.html" %}
 
   <div class="govuk-width-container">
     <div class="govuk-grid-row">
-      <div class="govuk-grid-column-full">
+      <div class="govuk-grid-column-one-quarter">
 
+        <div class="moj-filter" data-module="moj-filter">
+          <div class="moj-filter__header">
+            <div class="moj-filter__header-title">
+              <h2 class="govuk-heading-m">Filter</h2>
+            </div>
+          </div>
+
+          <div class="moj-filter__content">
+            <div class="moj-filter__selected">
+              <div class="moj-filter__selected-heading">
+                <div class="moj-filter__heading-title">
+                  <h2 class="govuk-heading-s">Selected filters</h2>
+                </div>
+                <div class="moj-filter__heading-action">
+                  <p class="govuk-body-s">
+                    <a class="govuk-link govuk-link--no-visited-state" href="?">Clear filters</a>
+                  </p>
+                </div>
+              </div>
+
+              {% if filters.search %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Keywords</h3>
+                <ul class="moj-filter-tags">
+                  <li>
+                    <a class="moj-filter__tag" href="?{{ filters | removeFilter('search') }}">
+                      <span class="govuk-visually-hidden">Remove this filter</span>
+                      {{ filters.search }}</a>
+                  </li>
+                </ul>
+              {% endif %}
+
+              {% if filters.business_areas and filters.business_areas.length > 0 %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Business areas</h3>
+                <ul class="moj-filter-tags">
+                  {% for area_id in filters.business_areas %}
+                    {% set area = business_areas | findById(area_id) %}
+                    {% if area %}
+                      <li>
+                        <a class="moj-filter__tag" href="?{{ filters | removeFilter('business_areas', area_id) }}">
+                          <span class="govuk-visually-hidden">Remove this filter</span>
+                          {{ area.name }}</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                </ul>
+              {% endif %}
+
+              {% if filters.has_issues == 'true' or filters.no_issues == 'true' %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Issues status</h3>
+                <ul class="moj-filter-tags">
+                  {% if filters.has_issues == 'true' %}
+                    <li>
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('has_issues') }}">
+                        <span class="govuk-visually-hidden">Remove this filter</span> Has issues</a>
+                    </li>
+                  {% endif %}
+                  {% if filters.no_issues == 'true' %}
+                    <li>
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('no_issues') }}">
+                        <span class="govuk-visually-hidden">Remove this filter</span> No issues</a>
+                    </li>
+                  {% endif %}
+                </ul>
+              {% endif %}
+
+              {% if filters.enrolled == 'true' or filters.not_enrolled == 'true' %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Statement service status</h3>
+                <ul class="moj-filter-tags">
+                  {% if filters.enrolled == 'true' %}
+                    <li>
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('enrolled') }}">
+                        <span class="govuk-visually-hidden">Remove this filter</span> Enrolled</a>
+                    </li>
+                  {% endif %}
+                  {% if filters.not_enrolled == 'true' %}
+                    <li>
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('not_enrolled') }}">
+                        <span class="govuk-visually-hidden">Remove this filter</span> Not enrolled</a>
+                    </li>
+                  {% endif %}
+                </ul>
+              {% endif %}
+            </div>
+
+            <div class="moj-filter__options">
+              <form method="get" action="">
+                <div class="govuk-form-group govuk-!-margin-bottom-2">
+                  <div class="moj-filter-layout__content">
+                    <button type="button" class=" dfe-filter-collapsible-button moj-filter-toggle " aria-expanded="false" aria-controls="search-filter">
+                      <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                        <path d="M0 0 L10 10 L20 0"></path>
+                      </svg>
+                      Keywords
+                    </button>
+                    <div id="search-filter" hidden>
+                      <label class="govuk-label" for="search">
+                        Search services
+                      </label>
+                      <input class="govuk-input" id="search" name="search" type="text" value="{{ filters.search or '' }}">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="govuk-form-group govuk-!-margin-bottom-2">
+                  <div class="moj-filter-layout__content">
+                    <button type="button" class="dfe-filter-collapsible-button  moj-filter-toggle" aria-expanded="false" aria-controls="business-areas-filter">
+                      <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                        <path d="M0 0 L10 10 L20 0"></path>
+                      </svg>
+                      Business areas
+                    </button>
+                    {% if filters.business_areas and filters.business_areas.length > 0 %}
+                      <span class="moj-filter-toggle__count">{{ filters.business_areas.length }} selected</span>
+                    {% endif %}
+                    <div id="business-areas-filter" hidden>
+                      <div class="govuk-checkboxes govuk-checkboxes--small">
+                        {% for area in business_areas %}
+                          <div class="govuk-checkboxes__item">
+                            <input class="govuk-checkboxes__input" id="business_area_{{ area.id }}" name="business_areas" type="checkbox" value="{{ area.id }}" {% if area.id in filters.business_areas %}checked{% endif %}>
+                            <label class="govuk-label govuk-checkboxes__label" for="business_area_{{ area.id }}">
+                              {{ area.name }}
+                            </label>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              <div class="govuk-form-group govuk-!-margin-bottom-2">
+                  <div class="moj-filter-layout__content">
+                    <button type="button" class="dfe-filter-collapsible-button  moj-filter-toggle" aria-expanded="false" aria-controls="issues-status-filter">
+                      <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                        <path d="M0 0 L10 10 L20 0"></path>
+                      </svg>
+                      Issues status
+                    </button>
+                    {% if filters.has_issues == 'true' or filters.no_issues == 'true' %}
+                      <span class="moj-filter-toggle__count">1 selected</span>
+                    {% endif %}
+                    <div id="issues-status-filter" hidden>
+                      <div class="govuk-checkboxes govuk-checkboxes--small">
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="has_issues" name="has_issues" type="checkbox" value="true" {% if filters.has_issues == 'true' %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="has_issues">
+                            Has issues
+                          </label>
+                        </div>
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="no_issues" name="no_issues" type="checkbox" value="true" {% if filters.no_issues == 'true' %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="no_issues">
+                            No issues
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="govuk-form-group govuk-!-margin-bottom-2">
+                  <div class="moj-filter-layout__content">
+                    <button type="button" class="dfe-filter-collapsible-button  moj-filter-toggle" aria-expanded="false" aria-controls="statement-status-filter">
+                      <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                        <path d="M0 0 L10 10 L20 0"></path>
+                      </svg>
+                      Statement service status
+                    </button>
+                    {% if filters.enrolled == 'true' or filters.not_enrolled == 'true' %}
+                      <span class="moj-filter-toggle__count">1 selected</span>
+                    {% endif %}
+                    <div id="statement-status-filter" hidden>
+                      <div class="govuk-checkboxes govuk-checkboxes--small">
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="enrolled" name="enrolled" type="checkbox" value="true" {% if filters.enrolled == 'true' %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="enrolled">
+                            Enrolled
+                          </label>
+                        </div>
+                        <div class="govuk-checkboxes__item">
+                          <input class="govuk-checkboxes__input" id="not_enrolled" name="not_enrolled" type="checkbox" value="true" {% if filters.not_enrolled == 'true' %}checked{% endif %}>
+                          <label class="govuk-label govuk-checkboxes__label" for="not_enrolled">
+                            Not enrolled
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="govuk-form-group govuk-!-margin-top-2">
+                  <div class="moj-filter__footer ">
+                    <button type="submit" class="govuk-button govuk-!-margin-bottom-1" data-module="govuk-button">
+                    Apply filters
+                  </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="govuk-grid-column-three-quarters">
         <div class="govuk-summary-card">
           <div class="govuk-summary-card__title-wrapper">
-            <h2 class="govuk-summary-card__title">
-     Services
-    </h2>
+            <h2 class="govuk-summary-card__title">Services</h2>
             <ul class="govuk-summary-card__actions">
               <li class="govuk-summary-card__action">
                 <a class="govuk-link govuk-link--no-visited-state" href="/services/new">Add service</a>
@@ -36,58 +235,155 @@
             </ul>
           </div>
           <div class="govuk-summary-card__content">
-
-            <table class="govuk-table compact-table">
-              <thead class="govuk-table__head">
-                <tr class="govuk-table__row">
-                  <th scope="col" class="govuk-table__header govuk-!-width-one-third">Service name</th>
-                  <th scope="col" class="govuk-table__header">Business area</th>
-                  <th scope="col" class="govuk-table__header">Open issues</th>
-                  <th scope="col" class="govuk-table__header">Owner</th>
-                  <th scope="col" class="govuk-table__header">Statement service</th>
-                </tr>
-              </thead>
-              <tbody class="govuk-table__body">
-                {% for service in services %}
+            {% if services.length > 0 %}
+              <table class="govuk-table compact-table">
+                <thead class="govuk-table__head">
                   <tr class="govuk-table__row">
-                    <th class="govuk-table__header">
-                      <a href="/services/{{ service.id }}" class="govuk-link govuk-link--no-visited-state">
-                       {{ service.name }}
-                      </a>
-                    </th>
-                    <td class="govuk-table__cell">
-                      {{ service.business_area_name }}
-                    </td>
-                    <td class="govuk-table__cell">
-                      {{ service.open_issues_count if service.open_issues_count != undefined else 0 }}
-                    </td>
-                    <td class="govuk-table__cell">
-                      {% if service.owner_email %}
-                        <a href="mailto:{{ service.owner_email }}" class="govuk-link govuk-link--no-visited-state">
-                          {{ service.owner_first_name }}
-                          {{ service.owner_last_name }}
-                        </a>
-                      {% else %}
-                        <strong class="govuk-tag govuk-tag--grey">Not assigned</strong>
-                      {% endif %}
-                    </td>
-                    <td class="govuk-table__cell">
-                      {% if service.statement_enrolled %}
-                        <strong class="govuk-tag govuk-tag--green">Enrolled</strong>
-                      {% else %}
-                        <strong class="govuk-tag govuk-tag--red">Not enrolled</strong>
-                      {% endif %}
-                    </td>
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-third">Service name</th>
+                    <th scope="col" class="govuk-table__header">Business area</th>
+                    <th scope="col" class="govuk-table__header">Open issues</th>
+                    <th scope="col" class="govuk-table__header">Owner</th>
+                    <th scope="col" class="govuk-table__header">Statement service</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for service in services %}
+                    <tr class="govuk-table__row">
+                      <th class="govuk-table__header">
+                        <a href="/services/{{ service.id }}" class="govuk-link govuk-link--no-visited-state">
+                          {{ service.name }}
+                        </a>
+                      </th>
+                      <td class="govuk-table__cell">
+                        {{ service.business_area_name }}
+                      </td>
+                      <td class="govuk-table__cell">
+                        {{ service.open_issues_count if service.open_issues_count != undefined else 0 }}
+                      </td>
+                      <td class="govuk-table__cell">
+                        {% if service.owner_email %}
+                          <a href="mailto:{{ service.owner_email }}" class="govuk-link govuk-link--no-visited-state">
+                            {{ service.owner_first_name }}
+                            {{ service.owner_last_name }}
+                          </a>
+                        {% else %}
+                          <strong class="govuk-tag govuk-tag--grey">Not assigned</strong>
+                        {% endif %}
+                      </td>
+                      <td class="govuk-table__cell">
+                        {% if service.statement_enrolled %}
+                          <strong class="govuk-tag govuk-tag--green">Enrolled</strong>
+                        {% else %}
+                          <strong class="govuk-tag govuk-tag--red">Not enrolled</strong>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p class="govuk-body">No services found for the selected filters</p>
+            {% endif %}
           </div>
         </div>
-
       </div>
     </div>
   </div>
+
+  <style>
+    .moj-filter-toggle {
+      background: none;
+      border: 0;
+      color: #1d70b8;
+      cursor: pointer;
+      margin-bottom: 10px;
+      padding: 0;
+      position: relative;
+      text-align: left;
+      width: 100%;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+    }
+
+    .moj-filter-toggle:hover {
+      color: #003078;
+    }
+
+    .moj-filter-toggle:focus {
+      outline: 3px solid transparent;
+      color: #0b0c0c;
+      background-color: #ffdd00;
+      box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
+      text-decoration: none;
+    }
+
+    .moj-filter-toggle__icon {
+      margin-right: 10px;
+      vertical-align: middle;
+      transition: transform 0.3s ease;
+    }
+
+    .moj-filter-toggle[aria-expanded="false"] .moj-filter-toggle__icon {
+      transform: rotate(-90deg);
+    }
+
+    .moj-filter-toggle__count {
+      color: #505a5f;
+      font-size: 16px;
+      margin-left: 4px;
+      display: block;
+      margin-top: -5px;
+      margin-bottom: 10px;
+    }
+
+    .moj-filter-layout__content {
+      padding: 0;
+    }
+
+    .moj-filter-layout__content > div {
+      margin-left: 15px;
+    }
+
+    [hidden] {
+      display: none;
+    }
+
+    .dfe-filter-collapsible-button {
+      margin-bottom: 16px;
+      font-weight: normal;
+      font-size: 1.188rem
+    }
+
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document
+        .querySelectorAll('.moj-filter-toggle')
+        .forEach(toggle => {
+          const content = document.getElementById(toggle.getAttribute('aria-controls'));
+
+          toggle.addEventListener('click', function () {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
+            content.hidden = expanded;
+          });
+        });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          document
+            .querySelectorAll('.moj-filter-toggle')
+            .forEach(toggle => {
+              toggle.setAttribute('aria-expanded', 'false');
+              document
+                .getElementById(toggle.getAttribute('aria-controls'))
+                .hidden = true;
+            });
+        }
+      });
+    });
+  </script>
 
 {% endblock %}

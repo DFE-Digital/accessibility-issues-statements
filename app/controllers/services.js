@@ -22,6 +22,16 @@ const index = async (req, res) => {
     const user = req.session.user;
     const departmentId = user.department.id; // Access department ID from the nested department object
 
+    // Get filter parameters from query string
+    const filters = {
+      search: req.query.search,
+      business_areas: req.query.business_areas ? (Array.isArray(req.query.business_areas) ? req.query.business_areas : [req.query.business_areas]) : [],
+      has_issues: req.query.has_issues,
+      no_issues: req.query.no_issues,
+      enrolled: req.query.enrolled,
+      not_enrolled: req.query.not_enrolled
+    };
+
     // Get services and stats based on user role
     let services, stats;
     
@@ -34,7 +44,7 @@ const index = async (req, res) => {
     } else if (user.role === 'department_admin') {
       // Department admin can see services in their department
       [services, stats] = await Promise.all([
-        servicesData.getDepartmentServices(departmentId),
+        servicesData.getDepartmentServices(departmentId, filters),
         servicesData.getDepartmentServicesStats(departmentId)
       ]);
     } else {
@@ -51,7 +61,9 @@ const index = async (req, res) => {
     res.render(viewPath, {
       services,
       stats,
-      user
+      user,
+      filters,
+      business_areas: await businessAreasData.getDepartmentBusinessAreas(departmentId)
     });
   } catch (error) {
     console.error('Services error:', error);

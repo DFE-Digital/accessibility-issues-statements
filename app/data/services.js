@@ -48,10 +48,11 @@ async function getAllServices() {
 /**
  * Get services for a specific department
  * @param {string} departmentId - Department ID (UUID)
+ * @param {Object} filters - Filter parameters
  * @returns {Promise<Array>} Array of services
  */
-async function getDepartmentServices(departmentId) {
-  return db('services')
+async function getDepartmentServices(departmentId, filters = {}) {
+  let query = db('services')
     .select(
       'services.*', 
       'departments.name as department_name',
@@ -68,7 +69,38 @@ async function getDepartmentServices(departmentId) {
       this.on('issues.service_id', '=', 'services.id')
           .andOn('issues.status', '<>', db.raw("'closed'"));
     })
-    .where('services.department_id', departmentId)
+    .where('services.department_id', departmentId);
+
+  // Apply search filter
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.where(function() {
+      this.whereRaw('LOWER(services.name) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(services.url) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(business_areas.name) LIKE LOWER(?)', [searchTerm]);
+    });
+  }
+
+  // Apply business areas filter
+  if (filters.business_areas && filters.business_areas.length > 0) {
+    query = query.whereIn('services.business_area_id', filters.business_areas);
+  }
+
+  // Apply issues status filter
+  if (filters.has_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
+  } else if (filters.no_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
+  }
+
+  // Apply statement service status filter
+  if (filters.enrolled === 'true') {
+    query = query.where('services.statement_enrolled', true);
+  } else if (filters.not_enrolled === 'true') {
+    query = query.where('services.statement_enrolled', false);
+  }
+
+  return query
     .groupBy(
       'services.id',
       'services.name',

@@ -86,12 +86,17 @@ async function getIssue(issueId) {
 
   // Get the assigned user name if there is one
   let assignedToName = null;
+  let assignedToEmail = null;
   if (issue.assigned_to) {
     const assignedUser = await db('users')
       .where('id', issue.assigned_to)
-      .select(db.raw("CONCAT(first_name, ' ', last_name) as name"))
+      .select(
+        db.raw("CONCAT(first_name, ' ', last_name) as name"),
+        'email'
+      )
       .first();
     assignedToName = assignedUser?.name || null;
+    assignedToEmail = assignedUser?.email || null;
   }
 
   // Get WCAG criteria
@@ -112,6 +117,7 @@ async function getIssue(issueId) {
     service_name: service?.name || null,
     department_id: service?.department_id || null,
     assigned_to_name: assignedToName,
+    assigned_to_email: assignedToEmail,
     wcag_criteria: criteria || [],
     types: types.map(t => t.type)
   };

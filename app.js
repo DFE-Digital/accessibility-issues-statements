@@ -22,7 +22,7 @@ const Airtable = require('airtable');
 const session = require('./app/config/session');
 const csrf = require('csurf');
 const { getNavigationItems } = require('./app/helpers/navigation');
-const { removeFilter, findServiceName, formatDateFilter } = require('./app/filters');
+const { removeFilter, findServiceName, formatDateFilter, findById } = require('./app/filters');
 
 const app = express();
 
@@ -63,6 +63,7 @@ nunjuckEnv.addFilter('date', dateFilter);
 // Add custom filters
 nunjuckEnv.addFilter('removeFilter', removeFilter);
 nunjuckEnv.addFilter('findServiceName', findServiceName);
+nunjuckEnv.addFilter('findById', findById);
 nunjuckEnv.addFilter('formatDateFilter', formatDateFilter);
 
 // Register marked and markdown libraries

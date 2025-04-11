@@ -2,8 +2,8 @@
 
 {% set mainClasses = 'govuk-!-padding-top-0' %}
 
-{% set pageTitle = "Edit business area" %}
-{% set serviceNav = "Business" %}
+{% set pageTitle = "Settings" %}
+{% set serviceNav = "Settings" %}
 {% set subnav = 'business-areas' %}
 
 {% block content %}
@@ -17,7 +17,7 @@
 
         <h2 class="govuk-heading-l">Edit business area</h2>
 
-        <form action="/business-areas/{{ businessArea.id }}" method="post">
+        <form method="post" action="/department-admin/business-areas/{{ businessArea.id }}">
           <input type="hidden" name="_csrf" value="{{ csrfToken }}">
           <input type="hidden" name="_method" value="PUT">
 
@@ -34,10 +34,12 @@
           </div>
 
           <div class="govuk-button-group">
-            <button type="submit" class="govuk-button" data-module="govuk-button">
+            <button class="govuk-button" data-module="govuk-button">
               Save changes
             </button>
-            <a href="/business-areas" class="govuk-link govuk-link--no-visited-state">Cancel</a>
+            <a href="/settings" class="govuk-link">
+              Cancel
+            </a>
           </div>
         </form>
       </div>

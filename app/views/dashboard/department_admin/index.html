@@ -63,7 +63,7 @@
           <div class="chart-header">
             <h2>Top WCAG Issues</h2>
           </div>
-          <table class="govuk-table">
+          <table class="govuk-table compact-table">
             <thead class="govuk-table__head">
               <tr class="govuk-table__row">
                 <th class="govuk-table__header">WCAG Criteria</th>
@@ -86,7 +86,8 @@
     </div>
   </div>
 
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <style>
     .govuk-width-container {
       max-width: 1400px;
@@ -237,24 +238,20 @@
 
     .chart-container {
       background: #ffffff;
-      padding: 32px;
-      box-shadow: rgba(50, 50, 93, 0.02) 0 2px 5px -1px, rgba(0, 0, 0, 0.05) 0 1px 3px -1px;
+      padding: 24px;
       border: 1px solid #b1b4b6;
+      margin-bottom: 24px;
     }
 
     .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
+      margin-bottom: 16px;
     }
 
     .chart-header h2 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #202124;
+      font-size: 19px;
+      font-weight: 700;
+      color: #0b0c0c;
       margin: 0;
-      letter-spacing: -0.3px;
     }
 
     .chart-legend {
@@ -321,7 +318,31 @@
       stroke: #dadce0;
     }
 
+    /* Google Charts Accessibility */
+    .google-chart {
+      width: 100%;
+      height: 400px;
+    }
+
+    .google-chart__description {
+      position: absolute;
+      left: -9999px;
+    }
    
+    /* Table Styles */
+    .govuk-table {
+      margin-bottom: 0;
+    }
+
+    .govuk-table__header {
+      font-weight: 700;
+      color: #0b0c0c;
+    }
+
+    .govuk-table__cell {
+      padding: 12px 16px;
+    }
+
     /* Responsive Design */
     @media (max-width: 1200px) {
       .dashboard-stats {
@@ -341,10 +362,14 @@
       .govuk-width-container {
         padding: 0 16px;
       }
+
+      .google-chart {
+        height: 300px;
+      }
     }
   </style>
 
-  <script>
+  <script type="text/javascript">
     // Initial data from server-side rendering
     const initialData = {
       servicesCount: {{ totalServices }},
@@ -365,156 +390,104 @@
       topWcagCriteria: {{ commonIssues | dump | safe }}
     };
 
-    // Create WCAG Level Pie Chart
-    function createWcagPieChart(data) {
+    google.charts.load("current", {packages:["corechart", "table"]});
+    google.charts.setOnLoadCallback(drawCharts);
+
+    function drawCharts() {
+      drawWcagPieChart();
+      drawWcagCriteriaTable();
+    }
+
+    function drawWcagPieChart() {
       // Filter out levels with count 0
-      const filteredData = data.filter(d => d.count > 0);
+      const filteredData = initialData.wcagLevels.filter(d => d.count > 0);
 
       if (filteredData.length === 0) {
-        d3
-          .select("#wcag-pie-chart")
-          .append("p")
-          .attr("class", "govuk-body")
-          .text("No WCAG issues found");
+        document.getElementById('wcag-pie-chart').innerHTML = '<p class="govuk-body">No WCAG issues found</p>';
         return;
       }
 
-      const width = 400;
-      const height = 400;
-      const radius = Math.min(width, height) / 2;
+      var options = {
+        title: '',
+        sliceVisibilityThreshold: .2,
+        pieSliceText: 'label',
+        pieSliceTextStyle: {
+          color: 'white',
+          fontSize: 14,
+          bold: true
+        },
+        legend: {
+          position: 'right',
+          alignment: 'top',
+          textStyle: {
+            fontSize: 14,
+            color: '#0b0c0c'
+          }
+        },
+        colors: ['#C93535', '#FEAE49', '#34a853'],
+        backgroundColor: 'transparent',
+        chartArea: {
+          width: '100%',
+          height: '100%',
+          top: 10,
+          bottom: 10,
+          left: 0,
+        },
+        tooltip: {
+          textStyle: {
+            fontSize: 14
+          },
+          showColorCode: true
+        },
+        pieSliceBorderColor: 'white'
+      };
 
-      const color = d3
-        .scaleOrdinal()
-        .domain(['A', 'AA', 'AAA'])
-        .range(['#C93535', '#FEAE49', '#34a853']);
+      // Format the data to include count in labels
+      const formattedData = google.visualization.arrayToDataTable([
+        ['Level', 'Count'],
+        ...filteredData.map(d => [`${d.level} (${d.count})`, parseInt(d.count)])
+      ]);
 
-      // Create container div for chart and legend
-      const container = d3
-        .select("#wcag-pie-chart")
-        .append("div")
-        .style("position", "relative")
-        .style("align-items", "center");
+      var chart = new google.visualization.PieChart(document.getElementById('wcag-pie-chart'));
+      chart.draw(formattedData, options);
+    }
 
-      // Add legend
-      const legend = container
-        .append("div")
-        .attr("class", "chart-legend")
-        .style("position", "bottom")
-        .style("top", "20px")
-        .style("right", "20px")
-        .style("background", "white")
-        .style("padding", "10px")
-        .style("border-bottom", "1px solid #f3f2f1;");
+    function drawWcagCriteriaTable() {
+      // Take only top 5 criteria
+      const top5Data = initialData.topWcagCriteria.slice(0, 5);
 
-      // Add all levels to legend, even if count is 0
-      ['A', 'AA', 'AAA'].forEach(level => {
-        const count = data.find(d => d.level === level)
-          ?.count || 0;
-        const legendItem = legend
-          .append("div")
-          .attr("class", "legend-item")
-          .style("display", "flex")
-          .style("align-items", "center")
-          .style("margin", "5px 0");
+      if (top5Data.length === 0) {
+        document.getElementById('wcag-criteria-table').innerHTML = '<p class="govuk-body">No WCAG criteria found</p>';
+        return;
+      }
 
-        legendItem
-          .append("span")
-          .attr("class", "legend-color")
-          .style("width", "12px")
-          .style("height", "12px")
-          .style("margin-right", "8px")
-          .style("background-color", color(level))
-          .style("border-radius", "2px");
-
-        legendItem
-          .append("span")
-          .text(`${level} (${count})`)
-          .style("font-size", "14px");
+      // Convert data to array format
+      const tableData = [['WCAG Criterion', 'Level', 'Count']];
+      top5Data.forEach(d => {
+        tableData.push([`${d.criterion} - ${d.title}`, d.level, parseInt(d.count)]);
       });
 
-      const svg = container
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("transform", `translate(${width / 2},${height / 2})`);
+      var data = google.visualization.arrayToDataTable(tableData);
 
-      const pie = d3
-        .pie()
-        .value(d => d.count)
-        .sort(null);
+      var options = {
+        showRowNumber: false,
+        width: '100%',
+        height: '100%',
+        allowHtml: true,
+        cssClassNames: {
+          tableCell: 'govuk-table__cell',
+          headerCell: 'govuk-table__header'
+        },
+        alternatingRowStyle: true,
+        page: 'enable',
+        pageSize: 5,
+        sort: 'enable',
+        sortColumn: 2,
+        sortAscending: false
+      };
 
-      const arc = d3
-        .arc()
-        .innerRadius(0)
-        .outerRadius(radius - 40);
-
-      const arcs = svg
-        .selectAll("arc")
-        .data(pie(filteredData))
-        .enter()
-        .append("g")
-        .attr("class", "arc");
-
-      arcs
-        .append("path")
-        .attr("d", arc)
-        .attr("fill", d => color(d.data.level))
-        .attr("stroke", "white")
-        .style("stroke-width", "2px")
-        .style("opacity", 0.8)
-        .transition()
-        .duration(1000)
-        .attrTween("d", function (d) {
-          const interpolate = d3.interpolate({
-            startAngle: 0,
-            endAngle: 0
-          }, d);
-          return function (t) {
-            return arc(interpolate(t));
-          };
-        });
+      var table = new google.visualization.Table(document.getElementById('wcag-criteria-table'));
+      table.draw(data, options);
     }
-
-    // Create WCAG Criteria table for top 5
-    function createWcagCriteriaTable(data) {
-      // Take only top 5 criteria
-      const top5Data = data.slice(0, 5);
-
-      const table = d3.select("#wcag-criteria-table")
-        .append("table")
-        .attr("class", "govuk-table");
-
-      const thead = table.append("thead");
-      const tbody = table.append("tbody");
-
-      thead.append("tr")
-        .selectAll("th")
-        .data(["WCAG Criterion", "Count"])
-        .enter()
-        .append("th")
-        .text(d => d)
-        .attr("class", "govuk-table__header");
-
-      const rows = tbody.selectAll("tr")
-        .data(top5Data)
-        .enter()
-        .append("tr")
-        .attr("class", "govuk-table__row");
-
-      rows.append("td")
-        .text(d => `${d.criterion} - ${d.title}`)
-        .attr("class", "govuk-table__cell");
-
-      rows.append("td")
-        .text(d => d.count)
-        .attr("class", "govuk-table__cell");
-    }
-
-    // Initialize dashboard with initial data
-    document.addEventListener('DOMContentLoaded', () => {
-      createWcagPieChart(initialData.wcagLevels);
-      createWcagCriteriaTable(initialData.topWcagCriteria);
-    });
   </script>
 {% endblock %}

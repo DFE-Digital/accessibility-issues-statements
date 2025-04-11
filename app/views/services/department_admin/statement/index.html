@@ -73,7 +73,7 @@
             <div class="govuk-form-group">
               <div class="govuk-input__wrapper">
                 <input class="govuk-input" id="statement-url" value="{{ statementUrl }}" readonly>
-                <button class="govuk-button govuk-button--secondary" data-module="govuk-button" onclick="copyUrl()">
+                <button class="govuk-button" data-module="govuk-button" onclick="copyUrl()">
                   Copy URL
                 </button>
               </div>
@@ -89,55 +89,29 @@
   </div>
 </div>
 
-<!-- Error Modal -->
-<div class="govuk-modal-overlay" id="error-modal" style="display: none;" role="dialog"
-  aria-labelledby="error-modal-title" aria-describedby="error-modal-description" aria-modal="true" tabindex="-1">
-  <div class="govuk-modal">
-    <div class="govuk-modal__header">
-      <h2 class="govuk-modal__title" id="error-modal-title">We couldn't find the link</h2>
-      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeErrorModal()">
-        <span aria-hidden="true">×</span>
-      </button>
+<!-- Validation Modal -->
+<div class="govuk-modal-overlay" id="validation-modal" style="display: none;" role="dialog"
+  aria-labelledby="validation-modal-title" aria-describedby="validation-modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+        <div class="govuk-modal__header">
+            <h2 class="govuk-modal__title" id="validation-modal-title">Validation Result</h2>
+            <button class="govuk-modal__close" aria-label="Close modal" onclick="closeValidationModal()">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+        <div class="govuk-modal__content">
+            <div id="validation-modal-description">
+                <p class="govuk-body" id="validation-message"></p>
+                <div class="govuk-button-group">
+                    <button type="button" class="govuk-button" data-module="govuk-button" onclick="closeValidationModal()">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="govuk-modal__content">
-      <div id="error-modal-description">
-       <p class="govuk-body">We couldn't find the link to your accessibility statement on the page.</p>
-        <p class="govuk-body">Check the link is correctly added to the page and try the validation again.</p>
-      </div>
-      <div class="govuk-button-group">
-        <button type="button" class="govuk-button" data-module="govuk-button" onclick="closeErrorModal()">
-          OK
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Success Modal -->
-<div class="govuk-modal-overlay" id="success-modal" style="display: none;" role="dialog"
-  aria-labelledby="success-modal-title" aria-describedby="success-modal-description" aria-modal="true" tabindex="-1">
-  <div class="govuk-modal">
-    <div class="govuk-modal__header">
-      <h2 class="govuk-modal__title" id="success-modal-title">Statement Verified</h2>
-      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeSuccessModal()">
-        <span aria-hidden="true">×</span>
-      </button>
-    </div>
-    <div class="govuk-modal__content">
-      <div id="success-modal-description">
-       
-        <p class="govuk-body">Your accessibility statement has been successfully linked to your service.</p>
-      </div>
-      <div class="govuk-button-group">
-        <button type="button" class="govuk-button" data-module="govuk-button" onclick="closeSuccessModal()">
-          Continue
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
+  // Copy URL function
   async function copyUrl() {
     const urlInput = document.getElementById('statement-url');
     const button = document.querySelector('[onclick="copyUrl()"]');
@@ -164,9 +138,9 @@
     }
   }
 
-  let previousActiveElement;
-
-  function validateServiceUrl() {
+  // URL validation function
+  function validateServiceUrl(event) {
+    event.preventDefault();
     const button = event.target;
     button.disabled = true;
     button.textContent = 'Validating...';
@@ -181,14 +155,14 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        showSuccessModal();
+        showValidationModal('Your accessibility statement has been successfully validated and is now linked to from your service.');
       } else {
-        showErrorModal();
+        showValidationModal('We couldn\'t find your accessibility statement link on your service page. Please ensure you have added the statement URL to your service and try again.');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      showErrorModal();
+      showValidationModal('An error occurred while validating your statement. Please try again.');
     })
     .finally(() => {
       button.disabled = false;
@@ -196,124 +170,76 @@
     });
   }
 
-  function showErrorModal() {
-    // Store the currently focused element
-    previousActiveElement = document.activeElement;
-
-    const modal = document.getElementById('error-modal');
+  // Modal functions
+  function showValidationModal(message) {
+    const modal = document.getElementById('validation-modal');
+    const messageElement = document.getElementById('validation-message');
     const body = document.body;
 
-    // Show modal
+    messageElement.textContent = message;
     modal.style.display = 'flex';
     body.classList.add('modal-open');
 
-    // Focus the modal
     modal.focus();
-
-    // Trap focus within modal
     trapFocus(modal);
   }
 
-  function closeErrorModal() {
-    const modal = document.getElementById('error-modal');
+  function closeValidationModal() {
+    const modal = document.getElementById('validation-modal');
     const body = document.body;
 
     modal.style.display = 'none';
     body.classList.remove('modal-open');
-
-    // Return focus to the element that opened the modal
-    if (previousActiveElement) {
-      previousActiveElement.focus();
-    }
   }
 
-  function showSuccessModal() {
-    // Store the currently focused element
-    previousActiveElement = document.activeElement;
-
-    const modal = document.getElementById('success-modal');
-    const body = document.body;
-
-    // Show modal
-    modal.style.display = 'flex';
-    body.classList.add('modal-open');
-
-    // Focus the modal
-    modal.focus();
-
-    // Trap focus within modal
-    trapFocus(modal);
-  }
-
-  function closeSuccessModal() {
-    const modal = document.getElementById('success-modal');
-    const body = document.body;
-
-    modal.style.display = 'none';
-    body.classList.remove('modal-open');
-
-    // Return focus to the element that opened the modal
-    if (previousActiveElement) {
-      previousActiveElement.focus();
-    }
-
-    // Reload the page to show updated status
-    window.location.reload();
-  }
-
-  function trapFocus(modal) {
-    const focusableElements = modal.querySelectorAll(
+  function trapFocus(element) {
+    const focusableElements = element.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
-
     const firstFocusableElement = focusableElements[0];
     const lastFocusableElement = focusableElements[focusableElements.length - 1];
 
-    modal.addEventListener('keydown', function (e) {
+    element.addEventListener('keydown', function(e) {
       if (e.key === 'Tab') {
         if (e.shiftKey) {
           if (document.activeElement === firstFocusableElement) {
-            lastFocusableElement.focus();
             e.preventDefault();
+            lastFocusableElement.focus();
           }
         } else {
           if (document.activeElement === lastFocusableElement) {
-            firstFocusableElement.focus();
             e.preventDefault();
+            firstFocusableElement.focus();
           }
         }
       }
     });
-
-    // Focus first focusable element
-    firstFocusableElement.focus();
   }
 
-  // Close modals when clicking outside
-  document.addEventListener('click', function (event) {
-    const errorModal = document.querySelector('#error-modal .govuk-modal');
-    const errorOverlay = document.getElementById('error-modal');
-    const successModal = document.querySelector('#success-modal .govuk-modal');
-    const successOverlay = document.getElementById('success-modal');
+  // Initialize event listeners when DOM is loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add click event listener for validate button
+    const validateButton = document.querySelector('[onclick="validateServiceUrl()"]');
+    if (validateButton) {
+      validateButton.onclick = validateServiceUrl;
+    }
 
-    if (event.target === errorOverlay && errorModal && !errorModal.contains(event.target)) {
-      closeErrorModal();
-    }
-    if (event.target === successOverlay && successModal && !successModal.contains(event.target)) {
-      closeSuccessModal();
-    }
-  });
+    // Add click event listener for modal overlay
+    document.addEventListener('click', function(event) {
+      const validationModal = document.querySelector('#validation-modal .govuk-modal');
+      const validationOverlay = document.getElementById('validation-modal');
 
-  // Close modals on escape key
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-      if (document.getElementById('error-modal').style.display === 'flex') {
-        closeErrorModal();
+      if (event.target === validationOverlay && validationModal && !validationModal.contains(event.target)) {
+        closeValidationModal();
       }
-      if (document.getElementById('success-modal').style.display === 'flex') {
-        closeSuccessModal();
+    });
+
+    // Add escape key event listener
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape' && document.getElementById('validation-modal').style.display === 'flex') {
+        closeValidationModal();
       }
-    }
+    });
   });
 </script>
 
@@ -349,61 +275,39 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
     justify-content: center;
+    align-items: center;
+    z-index: 1000;
   }
 
   .govuk-modal {
     background: white;
-    padding: 30px;
-    border-radius: 5px;
+    padding: 20px;
+    border-radius: 4px;
     max-width: 500px;
     width: 90%;
     position: relative;
-    margin: 20px;
   }
 
   .govuk-modal__header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 20px;
-  }
-
-  .govuk-modal__title {
-    margin: 0;
-    padding-right: 45px;
   }
 
   .govuk-modal__close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 44px;
-    height: 44px;
     background: none;
-    border: 0;
-    cursor: pointer;
-  }
-
-  .govuk-panel--confirmation {
-    background-color: #00703c;
-    color: #fff;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-
-  .govuk-panel__title {
+    border: none;
     font-size: 24px;
-    margin: 0 0 10px 0;
+    cursor: pointer;
+    padding: 0;
   }
 
-  .govuk-panel__body {
-    font-size: 19px;
-    margin: 0;
+  .govuk-modal__content {
+    margin-bottom: 20px;
   }
 </style>
 {% endblock %}

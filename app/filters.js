@@ -12,6 +12,10 @@ const findServiceName = (services, serviceId) => {
   return service ? service.name : '';
 };
 
+const findById = (items, id) => {
+  return items.find(item => item.id === id);
+};
+
 const formatDateFilter = (value) => {
   switch (value) {
     case 'overdue':
@@ -30,5 +34,6 @@ const formatDateFilter = (value) => {
 module.exports = {
   removeFilter,
   findServiceName,
+  findById,
   formatDateFilter
 }; 

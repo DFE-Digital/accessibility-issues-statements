@@ -210,7 +210,8 @@
         </div>
       </div>
 
-    
+
+
 
       <div class="govuk-summary-card">
         <div class="govuk-summary-card__title-wrapper">
@@ -224,7 +225,7 @@
               </dt>
               <dd class="govuk-summary-list__value">
                 {% if issue.assigned_to %}
-                  {{ issue.assigned_to_name }}
+                  <a href="mailto:{{ issue.assigned_to_email }}" class="govuk-link govuk-link--no-visited-state">{{ issue.assigned_to_name }}</a>
                 {% else %}
                   Not assigned
                 {% endif %}
@@ -235,6 +236,16 @@
                 </a>
               </dd>
             </div>
+          </div>
+        </div>
+
+      <div class="govuk-summary-card">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">Assignee</h2>
+        </div>
+        <div class="govuk-summary-card__content">
+          <dl class="govuk-summary-list">
+          
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
                 Source of discovery
@@ -684,264 +695,169 @@
 </style>
 
 <script>
-  let previousActiveElement;
+  // Create a self-executing function to avoid global scope pollution
+  (function() {
+    let previousActiveElement;
 
-  function openDeleteModal(commentId, commentPreview) {
-    // Store the currently focused element
-    previousActiveElement = document.activeElement;
+    function trapFocus(modal) {
+      const focusableElements = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
 
-    const modal = document.getElementById('delete-modal');
-    const body = document.body;
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements[focusableElements.length - 1];
 
-    // Show modal
-    modal.style.display = 'flex';
-    body.classList.add('modal-open');
-
-    // Set form action
-    document.getElementById('delete-comment-form').action = `/services/{{ service.id }}/issues/{{ issue.id }}/comments/${commentId}/delete`;
-
-    // Set comment preview
-    document.getElementById('comment-preview').textContent = `"${commentPreview}..."`;
-
-    // Focus the modal
-    modal.focus();
-
-    // Trap focus within modal
-    trapFocus(modal);
-  }
-
-  function closeDeleteModal() {
-    const modal = document.getElementById('delete-modal');
-    const body = document.body;
-
-    modal.style.display = 'none';
-    body.classList.remove('modal-open');
-
-    // Return focus to the element that opened the modal
-    if (previousActiveElement) {
-      previousActiveElement.focus();
-    }
-  }
-
-  function trapFocus(modal) {
-    const focusableElements = modal.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-
-    const firstFocusableElement = focusableElements[0];
-    const lastFocusableElement = focusableElements[focusableElements.length - 1];
-
-    modal.addEventListener('keydown', function (e) {
-      if (e.key === 'Tab') {
-        if (e.shiftKey) {
-          if (document.activeElement === firstFocusableElement) {
-            lastFocusableElement.focus();
-            e.preventDefault();
-          }
-        } else {
-          if (document.activeElement === lastFocusableElement) {
-            firstFocusableElement.focus();
-            e.preventDefault();
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstFocusableElement) {
+              lastFocusableElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastFocusableElement) {
+              firstFocusableElement.focus();
+              e.preventDefault();
+            }
           }
         }
+      });
+
+      firstFocusableElement.focus();
+    }
+
+    function openModal(modalId) {
+      previousActiveElement = document.activeElement;
+      const modal = document.getElementById(modalId);
+      const body = document.body;
+
+      if (!modal) {
+        console.error(`Modal with ID ${modalId} not found`);
+        return;
+      }
+
+      modal.style.display = 'flex';
+      body.classList.add('modal-open');
+
+      // Focus the modal
+      modal.focus();
+      trapFocus(modal);
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      const body = document.body;
+
+      if (!modal) {
+        console.error(`Modal with ID ${modalId} not found`);
+        return;
+      }
+
+      modal.style.display = 'none';
+      body.classList.remove('modal-open');
+
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    // Delete comment modal
+    window.openDeleteModal = function(commentId, commentPreview) {
+      openModal('delete-modal');
+      document.getElementById('delete-comment-form').action = `/services/{{ service.id }}/issues/{{ issue.id }}/comments/${commentId}/delete`;
+      document.getElementById('comment-preview').textContent = `"${commentPreview}..."`;
+    };
+
+    window.closeDeleteModal = function() {
+      closeModal('delete-modal');
+    };
+
+    // Close issue modal
+    window.openCloseModal = function() {
+      openModal('close-modal');
+    };
+
+    window.closeCloseModal = function() {
+      closeModal('close-modal');
+    };
+
+    // Reopen issue modal
+    window.openReopenModal = function() {
+      openModal('reopen-modal');
+    };
+
+    window.closeReopenModal = function() {
+      closeModal('reopen-modal');
+    };
+
+    // Priority info modal
+    window.openPriorityInfoModal = function() {
+      const button = document.activeElement;
+      button.setAttribute('aria-expanded', 'true');
+      openModal('priority-info-modal');
+    };
+
+    window.closePriorityInfoModal = function() {
+      const button = document.querySelector('.priority-info-button');
+      if (button) {
+        button.setAttribute('aria-expanded', 'false');
+      }
+      closeModal('priority-info-modal');
+    };
+
+    // Assign issue modal
+    window.openAssignModal = function() {
+      openModal('assign-modal');
+    };
+
+    window.closeAssignModal = function() {
+      closeModal('assign-modal');
+    };
+
+    // Initialize modals when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Global event listeners for all modals
+      document.addEventListener('click', function (event) {
+        const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal'];
+        
+        modals.forEach(modalId => {
+          const modal = document.querySelector(`#${modalId} .govuk-modal`);
+          const overlay = document.getElementById(modalId);
+          
+          if (event.target === overlay && modal && !modal.contains(event.target)) {
+            closeModal(modalId);
+          }
+        });
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal'];
+          
+          modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal && modal.style.display === 'flex') {
+              closeModal(modalId);
+            }
+          });
+        }
+      });
+
+      // Handle form submission
+      const assignForm = document.getElementById('assign-issue-form');
+      if (assignForm) {
+        assignForm.addEventListener('submit', function(e) {
+          const select = document.getElementById('assign-to');
+          const email = document.getElementById('new-user-email');
+          
+          if (!select.value && !email.value) {
+            e.preventDefault();
+            alert('Please select a user or enter an email address');
+          }
+        });
       }
     });
-
-    // Focus first focusable element
-    firstFocusableElement.focus();
-  }
-
-  // Close modal when clicking outside
-  document.addEventListener('click', function (event) {
-    const modal = document.querySelector('.govuk-modal');
-    const overlay = document.getElementById('delete-modal');
-    if (event.target === overlay && modal && !modal.contains(event.target)) {
-      closeDeleteModal();
-    }
-  });
-
-  // Close modal on escape key
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && document.getElementById('delete-modal').style.display === 'flex') {
-      closeDeleteModal();
-    }
-  });
-
-  function openCloseModal() {
-    previousActiveElement = document.activeElement;
-
-    const modal = document.getElementById('close-modal');
-    const body = document.body;
-
-    modal.style.display = 'flex';
-    body.classList.add('modal-open');
-
-    modal.focus();
-    trapFocus(modal);
-  }
-
-  function closeCloseModal() {
-    const modal = document.getElementById('close-modal');
-    const body = document.body;
-
-    modal.style.display = 'none';
-    body.classList.remove('modal-open');
-
-    if (previousActiveElement) {
-      previousActiveElement.focus();
-    }
-  }
-
-  function openReopenModal() {
-    previousActiveElement = document.activeElement;
-
-    const modal = document.getElementById('reopen-modal');
-    const body = document.body;
-
-    modal.style.display = 'flex';
-    body.classList.add('modal-open');
-
-    modal.focus();
-    trapFocus(modal);
-  }
-
-  function closeReopenModal() {
-    const modal = document.getElementById('reopen-modal');
-    const body = document.body;
-
-    modal.style.display = 'none';
-    body.classList.remove('modal-open');
-
-    if (previousActiveElement) {
-      previousActiveElement.focus();
-    }
-  }
-
-  // Add event listeners for new modals
-  document.addEventListener('click', function (event) {
-    const closeModal = document.querySelector('#close-modal .govuk-modal');
-    const closeOverlay = document.getElementById('close-modal');
-    const reopenModal = document.querySelector('#reopen-modal .govuk-modal');
-    const reopenOverlay = document.getElementById('reopen-modal');
-
-    if (event.target === closeOverlay && closeModal && !closeModal.contains(event.target)) {
-      closeCloseModal();
-    }
-    if (event.target === reopenOverlay && reopenModal && !reopenModal.contains(event.target)) {
-      closeReopenModal();
-    }
-  });
-
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-      if (document.getElementById('close-modal').style.display === 'flex') {
-        closeCloseModal();
-      }
-      if (document.getElementById('reopen-modal').style.display === 'flex') {
-        closeReopenModal();
-      }
-    }
-  });
-
-  function openPriorityInfoModal() {
-    previousActiveElement = document.activeElement;
-    const button = previousActiveElement;
-    button.setAttribute('aria-expanded', 'true');
-
-    const modal = document.getElementById('priority-info-modal');
-    const body = document.body;
-
-    modal.style.display = 'flex';
-    body.classList.add('modal-open');
-
-    modal.focus();
-    trapFocus(modal);
-  }
-
-  function closePriorityInfoModal() {
-    const modal = document.getElementById('priority-info-modal');
-    const body = document.body;
-    const button = document.querySelector('.priority-info-button');
-    
-    if (button) {
-      button.setAttribute('aria-expanded', 'false');
-    }
-
-    modal.style.display = 'none';
-    body.classList.remove('modal-open');
-
-    if (previousActiveElement) {
-      previousActiveElement.focus();
-    }
-  }
-
-  // Add event listener for priority info modal
-  document.addEventListener('click', function (event) {
-    const priorityModal = document.querySelector('#priority-info-modal .govuk-modal');
-    const priorityOverlay = document.getElementById('priority-info-modal');
-
-    if (event.target === priorityOverlay && priorityModal && !priorityModal.contains(event.target)) {
-      closePriorityInfoModal();
-    }
-  });
-
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && document.getElementById('priority-info-modal').style.display === 'flex') {
-      closePriorityInfoModal();
-    }
-  });
-
-  function openAssignModal() {
-    previousActiveElement = document.activeElement;
-
-    const modal = document.getElementById('assign-modal');
-    const body = document.body;
-
-    modal.style.display = 'flex';
-    body.classList.add('modal-open');
-
-    modal.focus();
-    trapFocus(modal);
-  }
-
-  function closeAssignModal() {
-    const modal = document.getElementById('assign-modal');
-    const body = document.body;
-
-    modal.style.display = 'none';
-    body.classList.remove('modal-open');
-
-    if (previousActiveElement) {
-      previousActiveElement.focus();
-    }
-  }
-
-  // Add event listener for assign modal
-  document.addEventListener('click', function (event) {
-    const assignModal = document.querySelector('#assign-modal .govuk-modal');
-    const assignOverlay = document.getElementById('assign-modal');
-
-    if (event.target === assignOverlay && assignModal && !assignModal.contains(event.target)) {
-      closeAssignModal();
-    }
-  });
-
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && document.getElementById('assign-modal').style.display === 'flex') {
-      closeAssignModal();
-    }
-  });
-
-  // Handle form submission
-  document.getElementById('assign-issue-form').addEventListener('submit', function(e) {
-    const select = document.getElementById('assign-to');
-    const email = document.getElementById('new-user-email');
-    
-    if (!select.value && !email.value) {
-      e.preventDefault();
-      alert('Please select a user or enter an email address');
-    }
-  });
+  })();
 </script>
 
 {% endblock %}

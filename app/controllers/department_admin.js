@@ -131,16 +131,11 @@ const showSettings = async (req, res) => {
 
     const departmentId = req.session.user.department.id;
 
-    console.log(departmentId);
-
     // Get user's department and its domains
     const department = await db('departments')
       .select('*')
       .where('id', departmentId)
       .first();
-
-
-      
 
     if (!department) {
       return res.status(404).render('error', {
@@ -154,11 +149,18 @@ const showSettings = async (req, res) => {
       .where('department_id', departmentId)
       .orderBy('domain');
 
+    // Get business areas
+    const businessAreas = await db('business_areas')
+      .select('*')
+      .where('department_id', departmentId)
+      .orderBy('name');
+
     res.render('department_admin/settings/index', {
       department: {
         ...department,
         domains: domains.map(d => d.domain)
       },
+      businessAreas,
       user: req.session.user,
       successMessage: req.session.successMessage,
       errorMessage: req.session.errorMessage,

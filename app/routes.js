@@ -155,11 +155,11 @@ router.get('/reports/wcag/:criterion', isAuthenticated, isDepartmentAdmin, repor
 router.get('/issues', isAuthenticated, isDepartmentAdmin, issuesController.index);
 
 // Business areas routes
-router.get('/business-areas', isAuthenticated, isDepartmentAdmin, businessAreasController.index);
-router.get('/business-areas/new', isAuthenticated, isDepartmentAdmin, businessAreasController.showNewForm);
-router.post('/business-areas', isAuthenticated, isDepartmentAdmin, businessAreasController.create);
-router.get('/business-areas/:id/edit', isAuthenticated, isDepartmentAdmin, businessAreasController.showEditForm);
-router.post('/business-areas/:id', isAuthenticated, isDepartmentAdmin, businessAreasController.update);
-router.post('/business-areas/:id/delete', isAuthenticated, isDepartmentAdmin, businessAreasController.destroy);
+router.get('/department-admin/business-areas', isAuthenticated, isDepartmentAdmin, businessAreasController.index);
+router.get('/department-admin/business-areas/new', isAuthenticated, isDepartmentAdmin, businessAreasController.showNewForm);
+router.post('/department-admin/business-areas', isAuthenticated, isDepartmentAdmin, businessAreasController.create);
+router.get('/department-admin/business-areas/:id/edit', isAuthenticated, isDepartmentAdmin, businessAreasController.showEditForm);
+router.post('/department-admin/business-areas/:id', isAuthenticated, isDepartmentAdmin, businessAreasController.update);
+router.post('/department-admin/business-areas/:id/delete', isAuthenticated, isDepartmentAdmin, businessAreasController.destroy);
 
 module.exports = router; 

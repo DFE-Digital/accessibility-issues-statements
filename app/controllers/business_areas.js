@@ -99,7 +99,7 @@ const create = async (req, res) => {
       departmentId: user.department.id
     });
 
-    res.redirect('/business-areas');
+    res.redirect('/settings');
   } catch (error) {
     console.error('Create business area error:', error);
     res.status(500).render('error', {
@@ -200,7 +200,7 @@ const update = async (req, res) => {
       name: name.trim()
     });
 
-    res.redirect('/business-areas');
+    res.redirect('/settings');
   } catch (error) {
     console.error('Update business area error:', error);
     res.status(500).render('error', {
@@ -235,7 +235,7 @@ const destroy = async (req, res) => {
 
     await businessAreasData.deleteBusinessArea(id);
 
-    res.redirect('/business-areas');
+    res.redirect('/settings');
   } catch (error) {
     console.error('Delete business area error:', error);
     res.status(500).render('error', {
