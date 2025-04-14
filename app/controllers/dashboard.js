@@ -2,6 +2,9 @@ const dashboardData = require('../data/dashboard');
 const validator = require('validator');
 const { getDepartmentServices } = require('../data/services');
 const { getServiceIssues } = require('../data/issues');
+const { getUserServices } = require('../data/services');
+const { db } = require('../db');
+const departmentAdminController = require('./department_admin');
 
 /**
  * Safely escape a string value, returning empty string for undefined/null
@@ -23,39 +26,51 @@ async function index(req, res) {
       return res.redirect('/auth/sign-in');
     }
 
-    // Get user information
     const user = req.session.user;
 
     if (!user) {
       return res.redirect('/auth/sign-in');
     }
 
-    // Get dashboard data
-    const [
-      services,
-      recentIssues,
-      stats,
-      wcagStats,
-      commonIssues,
-      urgentActions
-    ] = await Promise.all([
-      dashboardData.getDepartmentServices(user.department.id),
-      dashboardData.getRecentIssues(user.department.id),
-      dashboardData.getDashboardStats(user.department.id),
-      dashboardData.getWcagStats(user.department.id),
-      dashboardData.getCommonIssues(user.department.id),
-      dashboardData.getUrgentActions(user.department.id)
+    // Use department_admin controller for department admin users
+    if (user.role === 'department_admin') {
+      return departmentAdminController.index(req, res);
+    }
+
+    // Get user's assigned issues and owned services
+    const [assignedIssues, ownedServices, userServices] = await Promise.all([
+      // Get issues assigned to the user
+      db('issues')
+        .select(
+          'issues.*',
+          'services.name as service_name',
+          'services.url as service_url'
+        )
+        .leftJoin('services', 'issues.service_id', 'services.id')
+        .where('issues.assigned_to', user.id)
+        .where('issues.status', 'open')
+        .orderBy('issues.created_at', 'desc'),
+      
+      // Get services where user is the owner
+      db('services')
+        .select('*')
+        .where('service_owner_id', user.id),
+      
+      // Get all services the user has access to
+      getUserServices(user.id)
     ]);
 
-    // Process services data to include status
-    const processedServices = (services || []).map(service => ({
-      ...service,
-      name: safeEscape(service.name),
-      url: safeEscape(service.url),
-      openIssues: service.open_issues_count || 0,
-      statementViews: service.statement_views || 0,
-      status: determineServiceStatus(service)
-    }));
+    // Get issues raised by the user
+    const raisedIssues = await db('issues')
+      .select(
+        'issues.*',
+        'services.name as service_name',
+        'services.url as service_url'
+      )
+      .leftJoin('services', 'issues.service_id', 'services.id')
+      .where('issues.created_by', user.id)
+      .where('issues.status', 'open')
+      .orderBy('issues.created_at', 'desc');
 
     // Sanitize and process data before rendering
     const sanitizedData = {
@@ -66,49 +81,37 @@ async function index(req, res) {
         email: safeEscape(user.email),
         department_name: safeEscape(user.department_name)
       },
-      // Summary statistics
-      totalServices: stats?.total_services || 0,
-      totalOpenIssues: stats?.open_issues || 0,
-      totalStatementViews: stats?.statement_views || 0,
-      activeUsers: stats?.active_users || 0,
       
-      // WCAG compliance data
-      levelAIssues: wcagStats?.level_a || 0,
-      levelAAIssues: wcagStats?.level_aa || 0,
-      
-      // Urgent actions
-      overdueIssues: urgentActions?.overdue || 0,
-      dueThisWeek: urgentActions?.due_this_week || 0,
-      noResolveIssues: urgentActions?.wont_fix || 0,
-      
-      // Services table data
-      services: processedServices,
-      
-      // Common issues list
-      commonIssues: (commonIssues || []).map(issue => ({
-        count: issue.count || 0,
-        title: safeEscape(issue.title),
-        criterion: issue.criterion || '',
-        level: issue.level || '',
-        type: issue.type || 'Unknown'
-      })),
-
-
-      
-      // Recent issues
-      recentIssues: (recentIssues || []).map(issue => ({
+      // User's assigned issues
+      assignedIssues: (assignedIssues || []).map(issue => ({
         ...issue,
         title: safeEscape(issue.title),
-        service_name: safeEscape(issue.service_name)
+        service_name: safeEscape(issue.service_name),
+        service_url: safeEscape(issue.service_url)
+      })),
+      
+      // Services where user is the owner
+      ownedServices: (ownedServices || []).map(service => ({
+        ...service,
+        name: safeEscape(service.name),
+        url: safeEscape(service.url)
+      })),
+      
+      // Issues raised by the user
+      raisedIssues: (raisedIssues || []).map(issue => ({
+        ...issue,
+        title: safeEscape(issue.title),
+        service_name: safeEscape(issue.service_name),
+        service_url: safeEscape(service.service_url)
+      })),
+      
+      // All services the user has access to
+      userServices: (userServices || []).map(service => ({
+        ...service,
+        name: safeEscape(service.name),
+        url: safeEscape(service.url)
       }))
     };
-
-    console.log(commonIssues);
-
-    // Render appropriate dashboard based on user role
-    if (user.role === 'department_admin') {
-      return res.render('dashboard/department_admin/index', sanitizedData);
-    }
 
     if (user.role === 'user') {
       return res.render('dashboard/user/index', sanitizedData);
@@ -119,16 +122,7 @@ async function index(req, res) {
     }
 
   } catch (error) {
-    console.log(error);
-
-    // Handle validation errors specifically
-    if (error.message.includes('Invalid') || error.message.includes('required')) {
-      return res.status(400).render('error', {
-        error: 'Invalid request data',
-        details: error.message
-      });
-    }
-
+    console.error('Dashboard error:', error);
     res.status(500).render('error', {
       error: 'There was a problem loading the dashboard',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined

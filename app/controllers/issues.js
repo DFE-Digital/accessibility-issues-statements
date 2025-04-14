@@ -1,4 +1,4 @@
-const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue: updateIssueData, getDepartmentIssues, getAllIssues, getOpenIssues } = require('../data/issues');
+const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue, getDepartmentIssues, getAllIssues, getOpenIssues } = require('../data/issues');
 const { getDepartmentServices, getService, getAllServices } = require('../data/services');
 const { createComment, getIssueComments, deleteComment } = require('../data/comments');
 const { getWcagCriteria } = require('../data/wcag_criteria');
@@ -365,11 +365,22 @@ async function handleUpdateIssue(req, res) {
       });
     }
 
+    // Convert issue types to array if needed
+    const issueTypes = Array.isArray(req.body.issue_types) 
+      ? req.body.issue_types 
+      : [req.body.issue_types];
+
+    // Convert WCAG criteria to array if needed
+    const selectedWcagCriteria = req.body.wcag_criteria 
+      ? (Array.isArray(req.body.wcag_criteria) 
+          ? req.body.wcag_criteria 
+          : [req.body.wcag_criteria])
+      : [];
+
     const issueData = {
       title: req.body.title,
       description: req.body.description,
       risk_level: req.body.risk_level,
-      issue_type: req.body.issue_type,
       source_of_discovery: req.body.source_of_discovery,
       status: req.body.status,
       planned_fix: req.body.planned_fix === 'true',
@@ -377,7 +388,7 @@ async function handleUpdateIssue(req, res) {
       not_fixing_reason: req.body.planned_fix === 'false' ? req.body.not_fixing_reason : null
     };
 
-    await updateIssueData(id, issueData);
+    await updateIssue(id, issueData, selectedWcagCriteria, issueTypes);
 
     res.redirect(`/services/${serviceId}/issues/${id}`);
   } catch (error) {
@@ -521,7 +532,7 @@ async function handleCloseIssue(req, res) {
     }
 
     // Update issue status
-    await updateIssueData(id, {
+    await updateIssue(id, {
       status: 'closed'
     });
 
@@ -584,7 +595,7 @@ async function handleReopenIssue(req, res) {
 
     // Update issue status
     console.log('Updating issue status to open');
-    await updateIssueData(id, {
+    await updateIssue(id, {
       status: 'open'
     });
 

@@ -29,31 +29,43 @@ const index = async (req, res) => {
       has_issues: req.query.has_issues,
       no_issues: req.query.no_issues,
       enrolled: req.query.enrolled,
-      not_enrolled: req.query.not_enrolled
+      not_enrolled: req.query.not_enrolled,
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10
+      
     };
 
     // Get services and stats based on user role
-    let services, stats;
+    let services, stats, totalCount;
     
     if (user.role === 'super_admin') {
       // Super admin can see all services
-      [services, stats] = await Promise.all([
-        servicesData.getAllServices(),
-        servicesData.getServicesStats()
+      [services, stats, totalCount] = await Promise.all([
+        servicesData.getAllServices(filters),
+        servicesData.getServicesStats(),
+        servicesData.getServicesCount(filters)
       ]);
     } else if (user.role === 'department_admin') {
       // Department admin can see services in their department
-      [services, stats] = await Promise.all([
+      [services, stats, totalCount] = await Promise.all([
         servicesData.getDepartmentServices(departmentId, filters),
-        servicesData.getDepartmentServicesStats(departmentId)
+        servicesData.getDepartmentServicesStats(departmentId),
+        servicesData.getDepartmentServicesCount(departmentId, filters)
       ]);
     } else {
       // Regular users can see services they have access to
-      [services, stats] = await Promise.all([
-        servicesData.getUserServices(user.id),
-        servicesData.getUserServicesStats(user.id)
+      [services, stats, totalCount] = await Promise.all([
+        servicesData.getUserServices(user.id, filters),
+        servicesData.getUserServicesStats(user.id),
+        servicesData.getUserServicesCount(user.id, filters)
       ]);
     }
+
+    // Calculate pagination values
+    const totalPages = Math.ceil(totalCount / filters.limit);
+    const currentPage = Math.min(Math.max(filters.page, 1), totalPages);
+    const startPage = Math.max(1, currentPage - 1);
+    const endPage = Math.min(totalPages, startPage + 1);
 
     // Render the appropriate view based on user role
     const viewPath = `services/${user.role}/index`;
@@ -63,7 +75,14 @@ const index = async (req, res) => {
       stats,
       user,
       filters,
-      business_areas: await businessAreasData.getDepartmentBusinessAreas(departmentId)
+      business_areas: await businessAreasData.getDepartmentBusinessAreas(departmentId),
+      pagination: {
+        currentPage,
+        totalPages,
+        startPage,
+        endPage,
+        limit: filters.limit
+      }
     });
   } catch (error) {
     console.error('Services error:', error);

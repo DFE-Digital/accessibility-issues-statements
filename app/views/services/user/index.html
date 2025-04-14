@@ -1,34 +1,27 @@
 {% extends "layouts/layout_wide.html" %}
 
-{% set pageTitle = "Services being managed in your department" %}
+{% set pageTitle = "Services" %}
 {% set serviceNav = "Services" %}
-
 {% set mainClasses = 'govuk-!-padding-top-0' %}
 
-{% block pageTitle %}
-  Your services
-{% endblock %}
+{# Calculate total open issues #}
+{% set total_open_issues = 0 %}
+{% for service in services %}
+  {% set total_open_issues = total_open_issues + (service.open_issues_count if service.open_issues_count != undefined else 
+    0
+  ) %}
+{% endfor %}
+
+{% block head %}{% endblock %}
 
 {% block content %}
 
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-      <div class="app-service-header govuk-!-margin-bottom-7 ">
-        <div class="govuk-width-container">
-          <div class="govuk-grid-row">
-            <div class="govuk-grid-column-one-third">
-              <span class="govuk-caption-m govuk-!-margin-bottom-0">{{ user.department.name }}</span>
-              <h1 class="govuk-heading-l">Your services</h1>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  {% include "layouts/_pageheader.html" %}
 
   <div class="govuk-width-container">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-one-quarter">
+
         <div class="moj-filter" data-module="moj-filter">
           <div class="moj-filter__header">
             <div class="moj-filter__header-title">
@@ -44,7 +37,7 @@
                 </div>
                 <div class="moj-filter__heading-action">
                   <p class="govuk-body-s">
-                    <a class="govuk-link govuk-link--no-visited-state" href="/services/user">Clear filters</a>
+                    <a class="govuk-link govuk-link--no-visited-state" href="?">Clear filters</a>
                   </p>
                 </div>
               </div>
@@ -53,10 +46,26 @@
                 <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Keywords</h3>
                 <ul class="moj-filter-tags">
                   <li>
-                    <a class="moj-filter__tag" href="/services/user?{{ filters | removeFilter('search') }}">
+                    <a class="moj-filter__tag" href="?{{ filters | removeFilter('search') }}">
                       <span class="govuk-visually-hidden">Remove this filter</span>
                       {{ filters.search }}</a>
                   </li>
+                </ul>
+              {% endif %}
+
+              {% if filters.business_areas and filters.business_areas.length > 0 %}
+                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Business areas</h3>
+                <ul class="moj-filter-tags">
+                  {% for area_id in filters.business_areas %}
+                    {% set area = business_areas | findById(area_id) %}
+                    {% if area %}
+                      <li>
+                        <a class="moj-filter__tag" href="?{{ filters | removeFilter('business_areas', area_id) }}">
+                          <span class="govuk-visually-hidden">Remove this filter</span>
+                          {{ area.name }}</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
                 </ul>
               {% endif %}
 
@@ -65,13 +74,13 @@
                 <ul class="moj-filter-tags">
                   {% if filters.has_issues == 'true' %}
                     <li>
-                      <a class="moj-filter__tag" href="/services/user?{{ filters | removeFilter('has_issues') }}">
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('has_issues') }}">
                         <span class="govuk-visually-hidden">Remove this filter</span> Has issues</a>
                     </li>
                   {% endif %}
                   {% if filters.no_issues == 'true' %}
                     <li>
-                      <a class="moj-filter__tag" href="/services/user?{{ filters | removeFilter('no_issues') }}">
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('no_issues') }}">
                         <span class="govuk-visually-hidden">Remove this filter</span> No issues</a>
                     </li>
                   {% endif %}
@@ -83,13 +92,13 @@
                 <ul class="moj-filter-tags">
                   {% if filters.enrolled == 'true' %}
                     <li>
-                      <a class="moj-filter__tag" href="/services/user?{{ filters | removeFilter('enrolled') }}">
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('enrolled') }}">
                         <span class="govuk-visually-hidden">Remove this filter</span> Enrolled</a>
                     </li>
                   {% endif %}
                   {% if filters.not_enrolled == 'true' %}
                     <li>
-                      <a class="moj-filter__tag" href="/services/user?{{ filters | removeFilter('not_enrolled') }}">
+                      <a class="moj-filter__tag" href="?{{ filters | removeFilter('not_enrolled') }}">
                         <span class="govuk-visually-hidden">Remove this filter</span> Not enrolled</a>
                     </li>
                   {% endif %}
@@ -98,10 +107,10 @@
             </div>
 
             <div class="moj-filter__options">
-              <form method="get" action="/services/user">
+              <form method="get" action="" novalidate>
                 <div class="govuk-form-group govuk-!-margin-bottom-2">
                   <div class="moj-filter-layout__content">
-                    <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="search-filter">
+                    <button type="button" class=" dfe-filter-collapsible-button moj-filter-toggle " aria-expanded="false" aria-controls="search-filter">
                       <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
                         <path d="M0 0 L10 10 L20 0"></path>
                       </svg>
@@ -118,7 +127,33 @@
 
                 <div class="govuk-form-group govuk-!-margin-bottom-2">
                   <div class="moj-filter-layout__content">
-                    <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="issues-status-filter">
+                    <button type="button" class="dfe-filter-collapsible-button  moj-filter-toggle" aria-expanded="false" aria-controls="business-areas-filter">
+                      <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                        <path d="M0 0 L10 10 L20 0"></path>
+                      </svg>
+                      Business areas
+                    </button>
+                    {% if filters.business_areas and filters.business_areas.length > 0 %}
+                      <span class="moj-filter-toggle__count">{{ filters.business_areas.length }} selected</span>
+                    {% endif %}
+                    <div id="business-areas-filter" hidden>
+                      <div class="govuk-checkboxes govuk-checkboxes--small">
+                        {% for area in business_areas %}
+                          <div class="govuk-checkboxes__item">
+                            <input class="govuk-checkboxes__input" id="business_area_{{ area.id }}" name="business_areas" type="checkbox" value="{{ area.id }}" {% if area.id in filters.business_areas %}checked{% endif %}>
+                            <label class="govuk-label govuk-checkboxes__label" for="business_area_{{ area.id }}">
+                              {{ area.name }}
+                            </label>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              <div class="govuk-form-group govuk-!-margin-bottom-2">
+                  <div class="moj-filter-layout__content">
+                    <button type="button" class="dfe-filter-collapsible-button  moj-filter-toggle" aria-expanded="false" aria-controls="issues-status-filter">
                       <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
                         <path d="M0 0 L10 10 L20 0"></path>
                       </svg>
@@ -148,7 +183,7 @@
 
                 <div class="govuk-form-group govuk-!-margin-bottom-2">
                   <div class="moj-filter-layout__content">
-                    <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="statement-status-filter">
+                    <button type="button" class="dfe-filter-collapsible-button  moj-filter-toggle" aria-expanded="false" aria-controls="statement-status-filter">
                       <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
                         <path d="M0 0 L10 10 L20 0"></path>
                       </svg>
@@ -175,24 +210,26 @@
                     </div>
                   </div>
                 </div>
-
                 <div class="govuk-form-group govuk-!-margin-top-2">
-                  <div class="moj-filter__footer">
+                  <div class="moj-filter__footer ">
                     <button type="submit" class="govuk-button govuk-!-margin-bottom-1" data-module="govuk-button">
-                      Apply filters
-                    </button>
+                    Apply filters
+                  </button>
                   </div>
                 </div>
               </form>
             </div>
           </div>
         </div>
+
       </div>
 
       <div class="govuk-grid-column-three-quarters">
         <div class="govuk-summary-card">
           <div class="govuk-summary-card__title-wrapper">
-            <h2 class="govuk-summary-card__title">Your services</h2>
+            <h2 class="govuk-summary-card__title">Services</h2>
+            <ul class="govuk-summary-card__actions">
+            </ul>
           </div>
           <div class="govuk-summary-card__content">
             {% if services.length > 0 %}
@@ -200,6 +237,7 @@
                 <thead class="govuk-table__head">
                   <tr class="govuk-table__row">
                     <th scope="col" class="govuk-table__header govuk-!-width-one-third">Service name</th>
+                    <th scope="col" class="govuk-table__header">Business area</th>
                     <th scope="col" class="govuk-table__header">Open issues</th>
                     <th scope="col" class="govuk-table__header">Owner</th>
                     <th scope="col" class="govuk-table__header">Statement service</th>
@@ -208,10 +246,13 @@
                 <tbody class="govuk-table__body">
                   {% for service in services %}
                     <tr class="govuk-table__row">
-                      <td class="govuk-table__cell">
+                      <th class="govuk-table__header">
                         <a href="/services/{{ service.id }}" class="govuk-link govuk-link--no-visited-state">
                           {{ service.name }}
                         </a>
+                      </th>
+                      <td class="govuk-table__cell">
+                        {{ service.business_area_name }}
                       </td>
                       <td class="govuk-table__cell">
                         {{ service.open_issues_count if service.open_issues_count != undefined else 0 }}
@@ -237,6 +278,46 @@
                   {% endfor %}
                 </tbody>
               </table>
+
+              {% if pagination.totalPages > 1 %}
+              <nav class="govuk-pagination" role="navigation" aria-label="Pagination">
+                {% if pagination.currentPage > 1 %}
+                <div class="govuk-pagination__prev">
+                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.currentPage - 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" rel="prev">
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                      <path d="m6.5938-0.0078125-6.7266 6.7266 6.7266 6.7266 1.4062-1.4062-4.3203-4.3203h8.3203v-2h-8.3203l4.3203-4.3203z"></path>
+                    </svg>
+                    <span class="govuk-pagination__link-title">Previous</span>
+                  </a>
+                </div>
+                {% endif %}
+
+                <ul class="govuk-pagination__list">
+                  {% for page in range(pagination.startPage, pagination.endPage + 1) %}
+                  <li class="govuk-pagination__item {% if page == pagination.currentPage %}govuk-pagination__item--current{% endif %}">
+                    {% if page == pagination.currentPage %}
+                    <span class="govuk-pagination__link" aria-current="page">{{ page }}</span>
+                    {% else %}
+                    <a class="govuk-link govuk-pagination__link" href="?page={{ page }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" aria-label="Page {{ page }}">
+                      {{ page }}
+                    </a>
+                    {% endif %}
+                  </li>
+                  {% endfor %}
+                </ul>
+
+                {% if pagination.currentPage < pagination.totalPages %}
+                <div class="govuk-pagination__next">
+                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.currentPage + 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" rel="next">
+                    <span class="govuk-pagination__link-title">Next</span>
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                      <path d="m8.4063-0.0078125 6.7266 6.7266-6.7266 6.7266-1.4062-1.4062 4.3203-4.3203h-8.3203v-2h8.3203l-4.3203-4.3203z"></path>
+                    </svg>
+                  </a>
+                </div>
+                {% endif %}
+              </nav>
+              {% endif %}
             {% else %}
               <p class="govuk-body">No services found for the selected filters</p>
             {% endif %}
@@ -310,6 +391,7 @@
       font-weight: normal;
       font-size: 1.188rem
     }
+
   </style>
 
   <script>
@@ -341,4 +423,4 @@
     });
   </script>
 
-{% endblock %} 
+{% endblock %}

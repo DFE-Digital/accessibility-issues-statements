@@ -6,10 +6,12 @@ const index = async (req, res) => {
       return res.redirect('/auth/sign-in');
     }
 
+    const departmentId = req.session.user.department.id;
+
     // Get department stats
     const department = await db('departments')
       .select('departments.*')
-      .where('departments.id', req.session.user.department.id)
+      .where('departments.id', departmentId)
       .first();
 
     if (!department) {
@@ -18,23 +20,113 @@ const index = async (req, res) => {
       });
     }
 
-    // Get service count
-    const servicesCount = await db('services')
-      .where('department_id', req.session.user.department.id)
+    // Get all services for the department
+    const services = await db('services')
+      .select(
+        'services.*',
+        db.raw('COUNT(DISTINCT issues.id) as open_issues_count')
+      )
+      .leftJoin('issues', 'services.id', 'issues.service_id')
+      .where('services.department_id', departmentId)
+      .groupBy(
+        'services.id',
+        'services.name',
+        'services.url',
+        'services.department_id',
+        'services.service_owner_id',
+        'services.external_id',
+        'services.created_at',
+        'services.updated_at',
+        'services.statement_enrolled',
+        'services.numeric_id',
+        'services.business_area_id'
+      )
+      .orderBy('services.name');
+
+    // Get recent issues for the department
+    const recentIssues = await db('issues')
+      .select(
+        'issues.*',
+        'services.name as service_name',
+        'services.url as service_url'
+      )
+      .join('services', 'issues.service_id', 'services.id')
+      .where('services.department_id', departmentId)
+      .orderBy('issues.created_at', 'desc')
+      .limit(10);
+
+    // Get total open issues
+    const totalOpenIssues = await db('issues')
+      .join('services', 'issues.service_id', 'services.id')
+      .where('services.department_id', departmentId)
+      .where('issues.status', 'open')
       .count('* as count')
       .first();
 
-    // Get user count
-    const usersCount = await db('users')
-      .where('department_id', req.session.user.department.id)
+    // Get overdue issues
+    const overdueIssues = await db('issues')
+      .join('services', 'issues.service_id', 'services.id')
+      .where('services.department_id', departmentId)
+      .where('issues.status', 'open')
+      .where('issues.planned_fix_date', '<', new Date())
       .count('* as count')
       .first();
 
-    res.render('department_admin/index', {
+    // Get compliant services (services with no open issues)
+    const compliantServices = await db('services')
+      .select('services.id')
+      .leftJoin('issues', function() {
+        this.on('services.id', '=', 'issues.service_id')
+          .andOn('issues.status', '=', db.raw("'open'"));
+      })
+      .where('services.department_id', departmentId)
+      .groupBy('services.id')
+      .having(db.raw('COUNT(issues.id)'), '=', 0)
+      .count('* as count')
+      .first();
+
+    // Get WCAG issues by level
+    const wcagLevels = await db('issue_wcag_criteria')
+      .select(
+        'wcag_criteria.level',
+        db.raw('COUNT(DISTINCT issues.id) as count')
+      )
+      .join('issues', 'issue_wcag_criteria.issue_id', 'issues.id')
+      .join('services', 'issues.service_id', 'services.id')
+      .join('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+      .where('services.department_id', departmentId)
+      .where('issues.status', 'open')
+      .groupBy('wcag_criteria.level');
+
+    // Get common WCAG issues
+    const commonIssues = await db('issue_wcag_criteria')
+      .select(
+        'wcag_criteria.criterion',
+        'wcag_criteria.title',
+        'wcag_criteria.level',
+        db.raw('COUNT(DISTINCT issues.id) as count')
+      )
+      .join('issues', 'issue_wcag_criteria.issue_id', 'issues.id')
+      .join('services', 'issues.service_id', 'services.id')
+      .join('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+      .where('services.department_id', departmentId)
+      .where('issues.status', 'open')
+      .groupBy('wcag_criteria.criterion', 'wcag_criteria.title', 'wcag_criteria.level')
+      .orderBy('count', 'desc')
+      .limit(5);
+
+    res.render('dashboard/department_admin/index', {
       department,
-      servicesCount: servicesCount.count,
-      usersCount: usersCount.count,
-      user: req.session.user
+      totalServices: services.length,
+      totalOpenIssues: totalOpenIssues.count,
+      overdueIssues: overdueIssues.count,
+      compliantServices: compliantServices.count,
+      services,
+      recentIssues,
+      levelAIssues: wcagLevels.find(l => l.level === 'A')?.count || 0,
+      levelAAIssues: wcagLevels.find(l => l.level === 'AA')?.count || 0,
+      levelAAAIssues: wcagLevels.find(l => l.level === 'AAA')?.count || 0,
+      commonIssues
     });
   } catch (error) {
     console.error('Department admin dashboard error:', error);

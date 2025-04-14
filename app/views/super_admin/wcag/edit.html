@@ -1,0 +1,88 @@
+{% extends "layouts/layout_wide.html" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set pageTitle = "Edit WCAG Criterion" %}
+
+{% set serviceNav = "WCAG Criteria" %}
+
+{% block content %}
+{% include "layouts/_pageheader.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Edit WCAG Criterion</h1>
+
+      <form method="post" action="/super-admin/wcag/{{ criterion.id }}">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="criterion">
+            Criterion
+          </label>
+          <div class="govuk-hint">
+            The WCAG criterion number (e.g. 1.1.1)
+          </div>
+          <input class="govuk-input" id="criterion" name="criterion" type="text" value="{{ criterion.criterion }}" required>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="title">
+            Title
+          </label>
+          <input class="govuk-input" id="title" name="title" type="text" value="{{ criterion.title }}" required>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="level">
+            Level
+          </label>
+          <select class="govuk-select" id="level" name="level" required>
+            <option value="">Select a level</option>
+            <option value="A" {% if criterion.level == 'A' %}selected{% endif %}>A</option>
+            <option value="AA" {% if criterion.level == 'AA' %}selected{% endif %}>AA</option>
+            <option value="AAA" {% if criterion.level == 'AAA' %}selected{% endif %}>AAA</option>
+            <option value="Best practice" {% if criterion.level == 'Best practice' %}selected{% endif %}>Best practice</option>
+          </select>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="version">
+            Version
+          </label>
+          <select class="govuk-select" id="version" name="version" required>
+            <option value="">Select a version</option>
+            <option value="2.1" {% if criterion.version == '2.1' %}selected{% endif %}>2.1</option>
+            <option value="2.2" {% if criterion.version == '2.2' %}selected{% endif %}>2.2</option>
+            <option value="3.0" {% if criterion.version == '3.0' %}selected{% endif %}>3.0</option>
+          </select>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="description">
+            Description
+          </label>
+          <textarea class="govuk-textarea" id="description" name="description" rows="5">{{ criterion.description }}</textarea>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="guidance_url">
+            Guidance URL
+          </label>
+          <div class="govuk-hint">
+            Link to official WCAG guidance
+          </div>
+          <input class="govuk-input" id="guidance_url" name="guidance_url" type="url" value="{{ criterion.guidance_url }}">
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            Save changes
+          </button>
+          <a href="/super-admin/wcag" class="govuk-link govuk-link--no-visited-state">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

@@ -1,30 +1,132 @@
-{% extends "layout.html" %}
+{% extends "layouts/layout_wide.html" %}
+
+{% set mainClasses = 'govuk-!-padding-top-0' %}
 
 {% set pageTitle = "Dashboard" %}
 {% set serviceNav = "Dashboard"%}
 
-{% block beforeContent %}
-  <a class="govuk-back-link" href="/">Back</a>
-{% endblock %}
-
 {% block content %}
-
+  {% include "layouts/_pageheader.html" %}
+  <div class="govuk-width-container">
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
-      <h1 class="govuk-heading-l">Department user dashboard</h1>
+     
+      <!-- Summary Stats -->
+      <div class="app-stats-grid govuk-!-margin-top-1">
+        <div class="app-stat-card">
+          <p class="app-stat-card__count">{{ assignedIssues.length }}</p>
+          <p class="app-stat-card__label">Assigned Issues</p>
+        </div>
+        <div class="app-stat-card">
+          <p class="app-stat-card__count">{{ ownedServices.length }}</p>
+          <p class="app-stat-card__label">Owned Services</p>
+        </div>
+        <div class="app-stat-card">
+          <p class="app-stat-card__count">{{ raisedIssues.length }}</p>
+          <p class="app-stat-card__label">Raised Issues</p>
+        </div>
+      </div>
 
-      <p class="govuk-body">Ideas for this page:
+      <!-- Assigned Issues Table -->
+      <h2 class="govuk-heading-m govuk-!-margin-top-6">Issues assigned to you</h2>
+      {% if assignedIssues.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Issue</th>
+              <th scope="col" class="govuk-table__header">Service</th>
+              <th scope="col" class="govuk-table__header">Created</th>
+              <th scope="col" class="govuk-table__header">Status</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for issue in assignedIssues %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">
+                  <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.title | safe }}</a>
+                </td>
+                <td class="govuk-table__cell">
+                  <a href="/services/{{ issue.service_id }}" class="govuk-link">{{ issue.service_name }}</a>
+                </td>
+                <td class="govuk-table__cell">{{ issue.created_at | date('D MMM YYYY') }}</td>
+                <td class="govuk-table__cell">
+                  <strong class="govuk-tag govuk-tag--{% if issue.status === 'open' %}blue{% else %}grey{% endif %}">
+                    {{ issue.status }}
+                  </strong>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">No issues are currently assigned to you.</p>
+      {% endif %}
 
-      <ul class="govuk-list govuk-list--bullet">
-      <li>Issues the user has raised or is assigned to</li>
-        <li>As department user view - high level summary of the services in the department</li>
-        <li>As department user view - count of issues across all services at A, AA</li>
-        <li>As department user view - count of accessiblity statement views across all services</li>
-        <li>As department user view - the most common issues across all services</li>
-        <li>Charts of progress over time</li>
-      </ul>
+      <!-- Owned Services Table -->
+      <h2 class="govuk-heading-m govuk-!-margin-top-6">Services you own</h2>
+      {% if ownedServices.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Service</th>
+              <th scope="col" class="govuk-table__header">URL</th>
+              <th scope="col" class="govuk-table__header">Created</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for service in ownedServices %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">
+                  <a href="/services/{{ service.id }}" class="govuk-link">{{ service.name }}</a>
+                </td>
+                <td class="govuk-table__cell">
+                  <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+                </td>
+                <td class="govuk-table__cell">{{ service.created_at | date('D MMM YYYY') }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">You don't own any services.</p>
+      {% endif %}
+
+      <!-- Raised Issues Table -->
+      <h2 class="govuk-heading-m govuk-!-margin-top-6">Issues you've raised</h2>
+      {% if raisedIssues.length > 0 %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header">Issue</th>
+              <th scope="col" class="govuk-table__header">Service</th>
+              <th scope="col" class="govuk-table__header">Created</th>
+              <th scope="col" class="govuk-table__header">Status</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for issue in raisedIssues %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">
+                  <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                </td>
+                <td class="govuk-table__cell">
+                  <a href="/services/{{ issue.service_id }}" class="govuk-link">{{ issue.service_name }}</a>
+                </td>
+                <td class="govuk-table__cell">{{ issue.created_at | date('D MMM YYYY') }}</td>
+                <td class="govuk-table__cell">
+                  <strong class="govuk-tag govuk-tag--{% if issue.status === 'open' %}red{% else %}green{% endif %}">
+                    {{ issue.status }}
+                  </strong>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">You haven't raised any issues.</p>
+      {% endif %}
+
     </div>
   </div>
-
-
+</div>
 {% endblock %} 

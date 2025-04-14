@@ -200,6 +200,26 @@ async function updateIssue(issueId, issueData, wcagCriteria = [], issueTypes = [
   const trx = await db.transaction();
 
   try {
+    // Get the existing issue to get the service_id
+    const existingIssue = await trx('issues')
+      .select('service_id')
+      .where('id', issueId)
+      .first();
+
+    if (!existingIssue) {
+      throw new Error('Issue not found');
+    }
+
+    // Get the department_id from the service
+    const service = await trx('services')
+      .select('department_id')
+      .where('id', existingIssue.service_id)
+      .first();
+
+    if (!service) {
+      throw new Error('Service not found');
+    }
+
     // Update the issue
     const [issue] = await trx('issues')
       .where('id', issueId)
@@ -225,7 +245,8 @@ async function updateIssue(issueId, issueData, wcagCriteria = [], issueTypes = [
       await trx('issue_wcag_criteria')
         .insert(wcagCriteria.map(criterion => ({
           issue_id: issueId,
-          wcag_criterion: criterion
+          wcag_criterion: criterion,
+          department_id: service.department_id
         })));
     }
 
@@ -238,7 +259,8 @@ async function updateIssue(issueId, issueData, wcagCriteria = [], issueTypes = [
       await trx('issue_types')
         .insert(issueTypes.map(type => ({
           issue_id: issueId,
-          type: type
+          type: type,
+          department_id: service.department_id
         })));
     }
 

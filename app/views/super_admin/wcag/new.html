@@ -1,0 +1,122 @@
+{% extends "layouts/layout_wide.html" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set pageTitle = "Add new WCAG criterion" %}
+
+{% set serviceNav = "WCAG Criteria" %}
+
+{% block content %}
+{% include "layouts/_pageheader.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Add new WCAG criterion</h1>
+
+      {% if errorMessage %}
+        <div class="govuk-notification-banner" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+          <div class="govuk-notification-banner__header">
+            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Error
+            </h2>
+          </div>
+          <div class="govuk-notification-banner__content">
+            <p class="govuk-notification-banner__heading">
+              {{ errorMessage }}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="post" action="/super-admin/wcag">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        
+        <div class="govuk-form-group {% if errors.criterion %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="criterion">
+            Criterion
+          </label>
+          {% if errors.criterion %}
+            <p id="criterion-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.criterion }}
+            </p>
+          {% endif %}
+          <input class="govuk-input {% if errors.criterion %}govuk-input--error{% endif %}" id="criterion" name="criterion" type="text" value="{{ criterion.criterion }}">
+        </div>
+
+        <div class="govuk-form-group {% if errors.title %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="title">
+            Title
+          </label>
+          {% if errors.title %}
+            <p id="title-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.title }}
+            </p>
+          {% endif %}
+          <input class="govuk-input {% if errors.title %}govuk-input--error{% endif %}" id="title" name="title" type="text" value="{{ criterion.title }}">
+        </div>
+
+        <div class="govuk-form-group {% if errors.level %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="level">
+            Level
+          </label>
+          {% if errors.level %}
+            <p id="level-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.level }}
+            </p>
+          {% endif %}
+          <select class="govuk-select {% if errors.level %}govuk-select--error{% endif %}" id="level" name="level">
+            <option value="A" {% if criterion.level === 'A' %}selected{% endif %}>A</option>
+            <option value="AA" {% if criterion.level === 'AA' %}selected{% endif %}>AA</option>
+            <option value="AAA" {% if criterion.level === 'AAA' %}selected{% endif %}>AAA</option>
+          </select>
+        </div>
+
+        <div class="govuk-form-group {% if errors.version %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="version">
+            Version
+          </label>
+          {% if errors.version %}
+            <p id="version-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.version }}
+            </p>
+          {% endif %}
+          <select class="govuk-select {% if errors.version %}govuk-select--error{% endif %}" id="version" name="version">
+            <option value="2.0" {% if criterion.version === '2.0' %}selected{% endif %}>2.0</option>
+            <option value="2.1" {% if criterion.version === '2.1' %}selected{% endif %}>2.1</option>
+            <option value="2.2" {% if criterion.version === '2.2' %}selected{% endif %}>2.2</option>
+          </select>
+        </div>
+
+        <div class="govuk-form-group {% if errors.description %}govuk-form-group--error{% endif %}">
+          <label class="govuk-label" for="description">
+            Description
+          </label>
+          {% if errors.description %}
+            <p id="description-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> {{ errors.description }}
+            </p>
+          {% endif %}
+          <textarea class="govuk-textarea {% if errors.description %}govuk-textarea--error{% endif %}" id="description" name="description" rows="5">{{ criterion.description }}</textarea>
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="guidance_url">
+            Guidance URL
+          </label>
+          <div class="govuk-hint">
+            Link to official WCAG guidance
+          </div>
+          <input class="govuk-input" id="guidance_url" name="guidance_url" type="url">
+        </div>
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
+            Save criterion
+          </button>
+          <a href="/super-admin/wcag" class="govuk-link govuk-link--no-visited-state">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

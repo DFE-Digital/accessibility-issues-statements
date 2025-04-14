@@ -12,6 +12,27 @@
 <div class="govuk-width-container">
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
+
+      {% if service.statement_enrolled %}
+      {# notification banner #}
+      <div class="govuk-notification-banner govuk-notification-banner--success" role="region" aria-labelledby="govuk-notification-banner-title"
+      data-module="govuk-notification-banner">
+      <div class="govuk-notification-banner__header">
+        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+          Information
+        </h2>
+      </div>
+      <div class="govuk-notification-banner__content">
+        <p class="govuk-notification-banner__heading">
+         You don't need to do anything.
+        </p>
+        <p class="govuk-body">Your service is enrolled in the accessibility statement service and has been validated.</p>
+        <p class="govuk-body">We'll periodically check your service to ensure it is still compliant and update your status accordingly.
+        </p>
+      </div>
+       </div>
+      {% endif %}
+      
       <h1 class="govuk-heading-l">Accessibility statement</h1>
 
       {% if ableToEnroll == false %}

@@ -71,7 +71,30 @@ exports.seed = async function(knex) {
     { criterion: 'BP-2', title: 'High Contrast Mode Support', level: 'Best practice', version: '2.2' },
     { criterion: 'BP-3', title: 'Focus Styles Enhancement', level: 'Best practice', version: '2.2' },
     { criterion: 'BP-4', title: 'Semantic HTML Usage', level: 'Best practice', version: '2.2' },
-    { criterion: 'BP-5', title: 'ARIA Pattern Implementation', level: 'Best practice', version: '2.2' }
+    { criterion: 'BP-5', title: 'ARIA Pattern Implementation', level: 'Best practice', version: '2.2' },
+
+    // Missing AAA Level Criteria
+    { criterion: '1.4.6', title: 'Contrast (Enhanced)', level: 'AAA', version: '2.2' },
+    { criterion: '1.4.7', title: 'Low or No Background Audio', level: 'AAA', version: '2.2' },
+    { criterion: '1.4.8', title: 'Visual Presentation', level: 'AAA', version: '2.2' },
+    { criterion: '1.4.9', title: 'Images of Text (No Exception)', level: 'AAA', version: '2.2' },
+    { criterion: '2.1.3', title: 'Keyboard (No Exception)', level: 'AAA', version: '2.2' },
+    { criterion: '2.2.3', title: 'No Timing', level: 'AAA', version: '2.2' },
+    { criterion: '2.2.4', title: 'Interruptions', level: 'AAA', version: '2.2' },
+    { criterion: '2.2.5', title: 'Re-authenticating', level: 'AAA', version: '2.2' },
+    { criterion: '2.2.6', title: 'Timeouts', level: 'AAA', version: '2.2' },
+    { criterion: '2.3.2', title: 'Three Flashes', level: 'AAA', version: '2.2' },
+    { criterion: '2.3.3', title: 'Animation from Interactions', level: 'AAA', version: '2.2' },
+    { criterion: '2.4.8', title: 'Location', level: 'AAA', version: '2.2' },
+    { criterion: '2.4.9', title: 'Link Purpose (Link Only)', level: 'AAA', version: '2.2' },
+    { criterion: '2.5.6', title: 'Concurrent Input Mechanisms', level: 'AAA', version: '2.2' },
+    { criterion: '3.1.3', title: 'Unusual Words', level: 'AAA', version: '2.2' },
+    { criterion: '3.1.4', title: 'Abbreviations', level: 'AAA', version: '2.2' },
+    { criterion: '3.1.5', title: 'Reading Level', level: 'AAA', version: '2.2' },
+    { criterion: '3.1.6', title: 'Pronunciation', level: 'AAA', version: '2.2' },
+    { criterion: '3.2.5', title: 'Change on Request', level: 'AAA', version: '2.2' },
+    { criterion: '3.3.5', title: 'Help', level: 'AAA', version: '2.2' },
+    { criterion: '3.3.6', title: 'Error Prevention (All)', level: 'AAA', version: '2.2' }
   ];
 
   // Insert all criteria

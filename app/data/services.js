@@ -6,8 +6,8 @@ const serviceRepositoriesData = require('./service_repositories');
  * Get all services (for super admin)
  * @returns {Promise<Array>} Array of all services
  */
-async function getAllServices() {
-  return db('services')
+async function getAllServices(filters = {}) {
+  let query = db('services')
     .select(
       'services.*', 
       'departments.name as department_name',
@@ -41,8 +41,39 @@ async function getAllServices() {
       'owner.last_name',
       'owner.email',
       'business_areas.name'
-    )
-    .orderBy('services.name');
+    );
+
+  // Apply filters
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.where(function() {
+      this.whereRaw('LOWER(services.name) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(services.url) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(business_areas.name) LIKE LOWER(?)', [searchTerm]);
+    });
+  }
+
+  if (filters.business_areas && filters.business_areas.length > 0) {
+    query = query.whereIn('services.business_area_id', filters.business_areas);
+  }
+
+  if (filters.has_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
+  } else if (filters.no_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
+  }
+
+  if (filters.enrolled === 'true') {
+    query = query.where('services.statement_enrolled', true);
+  } else if (filters.not_enrolled === 'true') {
+    query = query.where('services.statement_enrolled', false);
+  }
+
+  // Apply pagination
+  const offset = (filters.page - 1) * filters.limit;
+  query = query.limit(filters.limit).offset(offset);
+
+  return query.orderBy('services.name');
 }
 
 /**
@@ -71,7 +102,7 @@ async function getDepartmentServices(departmentId, filters = {}) {
     })
     .where('services.department_id', departmentId);
 
-  // Apply search filter
+  // Apply filters
   if (filters.search) {
     const searchTerm = `%${filters.search}%`;
     query = query.where(function() {
@@ -81,45 +112,44 @@ async function getDepartmentServices(departmentId, filters = {}) {
     });
   }
 
-  // Apply business areas filter
   if (filters.business_areas && filters.business_areas.length > 0) {
     query = query.whereIn('services.business_area_id', filters.business_areas);
   }
 
-  // Apply issues status filter
   if (filters.has_issues === 'true') {
     query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
   } else if (filters.no_issues === 'true') {
     query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
   }
 
-  // Apply statement service status filter
   if (filters.enrolled === 'true') {
     query = query.where('services.statement_enrolled', true);
   } else if (filters.not_enrolled === 'true') {
     query = query.where('services.statement_enrolled', false);
   }
 
-  return query
-    .groupBy(
-      'services.id',
-      'services.name',
-      'services.url',
-      'services.department_id',
-      'services.service_owner_id',
-      'services.external_id',
-      'services.created_at',
-      'services.updated_at',
-      'services.statement_enrolled',
-      'services.numeric_id',
-      'services.business_area_id',
-      'departments.name',
-      'owner.first_name',
-      'owner.last_name',
-      'owner.email',
-      'business_areas.name'
-    )
-    .orderBy('services.name');
+  // Apply pagination
+  const offset = (filters.page - 1) * filters.limit;
+  query = query.limit(filters.limit).offset(offset);
+
+  return query.groupBy(
+    'services.id',
+    'services.name',
+    'services.url',
+    'services.department_id',
+    'services.service_owner_id',
+    'services.external_id',
+    'services.created_at',
+    'services.updated_at',
+    'services.statement_enrolled',
+    'services.numeric_id',
+    'services.business_area_id',
+    'departments.name',
+    'owner.first_name',
+    'owner.last_name',
+    'owner.email',
+    'business_areas.name'
+  ).orderBy('services.name');
 }
 
 /**
@@ -158,77 +188,58 @@ async function getUserServices(userId, filters = {}) {
           });
     });
 
-  console.log('Base query:', query.toString());
-
-  // Apply search filter
-  if (filters.search && filters.search.trim() !== '') {
-    console.log('Applying search filter:', filters.search);
-    const searchTerm = `%${filters.search.trim()}%`;
-    query = query.andWhere(function() {
+  // Apply filters
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.where(function() {
       this.whereRaw('LOWER(services.name) LIKE LOWER(?)', [searchTerm])
           .orWhereRaw('LOWER(services.url) LIKE LOWER(?)', [searchTerm])
           .orWhereRaw('LOWER(business_areas.name) LIKE LOWER(?)', [searchTerm]);
     });
-    console.log('Query after search filter:', query.toString());
   }
 
-  // Apply business areas filter
   if (filters.business_areas && filters.business_areas.length > 0) {
-    console.log('Applying business areas filter:', filters.business_areas);
     query = query.whereIn('services.business_area_id', filters.business_areas);
-    console.log('Query after business areas filter:', query.toString());
   }
 
-  // Apply statement service status filter
-  if (filters.enrolled === 'true') {
-    console.log('Applying enrolled filter');
-    query = query.andWhere('services.statement_enrolled', true);
-    console.log('Query after enrolled filter:', query.toString());
-  } else if (filters.not_enrolled === 'true') {
-    console.log('Applying not enrolled filter');
-    query = query.andWhere('services.statement_enrolled', false);
-    console.log('Query after not enrolled filter:', query.toString());
-  }
-
-  // Apply issues status filter before groupBy
   if (filters.has_issues === 'true') {
-    console.log('Applying has_issues filter');
     query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
-    console.log('Query after has_issues filter:', query.toString());
   } else if (filters.no_issues === 'true') {
-    console.log('Applying no_issues filter');
     query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
-    console.log('Query after no_issues filter:', query.toString());
   }
 
-  // Add groupBy
-  console.log('Applying groupBy');
-  query = query.groupBy(
-    'services.id',
-    'services.name',
-    'services.url',
-    'services.department_id',
-    'services.service_owner_id',
-    'services.external_id',
-    'services.created_at',
-    'services.updated_at',
-    'services.statement_enrolled',
-    'services.numeric_id',
-    'services.business_area_id',
-    'departments.name',
-    'owner.first_name',
-    'owner.last_name',
-    'owner.email',
-    'business_areas.name'
-  );
-  console.log('Query after groupBy:', query.toString());
+  if (filters.enrolled === 'true') {
+    query = query.where('services.statement_enrolled', true);
+  } else if (filters.not_enrolled === 'true') {
+    query = query.where('services.statement_enrolled', false);
+  }
 
-  // Add orderBy
-  console.log('Applying orderBy');
-  query = query.orderBy('services.name');
+  // Apply pagination
+  const offset = (filters.page - 1) * filters.limit;
+  query = query
+    .groupBy(
+      'services.id',
+      'services.name',
+      'services.url',
+      'services.department_id',
+      'services.service_owner_id',
+      'services.external_id',
+      'services.created_at',
+      'services.updated_at',
+      'services.statement_enrolled',
+      'services.numeric_id',
+      'services.business_area_id',
+      'departments.name',
+      'owner.first_name',
+      'owner.last_name',
+      'owner.email',
+      'business_areas.name'
+    )
+    .orderBy('services.name')
+    .limit(filters.limit)
+    .offset(offset);
+
   console.log('Final query:', query.toString());
-
-  // Execute the query and log results
   const results = await query;
   console.log('Query results:', results);
   console.log('Number of results:', results.length);
@@ -427,6 +438,139 @@ async function updateService(id, serviceData) {
   return service;
 }
 
+async function getServicesCount(filters = {}) {
+  let query = db('services')
+    .countDistinct('services.id as count')
+    .leftJoin('departments', 'services.department_id', 'departments.id')
+    .leftJoin('users as owner', 'services.service_owner_id', 'owner.id')
+    .leftJoin('business_areas', 'services.business_area_id', 'business_areas.id')
+    .leftJoin('issues', function() {
+      this.on('issues.service_id', '=', 'services.id')
+          .andOn('issues.status', '<>', db.raw("'closed'"));
+    });
+
+  // Apply filters
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.where(function() {
+      this.whereRaw('LOWER(services.name) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(services.url) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(business_areas.name) LIKE LOWER(?)', [searchTerm]);
+    });
+  }
+
+  if (filters.business_areas && filters.business_areas.length > 0) {
+    query = query.whereIn('services.business_area_id', filters.business_areas);
+  }
+
+  if (filters.has_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
+  } else if (filters.no_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
+  }
+
+  if (filters.enrolled === 'true') {
+    query = query.where('services.statement_enrolled', true);
+  } else if (filters.not_enrolled === 'true') {
+    query = query.where('services.statement_enrolled', false);
+  }
+
+  const result = await query;
+  return parseInt(result[0].count);
+}
+
+async function getDepartmentServicesCount(departmentId, filters = {}) {
+  let query = db('services')
+    .countDistinct('services.id as count')
+    .leftJoin('departments', 'services.department_id', 'departments.id')
+    .leftJoin('users as owner', 'services.service_owner_id', 'owner.id')
+    .leftJoin('business_areas', 'services.business_area_id', 'business_areas.id')
+    .leftJoin('issues', function() {
+      this.on('issues.service_id', '=', 'services.id')
+          .andOn('issues.status', '<>', db.raw("'closed'"));
+    })
+    .where('services.department_id', departmentId);
+
+  // Apply filters
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.where(function() {
+      this.whereRaw('LOWER(services.name) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(services.url) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(business_areas.name) LIKE LOWER(?)', [searchTerm]);
+    });
+  }
+
+  if (filters.business_areas && filters.business_areas.length > 0) {
+    query = query.whereIn('services.business_area_id', filters.business_areas);
+  }
+
+  if (filters.has_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
+  } else if (filters.no_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
+  }
+
+  if (filters.enrolled === 'true') {
+    query = query.where('services.statement_enrolled', true);
+  } else if (filters.not_enrolled === 'true') {
+    query = query.where('services.statement_enrolled', false);
+  }
+
+  const result = await query;
+  return parseInt(result[0].count);
+}
+
+async function getUserServicesCount(userId, filters = {}) {
+  let query = db('services')
+    .countDistinct('services.id as count')
+    .leftJoin('departments', 'services.department_id', 'departments.id')
+    .leftJoin('users as owner', 'services.service_owner_id', 'owner.id')
+    .leftJoin('business_areas', 'services.business_area_id', 'business_areas.id')
+    .leftJoin('issues', function() {
+      this.on('issues.service_id', '=', 'services.id')
+          .andOn('issues.status', '<>', db.raw("'closed'"));
+    })
+    .leftJoin('user_services', 'services.id', 'user_services.service_id')
+    .where(function() {
+      this.where('user_services.user_id', userId)
+          .orWhere('services.department_id', function() {
+            this.select('department_id')
+                .from('users')
+                .where('id', userId);
+          });
+    });
+
+  // Apply filters
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.where(function() {
+      this.whereRaw('LOWER(services.name) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(services.url) LIKE LOWER(?)', [searchTerm])
+        .orWhereRaw('LOWER(business_areas.name) LIKE LOWER(?)', [searchTerm]);
+    });
+  }
+
+  if (filters.business_areas && filters.business_areas.length > 0) {
+    query = query.whereIn('services.business_area_id', filters.business_areas);
+  }
+
+  if (filters.has_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
+  } else if (filters.no_issues === 'true') {
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
+  }
+
+  if (filters.enrolled === 'true') {
+    query = query.where('services.statement_enrolled', true);
+  } else if (filters.not_enrolled === 'true') {
+    query = query.where('services.statement_enrolled', false);
+  }
+
+  const result = await query;
+  return parseInt(result[0].count);
+}
+
 module.exports = {
   getAllServices,
   getDepartmentServices,
@@ -440,5 +584,8 @@ module.exports = {
   getService,
   getServiceByName,
   getServiceByUrl,
-  updateService
+  updateService,
+  getServicesCount,
+  getDepartmentServicesCount,
+  getUserServicesCount
 }; 

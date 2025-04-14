@@ -20,6 +20,7 @@ const supportController = require('./controllers/support');
 const departmentsController = require('./controllers/departments');
 const reportsController = require('./controllers/reports');
 const businessAreasController = require('./controllers/business_areas');
+const wcagCriteriaController = require('./controllers/wcag_criteria');
 
 // Import route modules
 const authRoutes = require('./routes/auth');
@@ -38,16 +39,16 @@ router.get('/services', isAuthenticated, servicesController.index);
 router.get('/services/new', isDepartmentAdmin, servicesController.newService);
 router.post('/services', isDepartmentAdmin, servicesController.createService);
 router.get('/services/:id', isAuthenticated, servicesController.showService);
-router.get('/services/:id/edit', isDepartmentAdmin, servicesController.editService);
+router.get('/services/:id/edit', isAuthenticated, servicesController.editService);
 router.post('/services/:id', isDepartmentAdmin, servicesController.updateService);
 
 // Issue routes
 router.get('/services/:serviceId/issues', isAuthenticated, servicesController.showServiceIssues);
-router.get('/services/:serviceId/issues/new', isDepartmentAdmin, issuesController.showNewIssueForm);
-router.post('/services/:serviceId/issues', isDepartmentAdmin, issuesController.handleCreateIssue);
+router.get('/services/:serviceId/issues/new', isAuthenticated, issuesController.showNewIssueForm);
+router.post('/services/:serviceId/issues', isAuthenticated, issuesController.handleCreateIssue);
 router.get('/services/:serviceId/issues/:id', isAuthenticated, issuesController.showIssueDetails);
-router.get('/services/:serviceId/issues/:id/edit', isDepartmentAdmin, issuesController.showEditIssueForm);
-router.post('/services/:serviceId/issues/:id', isDepartmentAdmin, issuesController.handleUpdateIssue);
+router.get('/services/:serviceId/issues/:id/edit', isAuthenticated, issuesController.showEditIssueForm);
+router.post('/services/:serviceId/issues/:id', isAuthenticated, issuesController.handleUpdateIssue);
 
 // Issue comments
 router.post('/services/:serviceId/issues/:id/comments', isAuthenticated, issuesController.addComment);
@@ -71,7 +72,7 @@ router.put('/super-admin/statement-templates/:id', isAuthenticated, statementTem
 router.post('/super-admin/statement-templates/:id', isAuthenticated, statementTemplatesController.updateTemplateHandler);
 
 // Service settings routes
-router.get('/services/:serviceId/settings', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showServiceSettings);
+router.get('/services/:serviceId/settings', isAuthenticated, serviceSettingsController.showServiceSettings);
 
 // Response time settings
 router.get('/services/:serviceId/settings/response-time', isAuthenticated, isDepartmentAdmin, serviceSettingsController.showResponseTime);
@@ -98,7 +99,7 @@ router.get('/services/:serviceId/statement', serviceStatementController.show);
 router.post('/services/:serviceId/validate-url', serviceStatementController.validateServiceUrl);
 
 // Reporting routes
-router.get('/services/:serviceId/reporting', isAuthenticated, isDepartmentAdmin, reportingController.showWcagHeatmap);
+router.get('/services/:serviceId/reporting', isAuthenticated, reportingController.showWcagHeatmap);
 
 // Settings routes
 router.get('/settings', isDepartmentAdmin, isAuthenticated, departmentAdminController.showSettings);
@@ -161,5 +162,13 @@ router.post('/department-admin/business-areas', isAuthenticated, isDepartmentAdm
 router.get('/department-admin/business-areas/:id/edit', isAuthenticated, isDepartmentAdmin, businessAreasController.showEditForm);
 router.post('/department-admin/business-areas/:id', isAuthenticated, isDepartmentAdmin, businessAreasController.update);
 router.post('/department-admin/business-areas/:id/delete', isAuthenticated, isDepartmentAdmin, businessAreasController.destroy);
+
+// WCAG criteria management routes (super admin only)
+router.get('/super-admin/wcag', isAuthenticated, isSuperAdmin, wcagCriteriaController.index);
+router.get('/super-admin/wcag/new', isAuthenticated, isSuperAdmin, wcagCriteriaController.showNewForm);
+router.post('/super-admin/wcag', isAuthenticated, isSuperAdmin, wcagCriteriaController.create);
+router.get('/super-admin/wcag/:id/edit', isAuthenticated, isSuperAdmin, wcagCriteriaController.showEditForm);
+router.post('/super-admin/wcag/:id', isAuthenticated, isSuperAdmin, wcagCriteriaController.update);
+router.post('/super-admin/wcag/:id/delete', isAuthenticated, isSuperAdmin, wcagCriteriaController.destroy);
 
 module.exports = router; 

@@ -9,83 +9,133 @@
   {% include "layouts/_pageheader.html" %}
 
   <div class="govuk-width-container">
-
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-full">
-
+        <!-- Summary Stats -->
         <div class="app-stats-grid govuk-!-margin-top-1">
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ totalServices | default(0) }}</p>
             <p class="app-stat-card__label">Services</p>
-            <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/services" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all services</a>
-            </p>
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ totalOpenIssues | default(0) }}</p>
             <p class="app-stat-card__label">Open issues</p>
-            <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a>
-            </p>
-
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ overdueIssues | default(0) }}</p>
             <p class="app-stat-card__label">Overdue issues</p>
-            <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a>
-            </p>
-
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ compliantServices | default(0) }}</p>
             <p class="app-stat-card__label">Closed issues</p>
-            <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a>
-            </p>
-
           </div>
         </div>
-      </div>
-    </div>
 
-    <div class="govuk-grid-row govuk-!-margin-top-6">
-      <div class="govuk-grid-column-one-half">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h2>Count of WCAG issues by level</h2>
-          </div>
-          <div id="wcag-pie-chart"></div>
-        </div>
-      </div>
-      <div class="govuk-grid-column-one-half">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h2>Top WCAG Issues</h2>
-          </div>
+        <!-- Services Table -->
+        <h2 class="govuk-heading-m govuk-!-margin-top-6">Department Services</h2>
+        {% if services.length > 0 %}
           <table class="govuk-table compact-table">
             <thead class="govuk-table__head">
               <tr class="govuk-table__row">
-                <th class="govuk-table__header">WCAG Criteria</th>
-                <th class="govuk-table__header">Level</th>
-                <th class="govuk-table__header">Count</th>
+                <th scope="col" class="govuk-table__header">Service</th>
+                <th scope="col" class="govuk-table__header">URL</th>
+                <th scope="col" class="govuk-table__header">Open Issues</th>
+                <th scope="col" class="govuk-table__header">Created</th>
               </tr>
             </thead>
             <tbody class="govuk-table__body">
-              {% for issue in commonIssues %}
+              {% for service in services %}
                 <tr class="govuk-table__row">
-                  <td class="govuk-table__cell">{{ issue.criterion }} - {{ issue.title }}</td>
-                  <td class="govuk-table__cell">{{ issue.level }}</td>
-                  <td class="govuk-table__cell">{{ issue.count }}</td>
+                  <td class="govuk-table__cell">
+                    <a href="/services/{{ service.id }}" class="govuk-link">{{ service.name }}</a>
+                  </td>
+                  <td class="govuk-table__cell">
+                    <a href="{{ service.url }}" class="govuk-link" target="_blank">{{ service.url }}</a>
+                  </td>
+                  <td class="govuk-table__cell">{{ service.open_issues_count }}</td>
+                  <td class="govuk-table__cell">{{ service.created_at | date('D MMM YYYY') }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+        {% else %}
+          <p class="govuk-body">No services found.</p>
+        {% endif %}
+
+        <!-- Recent Issues Table -->
+        <h2 class="govuk-heading-m govuk-!-margin-top-6">Recent Issues</h2>
+        {% if recentIssues.length > 0 %}
+          <table class="govuk-table compact-table">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Issue</th>
+                <th scope="col" class="govuk-table__header">Service</th>
+                <th scope="col" class="govuk-table__header">Created</th>
+                <th scope="col" class="govuk-table__header">Status</th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+              {% for issue in recentIssues %}
+                <tr class="govuk-table__row">
+                  <td class="govuk-table__cell">
+                    <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.title }}</a>
+                  </td>
+                  <td class="govuk-table__cell">
+                    <a href="/services/{{ issue.service_id }}" class="govuk-link">{{ issue.service_name }}</a>
+                  </td>
+                  <td class="govuk-table__cell">{{ issue.created_at | date('D MMM YYYY') }}</td>
+                  <td class="govuk-table__cell">
+                    <strong class="govuk-tag govuk-tag--{% if issue.status === 'open' %}red{% else %}green{% endif %}">
+                      {{ issue.status }}
+                    </strong>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="govuk-body">No recent issues found.</p>
+        {% endif %}
+
+        <!-- WCAG Compliance Section -->
+        <div class="govuk-grid-row govuk-!-margin-top-6">
+          <div class="govuk-grid-column-one-half">
+            <div class="chart-container">
+              <div class="chart-header">
+                <h2>Count of WCAG issues by level</h2>
+              </div>
+              <div id="wcag-pie-chart"></div>
+            </div>
+          </div>
+          <div class="govuk-grid-column-one-half">
+            <div class="chart-container">
+              <div class="chart-header">
+                <h2>Top WCAG Issues</h2>
+              </div>
+              <table class="govuk-table compact-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th class="govuk-table__header">WCAG Criteria</th>
+                    <th class="govuk-table__header">Level</th>
+                    <th class="govuk-table__header">Count</th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for issue in commonIssues %}
+                    <tr class="govuk-table__row">
+                      <td class="govuk-table__cell">{{ issue.criterion }} - {{ issue.title }}</td>
+                      <td class="govuk-table__cell">{{ issue.level }}</td>
+                      <td class="govuk-table__cell">{{ issue.count }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-
 
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <style>
@@ -95,151 +145,48 @@
       margin: 0 auto;
     }
 
-    .app-stat-card {
-      border: 1px solid #b1b4b6;
-    }
-
-    .dashboard-stats {
+    .app-stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 24px;
       margin: 32px 0 40px;
     }
 
-    .stat-card {
+    .app-stat-card {
       background: #ffffff;
-      padding: 28px;
-      box-shadow: rgba(50, 50, 93, 0.02) 0 2px 5px -1px, rgba(0, 0, 0, 0.05) 0 1px 3px -1px;
-      display: flex;
-      flex-direction: column;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 24px;
       border: 1px solid #b1b4b6;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #4285f4, #34a853);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: rgba(50, 50, 93, 0.1) 0 15px 35px -5px, rgba(0, 0, 0, 0.07) 0 5px 15px -5px;
-    }
-
-    .stat-card:hover::before {
-      opacity: 1;
-    }
-
-    .stat-card__icon {
-      background: rgba(66, 133, 244, 0.08);
-      color: #4285f4;
-      width: 52px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .stat-card:hover .stat-card__icon {
-      background: #4285f4;
-      color: white;
-      transform: scale(1.05);
-    }
-
-    .stat-card__content {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      text-align: left;
+      transition: all 0.2s ease;
     }
 
-    .stat-card__label {
-      color: #5f6368;
-      font-size: 15px;
-      font-weight: 500;
-      margin-bottom: 8px;
-      letter-spacing: 0.3px;
+    .app-stat-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .stat-card__value {
+    .app-stat-card__count {
       font-size: 36px;
-      font-weight: 600;
-      color: #202124;
-      margin-bottom: 12px;
-      letter-spacing: -0.5px;
+      font-weight: 700;
+      color: #0b0c0c;
+      margin-bottom: 8px;
+      line-height: 1.2;
     }
 
-    .stat-card__trend {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .trend-arrow {
-      font-size: 18px;
-      line-height: 1;
-    }
-
-    .trend-up {
-      color: #34a853;
-      background: rgba(52, 168, 83, 0.1);
-      padding: 4px 8px;
-    }
-
-    .trend-down {
-      color: #ea4335;
-      background: rgba(234, 67, 53, 0.1);
-      padding: 4px 8px;
-    }
-
-    .stat-card__link {
-      color: #4285f4;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      margin-top: auto;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: gap 0.2s ease;
-    }
-
-    .stat-card__link::after {
-      content: '→';
-      transition: transform 0.2s ease;
-    }
-
-    .stat-card__link:hover {
-      gap: 8px;
-    }
-
-    .stat-card__link:hover::after {
-      transform: translateX(2px);
-    }
-
-    .dashboard-charts {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 32px;
-      margin-bottom: 40px;
+    .app-stat-card__label {
+      color: #505a5f;
+      font-size: 16px;
+      font-weight: 400;
+      margin: 0;
     }
 
     .chart-container {
       background: #ffffff;
       padding: 24px;
       border: 1px solid #b1b4b6;
+      border-radius: 4px;
       margin-bottom: 24px;
     }
 
@@ -254,82 +201,6 @@
       margin: 0;
     }
 
-    .chart-legend {
-      display: flex;
-      gap: 20px;
-      padding: 8px 16px;
-      background: #f8f9fa;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #5f6368;
-      font-weight: 500;
-    }
-
-    .legend-color {
-      width: 12px;
-      height: 12px;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-    }
-
-    .chart-actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    .govuk-button--secondary {
-      background: #f8f9fa;
-      border: 1px solid #dadce0;
-      color: #202124;
-      font-weight: 500;
-      font-size: 14px;
-      padding: 8px 16px;
-      transition: all 0.2s ease;
-    }
-
-    .govuk-button--secondary:hover {
-      background: #f1f3f4;
-      border-color: #c6c6c6;
-      box-shadow: rgba(60, 64, 67, 0.1) 0 1px 2px 0;
-    }
-
-    /* D3 Chart Styles */
-    .bar {
-      fill: #4285f4;
-      transition: all 0.2s ease;
-    }
-
-    .bar:hover {
-      fill: #1967d2;
-    }
-
-    .axis text {
-      font-size: 12px;
-      color: #5f6368;
-      font-weight: 500;
-    }
-
-    .axis line,
-    .axis path {
-      stroke: #dadce0;
-    }
-
-    /* Google Charts Accessibility */
-    .google-chart {
-      width: 100%;
-      height: 400px;
-    }
-
-    .google-chart__description {
-      position: absolute;
-      left: -9999px;
-    }
-   
-    /* Table Styles */
     .govuk-table {
       margin-bottom: 0;
     }
@@ -337,25 +208,36 @@
     .govuk-table__header {
       font-weight: 700;
       color: #0b0c0c;
+      background-color: #f3f2f1;
     }
 
     .govuk-table__cell {
       padding: 12px 16px;
+      vertical-align: middle;
     }
 
-    /* Responsive Design */
+    .govuk-tag {
+      font-size: 14px;
+      font-weight: 700;
+      padding: 4px 8px;
+    }
+
+    .govuk-tag--blue {
+      background-color: #1d70b8;
+    }
+
+    .govuk-tag--grey {
+      background-color: #505a5f;
+    }
+
     @media (max-width: 1200px) {
-      .dashboard-stats {
+      .app-stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
 
     @media (max-width: 768px) {
-      .dashboard-stats {
-        grid-template-columns: 1fr;
-      }
-
-      .dashboard-charts {
+      .app-stats-grid {
         grid-template-columns: 1fr;
       }
 
@@ -363,8 +245,16 @@
         padding: 0 16px;
       }
 
-      .google-chart {
-        height: 300px;
+      .app-stat-card {
+        padding: 16px;
+      }
+
+      .app-stat-card__count {
+        font-size: 32px;
+      }
+
+      .app-stat-card__label {
+        font-size: 14px;
       }
     }
   </style>
@@ -395,7 +285,6 @@
 
     function drawCharts() {
       drawWcagPieChart();
-      drawWcagCriteriaTable();
     }
 
     function drawWcagPieChart() {
@@ -450,44 +339,6 @@
 
       var chart = new google.visualization.PieChart(document.getElementById('wcag-pie-chart'));
       chart.draw(formattedData, options);
-    }
-
-    function drawWcagCriteriaTable() {
-      // Take only top 5 criteria
-      const top5Data = initialData.topWcagCriteria.slice(0, 5);
-
-      if (top5Data.length === 0) {
-        document.getElementById('wcag-criteria-table').innerHTML = '<p class="govuk-body">No WCAG criteria found</p>';
-        return;
-      }
-
-      // Convert data to array format
-      const tableData = [['WCAG Criterion', 'Level', 'Count']];
-      top5Data.forEach(d => {
-        tableData.push([`${d.criterion} - ${d.title}`, d.level, parseInt(d.count)]);
-      });
-
-      var data = google.visualization.arrayToDataTable(tableData);
-
-      var options = {
-        showRowNumber: false,
-        width: '100%',
-        height: '100%',
-        allowHtml: true,
-        cssClassNames: {
-          tableCell: 'govuk-table__cell',
-          headerCell: 'govuk-table__header'
-        },
-        alternatingRowStyle: true,
-        page: 'enable',
-        pageSize: 5,
-        sort: 'enable',
-        sortColumn: 2,
-        sortAscending: false
-      };
-
-      var table = new google.visualization.Table(document.getElementById('wcag-criteria-table'));
-      table.draw(data, options);
     }
   </script>
 {% endblock %}

@@ -1,0 +1,185 @@
+{% extends "layouts/layout_wide.html" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set pageTitle = "WCAG Criterion" %}
+
+{% set serviceNav = "WCAG Criteria" %}
+
+{% block content %}
+{% include "layouts/_pageheader.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">WCAG Criteria</h1>
+
+      {% if successMessage %}
+        <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+          <div class="govuk-notification-banner__header">
+            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Success
+            </h2>
+          </div>
+          <div class="govuk-notification-banner__content">
+            <p class="govuk-notification-banner__heading">
+              {{ successMessage }}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if errorMessage %}
+        <div class="govuk-notification-banner" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+          <div class="govuk-notification-banner__header">
+            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Error
+            </h2>
+          </div>
+          <div class="govuk-notification-banner__content">
+            <p class="govuk-notification-banner__heading">
+              {{ errorMessage }}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if criteria.length > 0 %}
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">WCAG Criteria</h2>
+            <ul class="govuk-summary-card__actions">
+              <li class="govuk-summary-card__action">
+                <a href="/super-admin/wcag/new" role="button" draggable="false" class="govuk-link govuk-link--no-visited-state" data-module="govuk-button">
+                  Add new criterion
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div class="govuk-summary-card__content">
+            <div class="govuk-table__container">
+              <table class="govuk-table" data-module="moj-sortable-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header" aria-sort="ascending">
+                      <button type="button" data-index="0">Criterion</button>
+                    </th>
+                    <th scope="col" class="govuk-table__header" aria-sort="none">
+                      <button type="button" data-index="1">Title</button>
+                    </th>
+                    <th scope="col" class="govuk-table__header" aria-sort="none">
+                      <button type="button" data-index="2">Level</button>
+                    </th>
+                    <th scope="col" class="govuk-table__header" aria-sort="none">
+                      <button type="button" data-index="3">Version</button>
+                    </th>
+                    <th scope="col" class="govuk-table__header">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for criterion in criteria %}
+                    <tr class="govuk-table__row">
+                      <td class="govuk-table__cell" data-sort-value="{{ criterion.criterion }}">
+                        <a href="/super-admin/wcag/{{ criterion.id }}/edit" class="govuk-link">
+                          {{ criterion.criterion }}
+                        </a>
+                      </td>
+                      <td class="govuk-table__cell">{{ criterion.title }}</td>
+                      <td class="govuk-table__cell">{{ criterion.level }}</td>
+                      <td class="govuk-table__cell">{{ criterion.version }}</td>
+                      <td class="govuk-table__cell">
+                        <button type="button" class="govuk-link govuk-link--no-visited-state" onclick="openDeleteModal('{{ criterion.id }}', '{{ criterion.criterion }} - {{ criterion.title }}')">
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <p class="govuk-body">No WCAG criteria found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div id="deleteModal" class="govuk-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style="display: none;">
+    <div class="govuk-modal">
+      <div class="govuk-modal__content">
+        <div class="govuk-modal__header">
+          <h2 class="govuk-modal__title" id="delete-modal-title">Delete WCAG Criterion</h2>
+        </div>
+        <div class="govuk-modal__body">
+          <p class="govuk-body">Are you sure you want to delete <span id="delete-criterion-name"></span>?</p>
+          <p class="govuk-body">This action cannot be undone.</p>
+        </div>
+        <div class="govuk-modal__footer">
+          <form id="deleteForm" method="post">
+            <button type="submit" class="govuk-button govuk-button--warning">Delete</button>
+            <button type="button" class="govuk-button govuk-button--secondary govuk-modal__close" data-module="govuk-button">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .govuk-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .govuk-modal {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 500px;
+    width: 100%;
+    margin: 0 20px;
+  }
+
+  .govuk-modal__header {
+    margin-bottom: 20px;
+  }
+
+  .govuk-modal__body {
+    margin-bottom: 20px;
+  }
+
+  .govuk-modal__footer {
+    display: flex;
+    gap: 10px;
+  }
+</style>
+
+<script>
+  function openDeleteModal(id, name) {
+    document.getElementById('delete-criterion-name').textContent = name;
+    document.getElementById('deleteForm').action = `/super-admin/wcag/${id}/delete`;
+    document.getElementById('deleteModal').style.display = 'flex';
+  }
+
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    if (event.target == document.getElementById('deleteModal')) {
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+  }
+
+  // Close modal when clicking cancel button
+  document.querySelector('.govuk-modal__close').onclick = function() {
+    document.getElementById('deleteModal').style.display = 'none';
+  }
+</script>
+{% endblock %}

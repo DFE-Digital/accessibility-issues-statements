@@ -7,10 +7,11 @@
 
 {% block content %}
 {% include "services/department_admin/_subnav.html" %}
-
+ 
 <div class="govuk-width-container">
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
+     <a href="/services/{{ service.id }}/issues" class="govuk-back-link govuk-!-margin-top-0">Back</a>
       <h1 class="govuk-heading-l">Add new issue</h1>
 
       <form action="/services/{{ service.id }}/issues" method="post">
