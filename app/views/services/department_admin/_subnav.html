@@ -22,16 +22,16 @@
                                         <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state">{{ service.url }}</a>
                                     </td>
                                     <td class="govuk-table__cell">{{ service.owner_first_name }}
-                                        {{ service.owner_last_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change</a>
+                                        {{ service.owner_last_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change <span class="govuk-visually-hidden">service owner</span></a>
                                     </td>
 
-                                    <td class="govuk-table__cell">{{ service.business_area_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change</a>
+                                    <td class="govuk-table__cell">{{ service.business_area_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change <span class="govuk-visually-hidden">business area</span></a>
                                     </td>
                                     <td class="govuk-table__cell">
                                         {% if service.statement_enrolled %}
                                             <strong class="govuk-tag govuk-tag--green">Enrolled</strong>
                                         {% else %}
-                                            <strong class="govuk-tag govuk-tag--red">Not enrolled</strong>  - <a href="/services/{{ service.id }}/statement" class="govuk-link govuk-link--no-visited-state">Manage</a>
+                                            <strong class="govuk-tag govuk-tag--red">Not enrolled</strong>  - <a href="/services/{{ service.id }}/statement" class="govuk-link govuk-link--no-visited-state">Manage <span class="govuk-visually-hidden">accessibility statement enrolment</span></a>
                                         {% endif %}
                                         <button 
                                             class="govuk-link govuk-link--no-visited-state enrollment-info-button" 
