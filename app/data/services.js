@@ -125,10 +125,13 @@ async function getDepartmentServices(departmentId, filters = {}) {
 /**
  * Get services accessible to a specific user
  * @param {string} userId - User ID (UUID)
+ * @param {Object} filters - Filter parameters
  * @returns {Promise<Array>} Array of services
  */
-async function getUserServices(userId) {
-  return db('services')
+async function getUserServices(userId, filters = {}) {
+  console.log('Starting getUserServices with filters:', filters);
+  
+  let query = db('services')
     .select(
       'services.*', 
       'departments.name as department_name',
@@ -146,31 +149,91 @@ async function getUserServices(userId) {
           .andOn('issues.status', '<>', db.raw("'closed'"));
     })
     .leftJoin('user_services', 'services.id', 'user_services.service_id')
-    .where('user_services.user_id', userId)
-    .orWhere('services.department_id', function() {
-      this.select('department_id')
-        .from('users')
-        .where('id', userId);
-    })
-    .groupBy(
-      'services.id',
-      'services.name',
-      'services.url',
-      'services.department_id',
-      'services.service_owner_id',
-      'services.external_id',
-      'services.created_at',
-      'services.updated_at',
-      'services.statement_enrolled',
-      'services.numeric_id',
-      'services.business_area_id',
-      'departments.name',
-      'owner.first_name',
-      'owner.last_name',
-      'owner.email',
-      'business_areas.name'
-    )
-    .orderBy('services.name');
+    .where(function() {
+      this.where('user_services.user_id', userId)
+          .orWhere('services.department_id', function() {
+            this.select('department_id')
+                .from('users')
+                .where('id', userId);
+          });
+    });
+
+  console.log('Base query:', query.toString());
+
+  // Apply search filter
+  if (filters.search && filters.search.trim() !== '') {
+    console.log('Applying search filter:', filters.search);
+    const searchTerm = `%${filters.search.trim()}%`;
+    query = query.andWhere(function() {
+      this.whereRaw('LOWER(services.name) LIKE LOWER(?)', [searchTerm])
+          .orWhereRaw('LOWER(services.url) LIKE LOWER(?)', [searchTerm])
+          .orWhereRaw('LOWER(business_areas.name) LIKE LOWER(?)', [searchTerm]);
+    });
+    console.log('Query after search filter:', query.toString());
+  }
+
+  // Apply business areas filter
+  if (filters.business_areas && filters.business_areas.length > 0) {
+    console.log('Applying business areas filter:', filters.business_areas);
+    query = query.whereIn('services.business_area_id', filters.business_areas);
+    console.log('Query after business areas filter:', query.toString());
+  }
+
+  // Apply statement service status filter
+  if (filters.enrolled === 'true') {
+    console.log('Applying enrolled filter');
+    query = query.andWhere('services.statement_enrolled', true);
+    console.log('Query after enrolled filter:', query.toString());
+  } else if (filters.not_enrolled === 'true') {
+    console.log('Applying not enrolled filter');
+    query = query.andWhere('services.statement_enrolled', false);
+    console.log('Query after not enrolled filter:', query.toString());
+  }
+
+  // Apply issues status filter before groupBy
+  if (filters.has_issues === 'true') {
+    console.log('Applying has_issues filter');
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) > 0'));
+    console.log('Query after has_issues filter:', query.toString());
+  } else if (filters.no_issues === 'true') {
+    console.log('Applying no_issues filter');
+    query = query.having(db.raw('COUNT(DISTINCT issues.id) = 0'));
+    console.log('Query after no_issues filter:', query.toString());
+  }
+
+  // Add groupBy
+  console.log('Applying groupBy');
+  query = query.groupBy(
+    'services.id',
+    'services.name',
+    'services.url',
+    'services.department_id',
+    'services.service_owner_id',
+    'services.external_id',
+    'services.created_at',
+    'services.updated_at',
+    'services.statement_enrolled',
+    'services.numeric_id',
+    'services.business_area_id',
+    'departments.name',
+    'owner.first_name',
+    'owner.last_name',
+    'owner.email',
+    'business_areas.name'
+  );
+  console.log('Query after groupBy:', query.toString());
+
+  // Add orderBy
+  console.log('Applying orderBy');
+  query = query.orderBy('services.name');
+  console.log('Final query:', query.toString());
+
+  // Execute the query and log results
+  const results = await query;
+  console.log('Query results:', results);
+  console.log('Number of results:', results.length);
+
+  return results;
 }
 
 /**

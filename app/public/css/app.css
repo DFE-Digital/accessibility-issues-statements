@@ -1182,3 +1182,79 @@ font-size: 0.875rem;
   font-size: 0.9rem;
   padding: 2px 8px;
 }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+.govuk-main-wrapper {
+  flex: 1 0 auto;
+}
+.dfe-feedback, .govuk-footer {
+  flex-shrink: 0;
+}
+
+/* Enrollment Info Modal Styles */
+.enrollment-info-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  color: #505A5F;
+  text-decoration: none;
+  min-width: 22px;
+  min-height: 22px;
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+.enrollment-info-button:hover {
+  color: #0b0c0c;
+}
+
+.enrollment-info-button:focus {
+  outline: 3px solid #ffdd00;
+  outline-offset: 0;
+  background-color: #ffdd00;
+  color: #0b0c0c;
+}
+
+.enrollment-info-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0b0c0c;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.enrollment-info-button:hover::after {
+  opacity: 1;
+}
+
+.enrollment-info-icon {
+  vertical-align: middle;
+  margin: 0;
+  position: relative;
+  top: 1px;
+}

@@ -46,18 +46,12 @@
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Settings' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/settings">Settings</a>
                             </li>
-                            <li class="govuk-service-navigation__item {% if serviceNav == 'Business' %}govuk-service-navigation__item--active{% endif %}">
-                                <a class="govuk-service-navigation__link" href="/business-areas">Business areas</a>
-                            </li>
                         {% else %}
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>
                             </li>
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Services' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/services">Services</a>
-                            </li>
-                            <li class="govuk-service-navigation__item {% if serviceNav == 'Issues' %}govuk-service-navigation__item--active{% endif %}">
-                                <a class="govuk-service-navigation__link" href="/issues">Issues</a>
                             </li>
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Support' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/support">Support</a>
@@ -67,9 +61,7 @@
                             <a class="govuk-service-navigation__link" href="/auth/sign-out">Sign out</a>
                         </li>
                     {% else %}
-                        <li class="govuk-service-navigation__item {% if serviceNav == 'Features' %}govuk-service-navigation__item--active{% endif %}">
-                            <a class="govuk-service-navigation__link" href="/features">Features</a>
-                        </li>
+                       
                         <li class="govuk-service-navigation__item {% if serviceNav == 'Sign in' %}govuk-service-navigation__item--active{% endif %}">
                             <a class="govuk-service-navigation__link" href="/auth/sign-in">Sign in</a>
                         </li>

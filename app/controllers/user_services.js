@@ -1,4 +1,6 @@
 const { getUserServices } = require('../data/services');
+const businessAreasData = require('../data/business_areas');
+const db = require('../db');
 
 const index = async (req, res) => {
   try {
@@ -7,11 +9,40 @@ const index = async (req, res) => {
     }
 
     const user = req.session.user;
-    const services = await getUserServices(user.id);
+
+    // Get filter parameters from query string
+    const filters = {
+      search: req.query.search || '',
+      business_areas: req.query.business_areas ? (Array.isArray(req.query.business_areas) ? req.query.business_areas : [req.query.business_areas]) : [],
+      has_issues: req.query.has_issues || '',
+      no_issues: req.query.no_issues || '',
+      enrolled: req.query.enrolled || '',
+      not_enrolled: req.query.not_enrolled || ''
+    };
+
+    console.log('User services controller filters:', filters);
+
+    // Get services with filters
+    const services = await getUserServices(user.id, filters);
+
+    // Get business areas for the department
+    const business_areas = await businessAreasData.getDepartmentBusinessAreas(user.department.id);
+
+    // Ensure user object has department info
+    if (!user.department) {
+      const department = await db('departments')
+        .select('*')
+        .where('id', user.department_id)
+        .first();
+      
+      user.department = department;
+    }
 
     res.render('services/user/index', {
-      services,
-      user
+      services: services || [],
+      user,
+      filters,
+      business_areas
     });
   } catch (error) {
     console.error('User services error:', error);
