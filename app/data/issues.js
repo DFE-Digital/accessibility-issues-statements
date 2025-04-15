@@ -48,13 +48,43 @@ async function getServiceIssues(serviceId) {
  * @returns {Promise<Array>} Array of open issues
  */
 async function getOpenIssues(serviceId) {
-  return db('issues')
+  const issues = await db('issues')
+    .select(
+      'issues.*',
+      db.raw("CONCAT(users.first_name, ' ', users.last_name) as created_by_name")
+    )
+    .leftJoin('users', 'issues.created_by', 'users.id')
     .where({
-      service_id: serviceId,
-      status: 'open'
+      'issues.service_id': serviceId,
+      'issues.status': 'open'
     })
-    .select('*')
-    .orderBy('created_at', 'desc');
+    .orderBy('issues.created_at', 'desc');
+
+  // Get WCAG criteria and types for each issue
+  for (const issue of issues) {
+    // Get WCAG criteria
+    const criteria = await db('issue_wcag_criteria')
+      .select('wcag_criteria.*')
+      .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+      .where('issue_wcag_criteria.issue_id', issue.id);
+    
+    issue.wcag_criteria = criteria;
+
+    // Set the highest WCAG level as the issue's main level for filtering
+    if (criteria.length > 0) {
+      const levels = criteria.map(c => c.level).filter(l => l);
+      issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
+    }
+
+    // Get issue types
+    const types = await db('issue_types')
+      .select('type')
+      .where('issue_id', issue.id);
+    
+    issue.types = types.map(t => t.type);
+  }
+
+  return issues;
 }
 
 /**
@@ -232,16 +262,17 @@ async function updateIssue(issueId, issueData, wcagCriteria = [], issueTypes = [
         planned_fix: issueData.planned_fix,
         planned_fix_date: issueData.planned_fix_date,
         not_fixing_reason: issueData.not_fixing_reason,
+        closed_date: issueData.closed_date,
         updated_at: trx.fn.now()
       })
       .returning('*');
 
-    // Update WCAG criteria
-    await trx('issue_wcag_criteria')
-      .where('issue_id', issueId)
-      .delete();
-
+    // Only update WCAG criteria if they are provided
     if (wcagCriteria.length > 0) {
+      await trx('issue_wcag_criteria')
+        .where('issue_id', issueId)
+        .delete();
+
       await trx('issue_wcag_criteria')
         .insert(wcagCriteria.map(criterion => ({
           issue_id: issueId,
@@ -250,12 +281,12 @@ async function updateIssue(issueId, issueData, wcagCriteria = [], issueTypes = [
         })));
     }
 
-    // Update issue types
-    await trx('issue_types')
-      .where('issue_id', issueId)
-      .delete();
-
+    // Only update issue types if they are provided
     if (issueTypes.length > 0) {
+      await trx('issue_types')
+        .where('issue_id', issueId)
+        .delete();
+
       await trx('issue_types')
         .insert(issueTypes.map(type => ({
           issue_id: issueId,
@@ -289,13 +320,62 @@ async function updateIssueData(id, data) {
   return issue;
 }
 
-async function getDepartmentIssues(departmentId) {
-  const issues = await db('issues') 
+/**
+ * Get all issues across all departments
+ * @returns {Promise<Array>} Array of issues
+ */
+async function getAllIssues() {
+  const issues = await db('issues')
     .select(
       'issues.*',
-      'services.name as service_name'
+      'services.name as service_name',
+      db.raw("CONCAT(users.first_name, ' ', users.last_name) as created_by_name")
     )
     .leftJoin('services', 'issues.service_id', 'services.id')
+    .leftJoin('users', 'issues.created_by', 'users.id')
+    .orderBy('issues.created_at', 'desc');
+
+  // Get WCAG criteria and types for each issue
+  for (const issue of issues) {
+    // Get WCAG criteria
+    const criteria = await db('issue_wcag_criteria')
+      .select('wcag_criteria.*')
+      .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+      .where('issue_wcag_criteria.issue_id', issue.id);
+    
+    issue.wcag_criteria = criteria;
+
+    // Set the highest WCAG level as the issue's main level for filtering
+    if (criteria.length > 0) {
+      const levels = criteria.map(c => c.level).filter(l => l);
+      issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
+    }
+
+    // Get issue types
+    const types = await db('issue_types')
+      .select('type')
+      .where('issue_id', issue.id);
+    
+    issue.types = types.map(t => t.type);
+  }
+
+  return issues;
+}
+
+/**
+ * Get all issues for a specific department
+ * @param {string} departmentId - Department ID (UUID)
+ * @returns {Promise<Array>} Array of issues
+ */
+async function getDepartmentIssues(departmentId) {
+  const issues = await db('issues')
+    .select(
+      'issues.*',
+      'services.name as service_name',
+      db.raw("CONCAT(users.first_name, ' ', users.last_name) as created_by_name")
+    )
+    .leftJoin('services', 'issues.service_id', 'services.id')
+    .leftJoin('users', 'issues.created_by', 'users.id')
     .where('services.department_id', departmentId)
     .orderBy('issues.created_at', 'desc');
 
@@ -315,7 +395,7 @@ async function getDepartmentIssues(departmentId) {
       issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
     }
 
-    // Get issue types
+    // Get issue types - ensure we're getting all types regardless of status
     const types = await db('issue_types')
       .select('type')
       .where('issue_id', issue.id);
@@ -326,13 +406,18 @@ async function getDepartmentIssues(departmentId) {
   return issues;
 }
 
-async function getAllIssues() {
+// Get all open issues for a department
+async function getDepartmentOpenIssues(departmentId) {
   const issues = await db('issues')
     .select(
       'issues.*',
-      'services.name as service_name'
+      'services.name as service_name',
+      db.raw("CONCAT(users.first_name, ' ', users.last_name) as created_by_name")
     )
     .leftJoin('services', 'issues.service_id', 'services.id')
+    .leftJoin('users', 'issues.created_by', 'users.id')
+    .where('services.department_id', departmentId)
+    .where('issues.status', 'open')
     .orderBy('issues.created_at', 'desc');
 
   // Get WCAG criteria and types for each issue
@@ -351,7 +436,7 @@ async function getAllIssues() {
       issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
     }
 
-    // Get issue types
+    // Get issue types - ensure we're getting all types regardless of status
     const types = await db('issue_types')
       .select('type')
       .where('issue_id', issue.id);
@@ -361,6 +446,7 @@ async function getAllIssues() {
 
   return issues;
 }
+
 
 async function getIssuesByCriterion(criterion) {
   const issues = await db('issue_wcag_criteria')
@@ -403,5 +489,6 @@ module.exports = {
   updateIssue,
   updateIssueData,
   getDepartmentIssues,
+  getDepartmentOpenIssues,
   getAllIssues
 }; 

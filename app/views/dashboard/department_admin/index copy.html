@@ -22,19 +22,19 @@
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ totalOpenIssues | default(0) }}</p>
             <p class="app-stat-card__label">Open issues</p>
-             <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3"><a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a></p>
+             <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3"><a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">open</span> issues</a></p>
        
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ overdueIssues | default(0) }}</p>
             <p class="app-stat-card__label">Overdue issues</p>
-              <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3"><a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a></p>
+              <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3"><a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">overdue</span> issues</a></p>
        
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ compliantServices | default(0) }}</p>
             <p class="app-stat-card__label">Closed issues</p>
-              <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3"><a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a></p>
+              <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3"><a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">closed</span> issues</a></p>
        
           </div>
         </div>

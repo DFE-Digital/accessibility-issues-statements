@@ -1,0 +1,12 @@
+<div class="issue-details">
+  <div class="issue-header">
+    <h1>{{ issue.title }}</h1>
+    <div class="issue-meta">
+      <span class="status-badge status-{{ issue.status }}">{{ issue.status }}</span>
+      <span class="wcag-level">WCAG {{ issue.wcag_level }}</span>
+      {% if issue.closed_date %}
+      <span class="closed-date">Closed on {{ issue.closed_date | date('DD MMM YYYY') }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div> 

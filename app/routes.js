@@ -148,6 +148,7 @@ router.get('/reports', isAuthenticated, isDepartmentAdmin, reportsController.ind
 router.get('/reports/wcag/:criterion', isAuthenticated, isDepartmentAdmin, reportsController.showWcagCriterion);
 
 router.get('/issues', isAuthenticated, isDepartmentAdmin, issuesController.index);
+router.get('/issues/closed', isAuthenticated, isDepartmentAdmin, issuesController.showClosedIssues);
 router.get('/issues/:criterion', isAuthenticated, isDepartmentAdmin, issuesController.issuesByCriterion);
 
 // Business areas routes
@@ -165,5 +166,7 @@ router.post('/super-admin/wcag', isAuthenticated, isSuperAdmin, wcagCriteriaCont
 router.get('/super-admin/wcag/:id/edit', isAuthenticated, isSuperAdmin, wcagCriteriaController.showEditForm);
 router.post('/super-admin/wcag/:id', isAuthenticated, isSuperAdmin, wcagCriteriaController.update);
 router.post('/super-admin/wcag/:id/delete', isAuthenticated, isSuperAdmin, wcagCriteriaController.destroy);
+
+
 
 module.exports = router; 

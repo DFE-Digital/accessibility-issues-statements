@@ -299,7 +299,7 @@ const showServiceIssues = async (req, res) => {
     const issues = await getServiceIssues(serviceId);
 
     // Calculate counts and filter issues
-    const openIssues = issues.filter(issue => ['open', 'in_progress'].includes(issue.status));
+    const openIssues = issues.filter(issue => issue.status === 'open');
     const closedIssues = issues.filter(issue => issue.status === 'closed');
     const levelAIssues = openIssues.filter(issue => issue.wcag_level === 'A');
     const levelAAIssues = openIssues.filter(issue => issue.wcag_level === 'AA');

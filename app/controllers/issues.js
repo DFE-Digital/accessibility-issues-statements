@@ -1,4 +1,4 @@
-const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue, getDepartmentIssues, getAllIssues, getOpenIssues, getIssuesByCriterion } = require('../data/issues');
+const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue, getDepartmentIssues, getAllIssues, getOpenIssues, getIssuesByCriterion, getDepartmentOpenIssues } = require('../data/issues');
 const { getDepartmentServices, getService, getAllServices } = require('../data/services');
 const { createComment, getIssueComments, deleteComment } = require('../data/comments');
 const { getWcagCriteria, getWcagCriteriaByCriterion } = require('../data/wcag_criteria');
@@ -26,7 +26,7 @@ const index = async (req, res) => {
       if (!departmentId) {
         throw new Error('User department ID not found');
       }
-      issues = await getDepartmentIssues(departmentId);
+      issues = await getDepartmentOpenIssues(departmentId);
     }
 
     // Apply filters
@@ -536,9 +536,10 @@ async function handleCloseIssue(req, res) {
       });
     }
 
-    // Update issue status
+    // Update issue status and set closed date
     await updateIssue(id, {
-      status: 'closed'
+      status: 'closed',
+      closed_date: new Date()
     });
 
     // Add closure comment
@@ -549,7 +550,6 @@ async function handleCloseIssue(req, res) {
       type: 'closure'
     });
 
-   
     res.redirect(`/services/${serviceId}/issues/${id}`);
   } catch (error) {
     console.error('Error closing issue:', error);
@@ -737,6 +737,73 @@ async function assignIssue(req, res) {
   }
 }
 
+/**
+ * Show closed issues
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function showClosedIssues(req, res) {
+  try {
+    const { user } = req.session;
+    const filters = {
+      wcag_level: req.query.wcag_level || '',
+      service_id: req.query.service_id || '',
+      search: req.query.search || ''
+    };
+
+    let issues;
+    if (user.role === 'super_admin') {
+      issues = await getAllIssues();
+    } else {
+      // Get department ID from user's department object
+      const departmentId = user.department?.id;
+      if (!departmentId) {
+        throw new Error('User department ID not found');
+      }
+      issues = await getDepartmentIssues(departmentId);
+    }
+
+    // Filter for closed issues
+    issues = issues.filter(issue => issue.status === 'closed');
+
+    // Apply filters
+    if (filters.wcag_level) {
+      const selectedLevels = Array.isArray(filters.wcag_level) ? filters.wcag_level : [filters.wcag_level];
+      issues = issues.filter(issue => selectedLevels.includes(issue.wcag_level));
+    }
+
+    if (filters.service_id) {
+      issues = issues.filter(issue => issue.service_id === filters.service_id);
+    }
+
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      issues = issues.filter(issue => 
+        issue.title.toLowerCase().includes(searchTerm) ||
+        issue.service_name?.toLowerCase().includes(searchTerm) ||
+        issue.wcag_level?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Get services for the department
+    let services = [];
+    if (user.role === 'super_admin') {
+      services = await getAllServices();
+    } else {
+      services = await getDepartmentServices(user.department?.id);
+    }
+
+    res.render('department_admin/issues/closed', {
+      issues,
+      services,
+      filters
+    });
+  } catch (error) {
+    console.error('Error in closed issues view:', error);
+    res.status(500).render('error', { error: 'Failed to load closed issues' });
+  }
+}
+
 module.exports = {
   index,
   showNewIssueForm,
@@ -749,5 +816,6 @@ module.exports = {
   handleCloseIssue,
   handleReopenIssue,
   assignIssue,
-  issuesByCriterion
+  issuesByCriterion,
+  showClosedIssues
 }; 

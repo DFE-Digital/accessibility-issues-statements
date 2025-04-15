@@ -1,6 +1,6 @@
 {% extends "layouts/layout_wide.html" %}
 
-{% set pageTitle = "Issues" %}
+{% set pageTitle = "Closed Issues" %}
 {% set serviceNav = "Issues" %}
 
 {% set mainClasses = 'govuk-!-padding-top-0' %}
@@ -13,7 +13,7 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-one-quarter">
         
-              <div class="moj-filter" data-module="moj-filter">
+        <div class="moj-filter" data-module="moj-filter">
           <div class="moj-filter__header">
             <h2 class="moj-filter__header-title">
               Filter
@@ -44,20 +44,6 @@
                 <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Service</h3>
                 <ul class="moj-filter-tags">
                   <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('service_id') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ services | findServiceName(filters.service_id) }}</a></li>
-                </ul>
-              {% endif %}
-
-              {% if filters.planned_fix !== '' %}
-                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Planned Fix</h3>
-                <ul class="moj-filter-tags">
-                  <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('planned_fix') }}"><span class="govuk-visually-hidden">Remove this filter</span>{% if filters.planned_fix == 'true' %}Yes{% else %}No{% endif %}</a></li>
-                </ul>
-              {% endif %}
-
-              {% if filters.planned_fix_date %}
-                <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Planned Fix Date</h3>
-                <ul class="moj-filter-tags">
-                  <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('planned_fix_date') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ filters.planned_fix_date | formatDateFilter }}</a></li>
                 </ul>
               {% endif %}
 
@@ -156,50 +142,6 @@
                   </div>
                 </div>
 
-                <div class="govuk-form-group govuk-!-margin-bottom-2">
-                  <div class="moj-filter-layout__content">
-                    <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="planned-fix-filter">
-                      <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
-                        <path d="M0 0 L10 10 L20 0"></path>
-                      </svg>
-                      Planned Fix
-                    </button>
-                    {% if filters.planned_fix !== '' %}
-                      <span class="moj-filter-toggle__count">1 selected</span>
-                    {% endif %}
-                    <div id="planned-fix-filter" hidden>
-                      <select class="govuk-select" id="planned_fix" name="planned_fix">
-                        <option value="" {% if filters.planned_fix == "" %}selected{% endif %}>All</option>
-                        <option value="true" {% if filters.planned_fix == "true" %}selected{% endif %}>Yes</option>
-                        <option value="false" {% if filters.planned_fix == "false" %}selected{% endif %}>No</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="govuk-form-group govuk-!-margin-bottom-2">
-                  <div class="moj-filter-layout__content">
-                    <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="planned-fix-date-filter">
-                      <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
-                        <path d="M0 0 L10 10 L20 0"></path>
-                      </svg>
-                      Planned Fix Date
-                    </button>
-                    {% if filters.planned_fix_date %}
-                      <span class="moj-filter-toggle__count">1 selected</span>
-                    {% endif %}
-                    <div id="planned-fix-date-filter" hidden>
-                      <select class="govuk-select" id="planned_fix_date" name="planned_fix_date">
-                        <option value="" {% if filters.planned_fix_date == "" %}selected{% endif %}>All dates</option>
-                        <option value="overdue" {% if filters.planned_fix_date == "overdue" %}selected{% endif %}>Overdue</option>
-                        <option value="next_month" {% if filters.planned_fix_date == "next_month" %}selected{% endif %}>Next month</option>
-                        <option value="next_3_months" {% if filters.planned_fix_date == "next_3_months" %}selected{% endif %}>Next 3 months</option>
-                        <option value="next_6_months" {% if filters.planned_fix_date == "next_6_months" %}selected{% endif %}>Next 6 months</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
                 <div class="govuk-form-group govuk-!-margin-top-2">
                   <div class="moj-filter__footer">
                     <button type="submit" class="govuk-button govuk-!-margin-bottom-1" data-module="govuk-button">
@@ -215,13 +157,11 @@
       </div>
 
       <div class="govuk-grid-column-three-quarters">
-
-
-  <div class="govuk-summary-card">
+        <div class="govuk-summary-card">
           <div class="govuk-summary-card__title-wrapper">
-            <h2 class="govuk-summary-card__title">Issues</h2>
-           <div class="govuk-summary-card__actions">
-              <a href="/issues/closed" class="govuk-link govuk-link--no-visited-state">View closed issues</a>
+            <h2 class="govuk-summary-card__title">Closed Issues</h2>
+            <div class="govuk-summary-card__actions">
+              <a href="/issues" class="govuk-link govuk-link--no-visited-state">View open issues</a>
             </div>
           </div>
           <div class="govuk-summary-card__content">
@@ -233,7 +173,7 @@
                     <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service</th>
                     <th scope="col" class="govuk-table__header">Issue types</th>
                     <th scope="col" class="govuk-table__header">Priority</th>
-                    <th scope="col" class="govuk-table__header">Fixing</th>
+                    <th scope="col" class="govuk-table__header">Closed date</th>
                   </tr>
                 </thead>
                 <tbody class="govuk-table__body">
@@ -277,42 +217,15 @@
                         </strong>
                       </td>
                       <td class="govuk-table__cell">
-                        {% if issue.planned_fix %}
-                          Yes
-                        {% else %}
-                          No
-                        {% endif %}
+                        {{ issue.updated_at | date('D MMM YYYY') }}
                       </td>
                     </tr>
                   {% endfor %}
                 </tbody>
               </table>
             {% else %}
-              <p class="govuk-body">No issues found for the selected filters</p>
+              <p class="govuk-body">No closed issues found for the selected filters</p>
             {% endif %}
-          </div>
-      </div>
-    </div>
-  </div>
-
-  {# Service URL Modal #}
-  <div class="govuk-modal-overlay" id="service-url-modal" style="display: none;" role="dialog"
-    aria-labelledby="service-url-modal-title" aria-describedby="service-url-modal-description" aria-modal="true" tabindex="-1">
-    <div class="govuk-modal">
-      <div class="govuk-modal__header">
-        <h2 class="govuk-modal__title" id="service-url-modal-title">Service URL</h2>
-        <button class="govuk-modal__close" aria-label="Close modal" onclick="closeServiceUrlModal()">
-          <span aria-hidden="true">×</span>
-        </button>
-      </div>
-      <div class="govuk-modal__content">
-        <div id="service-url-modal-description">
-          <p class="govuk-body" id="service-url-content"></p>
-          <div class="govuk-button-group">
-            <a href="#" id="service-url-link" class="govuk-button" target="_blank" rel="noopener noreferrer">Visit service</a>
-            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" onclick="closeServiceUrlModal()">
-              Close
-            </button>
           </div>
         </div>
       </div>
@@ -320,66 +233,6 @@
   </div>
 
   <style>
-    .service-url-button {
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-left: 8px;
-      color: #505A5F;
-      text-decoration: none;
-      min-width: 22px;
-      min-height: 22px;
-      width: 22px;
-      height: 22px;
-      vertical-align: middle;
-      position: relative;
-      top: -1px;
-    }
-
-    .service-url-button:hover {
-      color: #0b0c0c;
-    }
-
-    .service-url-button:focus {
-      outline: 3px solid #ffdd00;
-      outline-offset: 0;
-      background-color: #ffdd00;
-      color: #0b0c0c;
-    }
-
-    .service-url-button::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #0b0c0c;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 3px;
-      font-size: 14px;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    .service-url-button:hover::after {
-      opacity: 1;
-    }
-
-    .service-url-icon {
-      vertical-align: middle;
-      margin: 0;
-      position: relative;
-      top: 1px;
-    }
-
     .moj-filter-toggle {
       background: none;
       border: 0;
@@ -472,60 +325,6 @@
       });
     });
 
-    function openServiceUrlModal(url) {
-      previousActiveElement = document.activeElement;
-      const button = previousActiveElement;
-      button.setAttribute('aria-expanded', 'true');
-
-      const modal = document.getElementById('service-url-modal');
-      const body = document.body;
-      const urlContent = document.getElementById('service-url-content');
-      const urlLink = document.getElementById('service-url-link');
-
-      // Set the URL content and link
-      urlContent.textContent = url;
-      urlLink.href = url;
-
-      modal.style.display = 'flex';
-      body.classList.add('modal-open');
-
-      modal.focus();
-      trapFocus(modal);
-    }
-
-    function closeServiceUrlModal() {
-      const modal = document.getElementById('service-url-modal');
-      const body = document.body;
-      const button = document.querySelector('.service-url-button');
-      
-      if (button) {
-        button.setAttribute('aria-expanded', 'false');
-      }
-
-      modal.style.display = 'none';
-      body.classList.remove('modal-open');
-
-      if (previousActiveElement) {
-        previousActiveElement.focus();
-      }
-    }
-
-    // Add event listener for service URL modal
-    document.addEventListener('click', function (event) {
-      const serviceUrlModal = document.querySelector('#service-url-modal .govuk-modal');
-      const serviceUrlOverlay = document.getElementById('service-url-modal');
-
-      if (event.target === serviceUrlOverlay && serviceUrlModal && !serviceUrlModal.contains(event.target)) {
-        closeServiceUrlModal();
-      }
-    });
-
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && document.getElementById('service-url-modal').style.display === 'flex') {
-        closeServiceUrlModal();
-      }
-    });
-
     document.addEventListener('DOMContentLoaded', function () {
       document
         .querySelectorAll('.moj-filter-toggle')
@@ -553,4 +352,4 @@
       });
     });
   </script>
-{% endblock %}
+{% endblock %} 

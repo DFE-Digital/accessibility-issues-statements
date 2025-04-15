@@ -24,21 +24,21 @@
             <p class="app-stat-card__count">{{ totalOpenIssues | default(0) }}</p>
             <p class="app-stat-card__label">Open issues</p>
             <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a>
+              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">open</span> issues</a>
             </p>
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ overdueIssues | default(0) }}</p>
             <p class="app-stat-card__label">Overdue issues</p>
             <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a>
+              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">overdue</span> issues</a>
             </p>
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ compliantServices | default(0) }}</p>
             <p class="app-stat-card__label">Closed issues</p>
             <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all issues</a>
+              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">closed</span> issues</a>
             </p>
           </div>
         </div>
@@ -312,7 +312,7 @@
           sliceVisibilityThreshold: .2,
           pieSliceText: 'label',
           pieSliceTextStyle: {
-            color: 'white',
+            color: '#ffffff',
             fontSize: 14,
             bold: true
           },
@@ -324,8 +324,11 @@
               color: '#0b0c0c'
             }
           },
+          // Using WCAG-compliant colors with sufficient contrast
           colors: [
-            '#C93535', '#FEAE49', '#34a853'
+            '#003078', 
+            '#912b88', 
+            '#85994b'  
           ],
           backgroundColor: 'transparent',
           chartArea: {
@@ -338,12 +341,22 @@
           },
           tooltip: {
             textStyle: {
-              fontSize: 14
+              fontSize: 14,
+              color: '#ffffff'
             },
-            showColorCode: true
+            showColorCode: true,
+            isHtml: true
           },
-          pieSliceBorderColor: 'white',
-          height: 300
+          pieSliceBorderColor: '#ffffff',
+          height: 300,
+          // Add focus target for keyboard navigation
+          focusTarget: 'category',
+          // Add aria-label for screen readers
+          ariaLabel: 'WCAG Issues by Level',
+          // Add role for accessibility
+          role: 'img',
+          // Add title for screen readers
+          title: 'WCAG Issues by Level'
         };
 
         // Format the data to include count in labels
@@ -351,11 +364,15 @@
           .visualization
           .arrayToDataTable([
             [
-              'Level', 'Count'
+              'Level', 'Count', { role: 'tooltip', type: 'string', p: { html: true } }
             ],
             ...filteredData.map(d => [
               `${d.level} (${d.count})`,
-              parseInt(d.count)
+              parseInt(d.count),
+              `<div style="padding: 8px; background: white; border: 1px solid #b1b4b6;">
+                <strong>WCAG ${d.level} Level</strong><br>
+                Count: ${d.count}
+              </div>`
             ])
           ]);
 
@@ -363,6 +380,10 @@
           .visualization
           .PieChart(document.getElementById('wcag-pie-chart'));
         chart.draw(formattedData, options);
+
+        // Add keyboard navigation support
+        document.getElementById('wcag-pie-chart').setAttribute('tabindex', '0');
+        document.getElementById('wcag-pie-chart').setAttribute('aria-label', 'WCAG Issues by Level Chart');
       }
     </script>
   {% endblock %}
