@@ -362,7 +362,27 @@ async function getAllIssues() {
   return issues;
 }
 
+async function getIssuesByCriterion(criterion) {
+  const issues = await db('issue_wcag_criteria')
+    .select(
+      'issues.*',
+      'wcag_criteria.criterion',
+      'wcag_criteria.title',
+      'wcag_criteria.level',
+      'services.name as service_name',
+      'services.url as service_url'
+    )
+    .leftJoin('issues', 'issue_wcag_criteria.issue_id', 'issues.id')
+    .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+    .leftJoin('services', 'issues.service_id', 'services.id')
+    .where('issue_wcag_criteria.wcag_criterion', criterion)
+    .orderBy('issues.created_at', 'desc');
+
+  return issues;
+}
+
 module.exports = {
+  getIssuesByCriterion,
   getServiceIssues,
   getOpenIssues,
   getIssue,

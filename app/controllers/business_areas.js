@@ -99,7 +99,7 @@ const create = async (req, res) => {
       departmentId: user.department.id
     });
 
-    res.redirect('/settings');
+    res.redirect('/settings/business-areas');
   } catch (error) {
     console.error('Create business area error:', error);
     res.status(500).render('error', {
@@ -132,8 +132,12 @@ const showEditForm = async (req, res) => {
       });
     }
 
+    // Get the services that are assigned to the business area
+    const services = await businessAreasData.getServicesForBusinessArea(id);
+
     res.render('department_admin/business_areas/edit', {
       businessArea,
+      services,
       user,
       csrfToken: req.csrfToken()
     });
@@ -200,7 +204,7 @@ const update = async (req, res) => {
       name: name.trim()
     });
 
-    res.redirect('/settings');
+    res.redirect('/settings/business-areas');
   } catch (error) {
     console.error('Update business area error:', error);
     res.status(500).render('error', {
@@ -235,7 +239,7 @@ const destroy = async (req, res) => {
 
     await businessAreasData.deleteBusinessArea(id);
 
-    res.redirect('/settings');
+    res.redirect('/settings/business-areas');
   } catch (error) {
     console.error('Delete business area error:', error);
     res.status(500).render('error', {

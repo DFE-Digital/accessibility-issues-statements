@@ -44,9 +44,19 @@ async function deleteWcagCriterion(id) {
   return db('wcag_criteria').where({ id }).del();
 }
 
+/**
+ * Get WCAG criteria by criterion
+ * @param {string} criterion - WCAG criterion
+ * @returns {Promise<Object>} WCAG criterion
+ */
+async function getWcagCriteriaByCriterion(criterion) {
+  return db('wcag_criteria').where({ criterion }).first();
+} 
+
 module.exports = {
   getWcagCriteria,
   createWcagCriterion,
   updateWcagCriterion,
-  deleteWcagCriterion
+  deleteWcagCriterion,
+  getWcagCriteriaByCriterion
 }; 

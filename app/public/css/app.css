@@ -1258,3 +1258,27 @@ body {
   position: relative;
   top: 1px;
 }
+
+/* MOJ Filter overrides */
+
+.moj-filter__header{
+  background-color: #f3f2f1;
+  padding: 20px 20px;
+  border: 1px solid #b1b4b6;
+  border-bottom: none;
+}
+
+.moj-filter__header-title{
+  font-size: 1rem;
+  line-height: 1.25;
+  margin-bottom: 0;
+}
+
+@media (min-width: 40.0625em) {
+  .moj-filter__header-title {
+      font-size: 1.1875rem;
+      line-height: 1.3157894737;
+      margin-bottom: 0px;
+  }
+}
+

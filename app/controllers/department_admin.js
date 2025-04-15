@@ -53,7 +53,7 @@ const index = async (req, res) => {
       .join('services', 'issues.service_id', 'services.id')
       .where('services.department_id', departmentId)
       .orderBy('issues.created_at', 'desc')
-      .limit(10);
+      .limit(5);
 
     // Get total open issues
     const totalOpenIssues = await db('issues')
@@ -146,10 +146,12 @@ const showServices = async (req, res) => {
     const services = await db('services')
       .select(
         'services.*',
-        db.raw('COUNT(DISTINCT user_services.user_id) as enrolled_users')
+        db.raw('COUNT(DISTINCT user_services.user_id) as enrolled_users'),
+        db.raw('(SELECT COUNT(*) FROM issues WHERE issues.service_id = services.id AND issues.status = \'open\') as open_issues_count')
       )
       .leftJoin('user_services', 'services.id', 'user_services.service_id')
       .where('services.department_id', req.session.user.department.id)
+      .whereRaw('(SELECT COUNT(*) FROM issues WHERE issues.service_id = services.id AND issues.status = \'open\') > 0')
       .groupBy('services.id')
       .orderBy('services.name');
 
@@ -273,6 +275,65 @@ const showSettings = async (req, res) => {
   }
 };
 
+const showBusinessAreas = async (req, res) => {
+
+  try {
+    if (!req.session.user) {
+      return res.redirect('/auth/sign-in');
+    }
+
+    const departmentId = req.session.user.department.id;
+
+    // Get user's department and its domains
+    const department = await db('departments')
+      .select('*')
+      .where('id', departmentId)
+      .first();
+
+    if (!department) {
+      return res.status(404).render('error', {
+        error: 'Department not found'
+      });
+    }
+
+    // Get allowed domains
+    const domains = await db('department_allowed_domains')
+      .select('domain')
+      .where('department_id', departmentId)
+      .orderBy('domain');
+
+    // Get business areas
+    const businessAreas = await db('business_areas')
+      .select('*')
+      .where('department_id', departmentId)
+      .orderBy('name');
+
+    res.render('department_admin/settings/business-areas', {
+      department: {
+        ...department,
+        domains: domains.map(d => d.domain)
+      },
+      businessAreas,
+      user: req.session.user,
+      successMessage: req.session.successMessage,
+      errorMessage: req.session.errorMessage,
+      errors: req.session.errors || {},
+      csrfToken: req.csrfToken()
+    });
+
+    // Clear messages after displaying them
+    delete req.session.successMessage;
+    delete req.session.errorMessage;
+    delete req.session.errors;
+  } catch (error) {
+    console.error('Settings error:', error);
+    res.status(500).render('error', {
+      error: 'There was a problem loading the settings',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 const updateSettings = async (req, res) => {
   try {
     if (!req.session.user) {
@@ -340,5 +401,6 @@ module.exports = {
   showServices,
   showService,
   showSettings,
-  updateSettings
+  updateSettings,
+  showBusinessAreas
 }; 

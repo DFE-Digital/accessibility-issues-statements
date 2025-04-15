@@ -51,10 +51,10 @@
                 <h3 class="app-sort__title">Title</h3>
                 <ul class="app-sort__list">
                   <li class="app-sort__item">
-                    <a href="?sort=title&order=asc" class="app-sort__link" {% if sortBy=='title' and sortOrder=='asc' %}aria-current="true"{% endif %}>A to Z</a>
+                    <a href="?sort=title&order=asc" class="app-sort__link" {% if sortBy=='title' and sortOrder=='asc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by title: </span> A to Z</a>
                   </li>
                   <li class="app-sort__item">
-                    <a href="?sort=title&order=desc" class="app-sort__link" {% if sortBy=='title' and sortOrder=='desc' %}aria-current="true"{% endif %}>Z to A</a>
+                    <a href="?sort=title&order=desc" class="app-sort__link" {% if sortBy=='title' and sortOrder=='desc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by title: </span> Z to A</a>
                   </li>
                 </ul>
               </div>
@@ -62,10 +62,10 @@
                 <h3 class="app-sort__title">WCAG criteria</h3>
                 <ul class="app-sort__list">
                   <li class="app-sort__item">
-                    <a href="?sort=wcag_criterion&order=asc" class="app-sort__link" {% if sortBy=='wcag_criterion' and sortOrder=='asc' %}aria-current="true"{% endif %}>A to Z</a>
+                    <a href="?sort=wcag_criterion&order=asc" class="app-sort__link" {% if sortBy=='wcag_criterion' and sortOrder=='asc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by WCAG criteria: </span> A to Z</a>
                   </li>
                   <li class="app-sort__item">
-                    <a href="?sort=wcag_criterion&order=desc" class="app-sort__link" {% if sortBy=='wcag_criterion' and sortOrder=='desc' %}aria-current="true"{% endif %}>Z to A</a>
+                    <a href="?sort=wcag_criterion&order=desc" class="app-sort__link" {% if sortBy=='wcag_criterion' and sortOrder=='desc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by WCAG criteria: </span> Z to A</a>
                   </li>
                 </ul>
               </div>
@@ -73,10 +73,10 @@
                 <h3 class="app-sort__title">Level</h3>
                 <ul class="app-sort__list">
                   <li class="app-sort__item">
-                    <a href="?sort=wcag_level&order=asc" class="app-sort__link" {% if sortBy=='wcag_level' and sortOrder=='asc' %}aria-current="true"{% endif %}>A to AAA</a>
+                    <a href="?sort=wcag_level&order=asc" class="app-sort__link" {% if sortBy=='wcag_level' and sortOrder=='asc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by WCAG level: </span> A to AAA</a>
                   </li>
                   <li class="app-sort__item">
-                    <a href="?sort=wcag_level&order=desc" class="app-sort__link" {% if sortBy=='wcag_level' and sortOrder=='desc' %}aria-current="true"{% endif %}>AAA to A</a>
+                    <a href="?sort=wcag_level&order=desc" class="app-sort__link" {% if sortBy=='wcag_level' and sortOrder=='desc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by WCAG level: </span> AAA to A</a>
                   </li>
                 </ul>
               </div>
@@ -84,10 +84,10 @@
                 <h3 class="app-sort__title">Date created</h3>
                 <ul class="app-sort__list">
                   <li class="app-sort__item">
-                    <a href="?sort=created_at&order=desc" class="app-sort__link" {% if sortBy=='created_at' and sortOrder=='desc' %}aria-current="true"{% endif %}>Newest to oldest</a>
+                    <a href="?sort=created_at&order=desc" class="app-sort__link" {% if sortBy=='created_at' and sortOrder=='desc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by date created: </span> Newest to oldest</a>
                   </li>
                   <li class="app-sort__item">
-                    <a href="?sort=created_at&order=asc" class="app-sort__link" {% if sortBy=='created_at' and sortOrder=='asc' %}aria-current="true"{% endif %}>Oldest to newest</a>
+                    <a href="?sort=created_at&order=asc" class="app-sort__link" {% if sortBy=='created_at' and sortOrder=='asc' %}aria-current="true"{% endif %}><span class="govuk-visually-hidden">Sort by date created: </span> Oldest to newest</a>
                   </li>
                 </ul>
               </div>

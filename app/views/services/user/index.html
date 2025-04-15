@@ -260,7 +260,7 @@
                       <td class="govuk-table__cell">
                         {% if service.owner_email %}
                           <a href="mailto:{{ service.owner_email }}" class="govuk-link govuk-link--no-visited-state">
-                            {{ service.owner_first_name }}
+                             <span class="govuk-visually-hidden">Email the owner of {{ service.name }}: </span>{{ service.owner_first_name }}
                             {{ service.owner_last_name }}
                           </a>
                         {% else %}

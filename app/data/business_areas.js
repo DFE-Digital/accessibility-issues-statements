@@ -68,10 +68,22 @@ async function deleteBusinessArea(id) {
     .del();
 }
 
+/**
+ * Get services for a business area
+ * @param {string} id - Business area ID
+ * @returns {Promise<Array>} Array of services
+ */ 
+async function getServicesForBusinessArea(id) {
+  return db('services')
+    .where('business_area_id', id)
+    .orderBy('name');
+}
+  
 module.exports = {
   getDepartmentBusinessAreas,
   getBusinessArea,
   createBusinessArea,
   updateBusinessArea,
-  deleteBusinessArea
+  deleteBusinessArea,
+  getServicesForBusinessArea
 }; 

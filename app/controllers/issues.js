@@ -1,7 +1,7 @@
-const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue, getDepartmentIssues, getAllIssues, getOpenIssues } = require('../data/issues');
+const { getServiceIssues, getIssue, createIssue: createIssueData, updateIssue, getDepartmentIssues, getAllIssues, getOpenIssues, getIssuesByCriterion } = require('../data/issues');
 const { getDepartmentServices, getService, getAllServices } = require('../data/services');
 const { createComment, getIssueComments, deleteComment } = require('../data/comments');
-const { getWcagCriteria } = require('../data/wcag_criteria');
+const { getWcagCriteria, getWcagCriteriaByCriterion } = require('../data/wcag_criteria');
 const { db } = require('../db');
 const { sendEmail } = require('../middleware/notify');
 
@@ -102,8 +102,13 @@ const index = async (req, res) => {
   }
 };
 
+const issuesByCriterion = async (req, res) => {
+  const { criterion } = req.params;
+  const issues = await getIssuesByCriterion(criterion);
+  const wcagCriteria = await getWcagCriteriaByCriterion(criterion);
 
-
+  res.render('department_admin/issues/criteria', { issues, wcagCriteria });
+};
 
 /**
  * Show new issue form
@@ -743,5 +748,6 @@ module.exports = {
   handleDeleteComment,
   handleCloseIssue,
   handleReopenIssue,
-  assignIssue
+  assignIssue,
+  issuesByCriterion
 }; 

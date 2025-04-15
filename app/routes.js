@@ -103,6 +103,7 @@ router.get('/services/:serviceId/reporting', isAuthenticated, reportingControlle
 
 // Settings routes
 router.get('/settings', isDepartmentAdmin, isAuthenticated, departmentAdminController.showSettings);
+router.get('/settings/business-areas', isDepartmentAdmin, isAuthenticated, departmentAdminController.showBusinessAreas);
 router.post('/settings', isAuthenticated, isDepartmentAdmin, departmentAdminController.updateSettings);
 
 // Department admin routes
@@ -154,6 +155,7 @@ router.get('/reports', isAuthenticated, isDepartmentAdmin, reportsController.ind
 router.get('/reports/wcag/:criterion', isAuthenticated, isDepartmentAdmin, reportsController.showWcagCriterion);
 
 router.get('/issues', isAuthenticated, isDepartmentAdmin, issuesController.index);
+router.get('/issues/:criterion', isAuthenticated, isDepartmentAdmin, issuesController.issuesByCriterion);
 
 // Business areas routes
 router.get('/department-admin/business-areas', isAuthenticated, isDepartmentAdmin, businessAreasController.index);

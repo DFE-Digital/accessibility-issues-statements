@@ -4,8 +4,7 @@
 
 {% set pageTitle = "Settings" %}
 {% set serviceNav = "Settings" %}
-{% set subnav = 'business-areas' %}
-
+{% set verticalNav = "Business areas" %}
 {% block content %}
 
   {% include "layouts/_pageheader.html" %}
@@ -13,9 +12,38 @@
   <div class="govuk-width-container">
 
     <div class="govuk-grid-row">
-      <div class="govuk-grid-column-two-thirds">
+      <div class="govuk-grid-column-one-quarter">
+        <nav class="dfe-vertical-nav govuk-!-margin-top-0">
+          <a href="/settings/business-areas" class="govuk-back-link govuk-!-margin-top-0 govuk-!-margin-bottom-9">Back to business areas</a>
+          <ul class="dfe-vertical-nav__section">
+            <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Department information' %}dfe-vertical-nav__section-item--current{% endif %}">
+              <a class="dfe-vertical-nav__link" href="/settings">Department information</a>
+            </li>
+            <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Business areas' %}dfe-vertical-nav__section-item--current{% endif %}">
+              <a class="dfe-vertical-nav__link" href="/settings/business-areas">Business areas</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="govuk-grid-column-three-quarters">
 
         <h2 class="govuk-heading-l">Edit business area</h2>
+
+        {% if services.length > 0 %}
+          <p class="govuk-body">
+            This business area is assigned to the following services:
+          </p>
+          <ul class="govuk-list govuk-list--bullet">
+            {% for service in services %}
+              <li>{{ service.name }}</li>
+            {% endfor %}
+          </ul>
+          <p class="govuk-body">You can edit the business area name, but you cannot delete it until all services are reassigned to another business area.</p>
+          {% else %}
+          <p class="govuk-body">
+            This business area is not assigned to any services.
+          </p>
+        {% endif %}
 
         <form method="post" action="/department-admin/business-areas/{{ businessArea.id }}">
           <input type="hidden" name="_csrf" value="{{ csrfToken }}">
@@ -27,7 +55,8 @@
             </label>
             {% if errors.name %}
               <p id="name-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">Error:</span> {{ errors.name }}
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ errors.name }}
               </p>
             {% endif %}
             <input class="govuk-input {% if errors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ values.name or businessArea.name }}" {% if errors.name %}aria-describedby="name-error"{% endif %}>
@@ -37,7 +66,17 @@
             <button class="govuk-button" data-module="govuk-button">
               Save changes
             </button>
-            <a href="/settings" class="govuk-link">
+             {% if services.length === 0 %}
+                         <button 
+                              type="button" 
+                              class="govuk-button govuk-button--warning" 
+                              onclick="openDeleteModal('{{ businessArea.id }}', '{{ businessArea.name }}')"
+                              aria-label="Delete business area {{ area.name }}"
+                            >
+                              Delete<span class="govuk-visually-hidden"> business area {{ area.name }}</span>
+            </button>
+            {% endif %}
+            <a href="/settings/business-areas" class="govuk-link">
               Cancel
             </a>
           </div>
@@ -46,4 +85,234 @@
     </div>
   </div>
 
-{% endblock %} 
+  {# Delete Modal #}
+  <div class="govuk-modal-overlay" id="delete-modal" style="display: none;" role="dialog" aria-labelledby="modal-title"
+    aria-describedby="modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="modal-title">Delete business area</h2>
+        <button class="govuk-modal__close" aria-label="Close modal" onclick="closeDeleteModal()">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="govuk-modal__content">
+        <div id="modal-description">
+          <div class="govuk-warning-text">
+            <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+            <strong class="govuk-warning-text__text">
+              <span class="govuk-warning-text__assistive">Warning</span>
+              This action cannot be undone
+            </strong>
+          </div>
+          <p class="govuk-body">Are you sure you want to delete this business area?</p>
+          <p class="govuk-body" id="business-area-preview"></p>
+        </div>
+        <form id="delete-form" method="post" style="display: inline;">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-button-group">
+            <button type="submit" class="govuk-button govuk-button--warning" data-module="govuk-button"
+              data-prevent-double-click="true">
+              Delete business area
+            </button>
+            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button"
+              onclick="closeDeleteModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .govuk-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .govuk-modal {
+      background: white;
+      padding: 30px;
+      border-radius: 5px;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      margin: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .govuk-modal__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .govuk-modal__title {
+      margin: 0;
+      padding-right: 45px;
+    }
+
+    .govuk-modal__close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      padding: 10px;
+      color: #505a5f;
+      font-size: 24px;
+    }
+
+    .govuk-modal__close:hover {
+      color: #0b0c0c;
+      background: #f3f2f1;
+    }
+
+    .govuk-modal__close:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      background-color: #ffdd00;
+    }
+
+    .govuk-modal__content {
+      margin-bottom: 20px;
+    }
+
+    .govuk-button--warning {
+      background-color: #d4351c;
+    }
+
+    .govuk-button--warning:hover {
+      background-color: #aa2a16;
+    }
+
+    @media (max-width: 40.0625em) {
+      .govuk-modal {
+        margin: 15px;
+        padding: 15px;
+        width: 95%;
+      }
+
+      .govuk-modal__close {
+        top: 10px;
+        right: 10px;
+      }
+    }
+
+    /* At 400% zoom, make the modal wider */
+    @media (min-width: 160em) {
+      .govuk-modal {
+        max-width: 95%;
+        width: 95%;
+        margin: 20px;
+        padding: 30px;
+      }
+    }
+
+    /* Hide scrollbar when modal is open */
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    /* Show modal when active */
+    .govuk-modal-overlay[style*="display: flex"] {
+      display: flex !important;
+    }
+  </style>
+
+  <script>
+    let previousActiveElement;
+
+    function openDeleteModal(id, name) {
+      // Store the currently focused element
+      previousActiveElement = document.activeElement;
+
+      const modal = document.getElementById('delete-modal');
+      const body = document.body;
+      const form = document.getElementById('delete-form');
+      const preview = document.getElementById('business-area-preview');
+
+      // Set form action and preview
+      form.action = `/department-admin/business-areas/${id}/delete`;
+      preview.textContent = name;
+
+      // Show modal
+      modal.style.display = 'flex';
+      body.classList.add('modal-open');
+
+      // Focus the modal
+      modal.focus();
+
+      // Trap focus within modal
+      trapFocus(modal);
+    }
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('delete-modal');
+      const body = document.body;
+
+      modal.style.display = 'none';
+      body.classList.remove('modal-open');
+
+      // Return focus to the element that opened the modal
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    function trapFocus(modal) {
+      const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstFocusableElement) {
+              lastFocusableElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastFocusableElement) {
+              firstFocusableElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      });
+
+      // Focus first focusable element
+      firstFocusableElement.focus();
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function (event) {
+      const modal = document.querySelector('.govuk-modal');
+      const overlay = document.getElementById('delete-modal');
+      if (event.target === overlay && modal && !modal.contains(event.target)) {
+        closeDeleteModal();
+      }
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.getElementById('delete-modal').style.display === 'flex') {
+        closeDeleteModal();
+      }
+    });
+  </script>
+
+{% endblock %}

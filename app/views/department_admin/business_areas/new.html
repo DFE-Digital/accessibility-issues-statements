@@ -4,7 +4,8 @@
 
 {% set pageTitle = "Settings" %}
 {% set serviceNav = "Settings" %}
-{% set subnav = 'business-areas' %}
+
+{% set verticalNav = "Business areas" %}
 
 {% block content %}
   {% include "layouts/_pageheader.html" %}
@@ -12,7 +13,21 @@
   <div class="govuk-width-container">
 
     <div class="govuk-grid-row">
-      <div class="govuk-grid-column-two-thirds">
+      <div class="govuk-grid-column-one-quarter">
+        <nav class="dfe-vertical-nav govuk-!-margin-top-0">
+
+          <a href="/settings/business-areas" class="govuk-back-link govuk-!-margin-top-0 govuk-!-margin-bottom-9">Back to business areas</a>
+          <ul class="dfe-vertical-nav__section">
+            <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Department information' %}dfe-vertical-nav__section-item--current{% endif %}">
+              <a class="dfe-vertical-nav__link" href="/settings">Department information</a>
+            </li>
+            <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Business areas' %}dfe-vertical-nav__section-item--current{% endif %}">
+              <a class="dfe-vertical-nav__link" href="/settings/business-areas">Business areas</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="govuk-grid-column-three-quarters">
 
         <h2 class="govuk-heading-l">Add a business area</h2>
 
@@ -35,7 +50,7 @@
             <button class="govuk-button" data-module="govuk-button">
               Add business area
             </button>
-            <a href="/settings" class="govuk-link">
+            <a href="/settings/business-areas" class="govuk-link">
               Cancel
             </a>
           </div>

@@ -3,8 +3,7 @@
 {% set pageTitle = "Settings" %}
 {% set serviceNav = "Settings" %}
 
-{% set verticalNav = "Department information" %}
-
+{% set verticalNav = "Business areas" %}
 {% set mainClasses = 'govuk-!-padding-top-0' %}
 
 {% block content %}
@@ -28,7 +27,7 @@
       </div>
       <div class="govuk-grid-column-three-quarters">
 
-        <h2 class="govuk-heading-l">Manage department information</h2>
+        <h2 class="govuk-heading-l">Manage business areas</h2>
 
         {% if successMessage %}
           <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
@@ -60,39 +59,42 @@
           </div>
         {% endif %}
 
-   
-            <form method="post" action="/settings">
-              <input type="hidden" name="_csrf" value="{{ csrfToken }}">
-              <div class="govuk-form-group {% if errors.name %}govuk-form-group--error{% endif %}">
-                <label class="govuk-label govuk-label--m" for="name">
-            Department name
-          </label>
-                {% if errors.name %}
-                  <span id="name-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">Error:</span>
-                    {{ errors.name }}
-                  </span>
-                {% endif %}
-                <input class="govuk-input {% if errors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ department.name }}">
-              </div>
+        <p class="govuk-body">
+        Business areas help you organise your services. You can assign a business area to each service.
+      </p>
+        <p class="govuk-body">
+          <a href="/department-admin/business-areas/new" class="govuk-link govuk-link--no-visited-state">Add a business area</a>
+        </p>
 
-              <div class="govuk-form-group">
-                <label class="govuk-label govuk-label--m" for="domains">
-            Domains allowed to self-register
-          </label>
-                <div id="domains-hint" class="govuk-hint">
-            Enter one domain per line. For example: example.gov.uk. These domains will be able to self-register and join this department.
+        {% if businessAreas.length > 0 %}
+          <div class="govuk-table__container">
+            <table class="govuk-table">
+              <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                  <th scope="col" class="govuk-table__header govuk-!-width-two-thirds">Name</th>
+                  <th scope="col" class="govuk-table__header govuk-!-width-one-third">Manage</th>
+                </tr>
+              </thead>
+              <tbody class="govuk-table__body">
+                {% for area in businessAreas %}
+                  <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">{{ area.name }}</td>
+                    <td class="govuk-table__cell">
+                      <div class="govuk-button-group govuk-!-margin-bottom-0">
+                        <a href="/department-admin/business-areas/{{ area.id }}/edit" class="govuk-link govuk-!-margin-bottom-0">Edit <span class="govuk-visually-hidden">
+                            {{ area.name }}</span></a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
-                <textarea class="govuk-textarea" id="domains" name="domains" rows="5" aria-describedby="domains-hint">{{ department.domains.join('\n') }}</textarea>
-              </div>
-
-              <button class="govuk-button" data-module="govuk-button">
-          Save changes
-        </button>
-            </form>
-
-
-       
-
+        {% else %}
+          <p class="govuk-body">No business areas have been created yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
     {% endblock %}
