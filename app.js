@@ -23,10 +23,47 @@ const session = require('./app/config/session');
 const csrf = require('csurf');
 const { getNavigationItems } = require('./app/helpers/navigation');
 const { removeFilter, findServiceName, formatDateFilter, findById } = require('./app/filters');
+const { security, validation, auth } = require('./app/middleware');
+const { log, requestLogger } = require('./app/utils/logger');
+const { errorHandler } = require('./app/utils/errorHandler');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 
 const base = new Airtable({ apiKey: process.env.airtableFeedbackKey }).base(process.env.airtableFeedbackBase);
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'development' ? '*' : process.env.CORS_ORIGIN,
+  methods: process.env.CORS_METHODS ? process.env.CORS_METHODS.split(',') : ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: process.env.CORS_ALLOWED_HEADERS ? process.env.CORS_ALLOWED_HEADERS.split(',') : ['Content-Type', 'Authorization'],
+  credentials: process.env.CORS_CREDENTIALS === 'true',
+  maxAge: parseInt(process.env.CORS_MAX_AGE || '86400', 10)
+};
+
+// Security middleware
+app.use(helmet());
+app.use(cors(corsOptions));
+app.use(express.json());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // Default to 15 minutes if not set
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '500', 10), // Default to 500 if not set
+  message: {
+    status: 429,
+    error: 'Rate limit exceeded. Please try again later.'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skipSuccessfulRequests: true // Don't count successful requests against the limit
+});
+app.use(limiter);
+
+// Request logging
+app.use(requestLogger);
 
 // Configure Nunjucks
 const nunjuckEnv = nunjucks.configure([
@@ -47,9 +84,6 @@ app.use(compression());
 app.use('/govuk', express.static(path.join(__dirname, 'node_modules/govuk-frontend/govuk/assets')));
 app.use('/dfe', express.static(path.join(__dirname, 'node_modules/dfe-frontend/dist')));
 app.use('/assets', express.static('app/public'));
-app.use(express.json());
-
-// Parse URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true }));
 
 // Method override for PUT/DELETE methods
@@ -100,32 +134,7 @@ app.use((req, res, next) => {
 });
 
 // Authentication middleware
-app.use((req, res, next) => {
-  // List of public paths that don't require authentication
-  const publicPaths = [
-    '/auth/sign-in',
-    '/auth/verify',
-    '/auth/complete-profile',
-    '/robots.txt',
-    '/sitemap.xml',
-    '/favicon.ico',
-    '/assets',
-    '/govuk',
-    '/dfe'
-  ];
-
-  // Check if the current path is public
-  const isPublicPath = publicPaths.some(path => req.path.startsWith(path));
-
-  // Allow access to public paths or if user is authenticated
-  if (isPublicPath || req.session.user) {
-    next();
-  } else {
-    // Store the requested URL to redirect back after login
-    req.session.returnTo = req.originalUrl;
-    res.redirect('/auth/sign-in');
-  }
-});
+app.use(auth.requireAuth);
 
 // Add navigation items and DfE-specific variables to all responses
 app.use((req, res, next) => {
@@ -138,40 +147,37 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post('/form-response/feedback', (req, res) => {
+// Update feedback route with validation
+app.post('/form-response/feedback', validation.validate([validation.rules.feedback]), async (req, res) => {
   const { response } = req.body;
+  const service = 'Design manual';
+  const pageURL = req.headers.referer || 'Unknown';
 
-  // Prevent bots submitting empty feedback
-  if (!response || response.trim() === '') {
-    return res.status(400).json({ success: false, message: 'No feedback provided' });
-  }
+  try {
+    // Insert feedback into database using Knex
+    await req.app.get('knex')('Feedback').insert({
+      Feedback: response,
+      Service: service,
+      URL: pageURL,
+      CreatedAt: new Date()
+    });
 
-  // Prevent long feedback
-  if (response.length > 400) {
-    return res.status(400).json({ success: false, message: 'Feedback too long' });
-  }
-
-  console.log("Feedback received:", response);
-
-  const service = 'Design manual'; // Example service name
-  const pageURL = req.headers.referer || 'Unknown'; // Capture the referrer URL
-
-  base('Feedback').create([
-    {
-      fields: {
-        Feedback: response,
-        Service: service,
-        URL: pageURL
-      }
-    }
-  ], function (err, records) {
-    if (err) {
-      console.error("Airtable Error:", err);
-      return res.status(500).json({ success: false, message: 'Could not send feedback' });
-    }
+    log.info('Feedback submitted successfully', {
+      service,
+      pageURL,
+      feedbackLength: response.length
+    });
 
     res.json({ success: true, message: 'Thank you for your feedback' });
-  });
+  } catch (error) {
+    log.error('Failed to submit feedback', {
+      error: error.message,
+      service,
+      pageURL
+    });
+    
+    throw error;
+  }
 });
 
 // Use application routes
@@ -209,7 +215,7 @@ function matchRoutes(req, res, next) {
     path = 'index';
   }
 
-  console.log(path);
+  log.debug('Rendering path', { path });
 
   renderPath(path, res, next);
 }
@@ -244,35 +250,12 @@ app.use(function (req, res, next) {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error details:', {
-    message: err.message,
-    stack: err.stack,
-    method: req.method,
-    originalMethod: req.originalMethod,
-    path: req.path,
-    body: req.body
-  });
-
-  // Handle CSRF token errors
-  if (err.code === 'EBADCSRFTOKEN') {
-    return res.status(403).render('error', {
-      error: 'Invalid CSRF token',
-      details: process.env.NODE_ENV === 'development' ? 'The form submission failed the CSRF validation. Please try again.' : undefined
-    });
-  }
-
-  // Handle other errors
-  res.status(500).render('error', {
-    error: 'Something went wrong',
-    details: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
+app.use(errorHandler);
 
 // Start the server
 const PORT = process.env.PORT || 3411;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  log.info(`Server is running on http://localhost:${PORT}`);
 });
 
 module.exports = app;
