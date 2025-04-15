@@ -216,6 +216,13 @@ async function verifyToken(req, res) {
       });
     }
 
+    // Update last_login timestamp
+    await db('users')
+      .where('id', user.id)
+      .update({
+        last_login: new Date()
+      });
+
     // Check if user needs to complete their profile
     if (!user.first_name || !user.last_name) {
       console.log('User needs to complete profile');

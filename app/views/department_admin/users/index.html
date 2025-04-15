@@ -13,6 +13,23 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-full">
 
+        {# if req.session.successMessage #}
+
+        {% if data.successMessage %}
+          <div class="govuk-notification-banner" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+            <div class="govuk-notification-banner__header">
+              <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                Success
+              </h2>
+            </div>
+            <div class="govuk-notification-banner__content">
+              <p class="govuk-notification-banner__heading">
+                {{ data.successMessage }}
+              </p>
+            </div>
+          </div>
+        {% endif %}
+
         {# Department Admins Table #}
         <div class="govuk-summary-card">
           <div class="govuk-summary-card__title-wrapper">

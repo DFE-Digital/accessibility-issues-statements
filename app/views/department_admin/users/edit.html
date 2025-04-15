@@ -12,34 +12,31 @@
   <div class="govuk-width-container">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        <form method="post" action="/department-admin/users/{{ user.id }}">
-          <div class="govuk-form-group">
-            <h1 class="govuk-label-wrapper">
-              <label class="govuk-label govuk-label--l" for="first-name">
-                Edit user
-              </label>
-            </h1>
-          </div>
+        <form method="post" action="/department-admin/users/{{ editUser.id }}">
+         
+ <a class="govuk-back-link govuk-!-margin-top-0" href="/users">Back</a>
+
+          <h2 class="govuk-heading-m">Edit user</h2>
 
           <div class="govuk-form-group">
             <label class="govuk-label" for="first-name">
               First name
             </label>
-            <input class="govuk-input" id="first-name" name="first_name" type="text" value="{{ user.first_name }}" required>
+            <input class="govuk-input" id="first-name" name="first_name" type="text" value="{{ editUser.first_name }}" required>
           </div>
 
           <div class="govuk-form-group">
             <label class="govuk-label" for="last-name">
               Last name
             </label>
-            <input class="govuk-input" id="last-name" name="last_name" type="text" value="{{ user.last_name }}" required>
+            <input class="govuk-input" id="last-name" name="last_name" type="text" value="{{ editUser.last_name }}" required>
           </div>
 
           <div class="govuk-form-group">
             <label class="govuk-label" for="email">
               Email address
             </label>
-            <input class="govuk-input" id="email" name="email" type="email" value="{{ user.email }}" required>
+            <input class="govuk-input" id="email" name="email" type="email" value="{{ editUser.email }}" required>
           </div>
 
           <div class="govuk-form-group">
@@ -51,13 +48,13 @@
               </legend>
               <div class="govuk-radios" data-module="govuk-radios">
                 <div class="govuk-radios__item">
-                  <input class="govuk-radios__input" id="role-department_admin" name="role" type="radio" value="department_admin" {% if user.role == 'department_admin' %}checked{% endif %}>
+                  <input class="govuk-radios__input" id="role-department_admin" name="role" type="radio" value="department_admin" {% if editUser.role == 'department_admin' %}checked{% endif %}>
                   <label class="govuk-label govuk-radios__label" for="role-department_admin">
                     Department administrator
                   </label>
                 </div>
                 <div class="govuk-radios__item">
-                  <input class="govuk-radios__input" id="role-user" name="role" type="radio" value="user" {% if user.role == 'user' %}checked{% endif %}>
+                  <input class="govuk-radios__input" id="role-user" name="role" type="radio" value="user" {% if editUser.role == 'user' %}checked{% endif %}>
                   <label class="govuk-label govuk-radios__label" for="role-user">
                     Standard user
                   </label>
@@ -70,13 +67,14 @@
             <button class="govuk-button" data-module="govuk-button">
               Save changes
             </button>
-            <a class="govuk-link govuk-link--no-visited-state" href="users">Cancel</a>
+            <a class="govuk-link govuk-link--no-visited-state" href="/users">Cancel</a>
           </div>
         </form>
 
         <div class="govuk-!-margin-top-9">
           <h2 class="govuk-heading-m">Danger zone</h2>
-          <form method="post" action="/department-admin/users/{{ user.id }}/delete" class="govuk-!-margin-top-4">
+          <form method="post" action="/department-admin/users/{{ editUser.id }}/delete" class="govuk-!-margin-top-4">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
             <button class="govuk-button govuk-button--warning" data-module="govuk-button">
               Delete user
             </button>

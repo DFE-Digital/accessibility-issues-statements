@@ -31,10 +31,17 @@ async function index(req, res) {
       .where('users.department_id', departmentId)
       .orderBy('users.first_name');
 
+    // Get the success message from session and clear it
+    const successMessage = req.session.successMessage;
+    delete req.session.successMessage;
+
     res.render('department_admin/users/index', {
       users,
       department: req.session.user.department,
-      csrfToken: req.csrfToken()
+      csrfToken: req.csrfToken(),
+      data: {
+        successMessage
+      }
     });
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -126,7 +133,12 @@ async function create(req, res) {
       }
     }
 
-    res.redirect('/department-admin/users');
+    // Set a message we can display on the users page, if checked send email say in the message
+
+    req.session.successMessage = first_name  + ' has been added. ' + (send_notification === 'true' ? 'We have also sent them an email to sign in.' : '');
+
+
+    res.redirect('/users');
   } catch (error) {
     console.error('Error creating user:', error);
     res.render('department_admin/users/new', {
