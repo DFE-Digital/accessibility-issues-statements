@@ -21,7 +21,7 @@
             </h2>
             <ul class="govuk-summary-card__actions">
               <li class="govuk-summary-card__action">
-                <a class="govuk-link govuk-link--no-visited-state" href="/users/new">Add user</a>
+                <a class="govuk-link govuk-link--no-visited-state" href="/department-admin/users/new">Add user</a>
               </li>
             </ul>
           </div>
@@ -47,7 +47,7 @@
                     {% if user.role == 'department_admin' %}
                       <tr class="govuk-table__row">
                         <th class="govuk-table__header">
-                          <a href="/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }}
+                          <a href="/department-admin/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }}
                             {{ user.last_name }}</a>
                         </th>
                         <td class="govuk-table__cell">{{ user.email }}</td>
@@ -77,7 +77,7 @@
             </h2>
             <ul class="govuk-summary-card__actions">
               <li class="govuk-summary-card__action">
-                <a class="govuk-link govuk-link--no-visited-state" href="/users/new">Add user</a>
+                <a class="govuk-link govuk-link--no-visited-state" href="/department-admin/users/new">Add user</a>
               </li>
             </ul>
           </div>
@@ -103,7 +103,7 @@
                     {% if user.role == 'user' %}
                       <tr class="govuk-table__row">
                         <th class="govuk-table__header">
-                          <a href="/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }}
+                          <a href="/department-admin/users/{{ user.id }}/edit" class="govuk-link govuk-link--no-visited-state">{{ user.first_name }}
                             {{ user.last_name }}</a>
                         </th>
                         <td class="govuk-table__cell">{{ user.email }}</td>

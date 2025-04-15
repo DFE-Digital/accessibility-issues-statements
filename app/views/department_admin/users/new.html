@@ -1,0 +1,97 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set pageTitle = "Add new user" %}
+{% set serviceNav = "Users" %}
+
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+
+  {% include "layouts/_pageheader.html" %}
+
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <form method="post" action="/department-admin/users">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+     
+      <h2 class="govuk-heading-l">User details</h2>
+
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="first-name">
+              First name
+            </label>
+            <input class="govuk-input" id="first-name" name="first_name" type="text" required>
+          </div>
+
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="last-name">
+              Last name
+            </label>
+            <input class="govuk-input" id="last-name" name="last_name" type="text" required>
+          </div>
+
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="email">
+              Email address
+            </label>
+            <input class="govuk-input" id="email" name="email" type="email" required>
+          </div>
+
+          <div class="govuk-form-group">
+            <fieldset class="govuk-fieldset">
+              <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                <h2 class="govuk-fieldset__heading">
+                  User role
+                </h2>
+              </legend>
+              <div class="govuk-radios" data-module="govuk-radios">
+                <div class="govuk-radios__item">
+                  <input class="govuk-radios__input" id="role-department_admin" name="role" type="radio" value="department_admin">
+                 
+                  <label class="govuk-label govuk-radios__label" for="role-department_admin">
+                    Department administrator
+                  </label> 
+                    <div id="role-department_admin-hint" class="govuk-hint govuk-radios__hint">
+          Can manage department-level users and settings such as business areas, set up servicesand view data for all services in the department
+        </div>
+                </div>
+                <div class="govuk-radios__item">
+                  <input class="govuk-radios__input" id="role-user" name="role" type="radio" value="user">
+                  <label class="govuk-label govuk-radios__label" for="role-user">
+                    Standard user
+                  </label>
+                   <div id="role-user-hint" class="govuk-hint govuk-radios__hint">
+          Can add and manage issues against services in the department and see all services and issues in the department
+        </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="govuk-form-group">
+            <div class="govuk-checkboxes" data-module="govuk-checkboxes">
+              <div class="govuk-checkboxes__item">
+                <input class="govuk-checkboxes__input" id="send_notification" name="send_notification" type="checkbox" value="true" >
+                <label class="govuk-label govuk-checkboxes__label" for="send_notification">
+                  Send welcome email to the new user
+                </label>
+                <div class="govuk-hint govuk-checkboxes__hint">
+                  This will send an email to the user prompting them to sign in to the service
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="govuk-button-group">
+            <button class="govuk-button" data-module="govuk-button">
+              Add user
+            </button>
+            <a class="govuk-link govuk-link--no-visited-state" href="/department-admin/users">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+{% endblock %} 

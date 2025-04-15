@@ -1,242 +1,14 @@
 const { getUsers, getUserById, createUser, updateUser, deleteUser } = require('../data/users');
 const { db } = require('../db');
 
+const { sendEmail } = require('../middleware/notify');
+
 /**
  * Show users for a department
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-async function showDepartmentUsers(req, res) {
-  try {
-    // Check authentication
-    if (!req.session.user) {
-      req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/sign-in');
-    }
-
-    const user = req.session.user;
-    const users = await getUsers(user.department.id);
-
-    res.render('services/department_admin/users/index', {
-      department: user.department,
-      users,
-      user
-    });
-  } catch (error) {
-    console.error('Error showing users:', error);
-    res.status(500).render('error', {
-      error: {
-        title: 'Error',
-        message: 'There was a problem loading the users.'
-      }
-    });
-  }
-}
-
-/**
- * Show the new user form
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function showNewUserForm(req, res) {
-  try {
-    // Check authentication
-    if (!req.session.user) {
-      req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/sign-in');
-    }
-
-    const user = req.session.user;
-    res.render('services/department_admin/users/new', {
-      department: user.department,
-      user: {}
-    });
-  } catch (error) {
-    console.error('Error showing new user form:', error);
-    res.status(500).render('error', {
-      error: {
-        title: 'Error',
-        message: 'There was a problem loading the form.'
-      }
-    });
-  }
-}
-
-/**
- * Create a new user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function handleCreateUser(req, res) {
-  try {
-    // Check authentication
-    if (!req.session.user) {
-      req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/sign-in');
-    }
-
-    const user = req.session.user;
-    const userData = {
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      email: req.body.email,
-      role: 'user',
-      departmentId: user.department.id
-    };
-
-    await createUser(userData);
-    res.redirect('/services/department-admin/users');
-  } catch (error) {
-    console.error('Error creating user:', error);
-    res.render('services/department_admin/users/new', {
-      department: req.session.user.department,
-      user: req.body,
-      errors: error.errors || {},
-      error: {
-        title: 'Error',
-        message: 'Failed to create user'
-      }
-    });
-  }
-}
-
-/**
- * Show the edit user form
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function showEditUserForm(req, res) {
-  try {
-    // Check authentication
-    if (!req.session.user) {
-      req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/sign-in');
-    }
-
-    const { id } = req.params;
-    const user = req.session.user;
-    const editUser = await getUserById(id);
-    
-    if (!editUser || editUser.department_id !== user.department.id) {
-      return res.status(404).render('error', {
-        error: {
-          title: 'Not found',
-          message: 'User not found'
-        }
-      });
-    }
-
-
-
-    res.render('users/edit', {
-      department: user.department,
-      user,
-      editUser: editUser
-    });
-  } catch (error) {
-    console.error('Error showing edit user form:', error);
-    res.status(500).render('error', {
-      error: {
-        title: 'Error',
-        message: 'There was a problem loading the form.'
-      }
-    });
-  }
-}
-
-/**
- * Update a user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function handleUpdateUser(req, res) {
-  try {
-    // Check authentication
-    if (!req.session.user) {
-      req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/sign-in');
-    }
-
-    const { id } = req.params;
-    const user = req.session.user;
-    const editUser = await getUserById(id);
-    
-    if (!editUser || editUser.department_id !== user.department.id) {
-      return res.status(404).render('error', {
-        error: {
-          title: 'Not found',
-          message: 'User not found'
-        }
-      });
-    }
-
-    const userData = {
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      email: req.body.email,
-      role: 'user'
-    };
-
-    await updateUser(id, userData);
-    res.redirect('/services/department-admin/users');
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.render('services/department_admin/users/edit', {
-      department: req.session.user.department,
-      user: { ...req.body, id: req.params.id },
-      errors: error.errors || {},
-      error: {
-        title: 'Error',
-        message: 'Failed to update user'
-      }
-    });
-  }
-}
-
-/**
- * Delete a user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function handleDeleteUser(req, res) {
-  try {
-    // Check authentication
-    if (!req.session.user) {
-      req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/sign-in');
-    }
-
-    const { id } = req.params;
-    const user = req.session.user;
-    const deleteUser = await getUserById(id);
-    
-    if (!deleteUser || deleteUser.department_id !== user.department.id) {
-      return res.status(404).render('error', {
-        error: {
-          title: 'Not found',
-          message: 'User not found'
-        }
-      });
-    }
-
-    // Delete the user using the database directly
-    await db('users')
-      .where({ id })
-      .del();
-
-    res.redirect('/services/department-admin/users');
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).render('error', {
-      error: {
-        title: 'Error',
-        message: 'Failed to delete user'
-      }
-    });
-  }
-}
-
-const index = async (req, res) => {
+async function index(req, res) {
   try {
     if (!req.session.user || req.session.user.role !== 'department_admin') {
       return res.redirect('/auth/sign-in');
@@ -258,7 +30,6 @@ const index = async (req, res) => {
       )
       .where('users.department_id', departmentId)
       .orderBy('users.first_name');
-      
 
     res.render('department_admin/users/index', {
       users,
@@ -272,20 +43,153 @@ const index = async (req, res) => {
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-};
+}
 
-const showEditForm = async (req, res) => {
+/**
+ * Show the new user form
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function showNewForm(req, res) {
+  try {
+    if (!req.session.user || req.session.user.role !== 'department_admin') {
+      return res.redirect('/auth/sign-in');
+    }
+
+    const user = req.session.user;
+
+    res.render('department_admin/users/new', {
+      user,
+      department: user.department,
+      csrfToken: req.csrfToken()
+    });
+  } catch (error) {
+    console.error('Error showing new user form:', error);
+    res.status(500).render('error', {
+      error: 'There was a problem loading the form',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+}
+
+/**
+ * Create a new user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function create(req, res) {
+  try {
+    if (!req.session.user || req.session.user.role !== 'department_admin') {
+      return res.redirect('/auth/sign-in');
+    }
+
+    const { first_name, last_name, email, role, send_notification } = req.body;
+    const departmentId = req.session.user.department.id;
+
+    // Check if email already exists
+    const existingUser = await db('users')
+      .where({ email: email.trim() })
+      .first();
+
+    if (existingUser) {
+      return res.render('department_admin/users/new', {
+        user: req.body,
+        department: req.session.user.department,
+        errors: {
+          email: 'A user with this email address already exists'
+        },
+        error: {
+          title: 'Error',
+          message: 'Failed to create user'
+        },
+        csrfToken: req.csrfToken()
+      });
+    }
+
+    const userData = {
+      first_name: first_name.trim(),
+      last_name: last_name.trim(),
+      email: email.trim(),
+      role: role,
+      departmentId: departmentId
+    };
+
+    const newUser = await createUser(userData);
+
+    // Send notification email if requested
+    if (send_notification === 'true') {
+      try {
+        await sendWelcomeEmail(newUser, req.session.user.department);
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        // Continue even if email fails
+      }
+    }
+
+    res.redirect('/department-admin/users');
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.render('department_admin/users/new', {
+      user: req.body,
+      department: req.session.user.department,
+      errors: error.errors || {},
+      error: {
+        title: 'Error',
+        message: 'Failed to create user'
+      },
+      csrfToken: req.csrfToken()
+    });
+  }
+}
+
+/**
+ * Send welcome email to new user
+ * @param {Object} user - The new user
+ * @param {Object} department - The department
+ */
+async function sendWelcomeEmail(user, department) {
+  const signInUrl = `${process.env.BASE_URL}/auth/sign-in`;
+  const baseUrl = process.env.BASE_URL;
+
+  const personalisation = {
+    firstName: user.first_name,
+    signInURL: signInUrl,
+    baseURL: baseUrl
+  };
+
+  try {
+    await sendEmail(
+      user.email,
+      process.env.GOVUK_NOTIFY_WELCOME_TEMPLATE_ID,
+      personalisation
+    );
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    // Log the specific error details
+    if (error.response) {
+      console.error('Error details:', error.response.data);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Show the edit user form
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function showEditForm(req, res) {
   try {
     if (!req.session.user || req.session.user.role !== 'department_admin') {
       return res.redirect('/auth/sign-in');
     }
 
     const { id } = req.params;
-    const departmentId = req.session.user.department.id;
+    const currentUser = req.session.user;
 
     // Get the user
     const user = await db('users')
-      .where({ id, department_id: departmentId })
+      .where({ id, department_id: currentUser.department.id })
       .first();
 
     if (!user) {
@@ -295,6 +199,8 @@ const showEditForm = async (req, res) => {
     }
 
     res.render('department_admin/users/edit', {
+      user: currentUser,
+      department: currentUser.department,
       editUser: user,
       csrfToken: req.csrfToken()
     });
@@ -305,9 +211,14 @@ const showEditForm = async (req, res) => {
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-};
+}
 
-const update = async (req, res) => {
+/**
+ * Update a user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function update(req, res) {
   try {
     if (!req.session.user || req.session.user.role !== 'department_admin') {
       return res.redirect('/auth/sign-in');
@@ -328,28 +239,36 @@ const update = async (req, res) => {
       });
     }
 
-    // Update the user
-    await db('users')
-      .where({ id })
-      .update({
-        first_name: first_name.trim(),
-        last_name: last_name.trim(),
-        email: email.trim(),
-        role: role,
-        updated_at: new Date()
-      });
+    const userData = {
+      first_name: first_name.trim(),
+      last_name: last_name.trim(),
+      email: email.trim(),
+      role: role
+    };
 
-    res.redirect('/department_admin/users');
+    await updateUser(id, userData);
+    res.redirect('/department-admin/users');
   } catch (error) {
     console.error('Error updating user:', error);
-    res.status(500).render('error', {
-      error: 'There was a problem updating the user',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    res.render('department_admin/users/edit', {
+      user: { ...req.body, id: req.params.id },
+      department: req.session.user.department,
+      errors: error.errors || {},
+      error: {
+        title: 'Error',
+        message: 'Failed to update user'
+      },
+      csrfToken: req.csrfToken()
     });
   }
-};
+}
 
-const destroy = async (req, res) => {
+/**
+ * Delete a user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function destroy(req, res) {
   try {
     if (!req.session.user || req.session.user.role !== 'department_admin') {
       return res.redirect('/auth/sign-in');
@@ -358,7 +277,7 @@ const destroy = async (req, res) => {
     const { id } = req.params;
     const departmentId = req.session.user.department.id;
 
-    // Validate the user belongs to the department and has no name
+    // Validate the user belongs to the department
     const user = await db('users')
       .where({ id, department_id: departmentId })
       .first();
@@ -369,18 +288,8 @@ const destroy = async (req, res) => {
       });
     }
 
-    if (user.first_name || user.last_name) {
-      return res.status(400).render('error', {
-        error: 'Cannot delete user with name'
-      });
-    }
-
-    // Delete the user
-    await db('users')
-      .where({ id })
-      .del();
-
-    res.redirect('/department_admin/users');
+    await deleteUser(id);
+    res.redirect('/department-admin/users');
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).render('error', {
@@ -388,7 +297,7 @@ const destroy = async (req, res) => {
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-};
+}
 
 const superAdminIndex = async (req, res) => {
   try {
@@ -422,11 +331,9 @@ const superAdminIndex = async (req, res) => {
 module.exports = {
   index,
   superAdminIndex,
+  showNewForm,
+  create,
   showEditForm,
   update,
-  destroy,
-  showNewForm: showNewUserForm,
-  create: handleCreateUser,
-  showEditForm: showEditUserForm,
-  destroy: handleDeleteUser
+  destroy
 }; 

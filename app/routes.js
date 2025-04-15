@@ -107,21 +107,21 @@ router.get('/settings/business-areas', isDepartmentAdmin, isAuthenticated, depar
 router.post('/settings', isAuthenticated, isDepartmentAdmin, departmentAdminController.updateSettings);
 
 // Department admin routes
-router.get('/services/department-admin', isAuthenticated, isDepartmentAdmin, departmentAdminController.index);
-router.get('/services/department-admin/services', isAuthenticated, isDepartmentAdmin, departmentAdminController.showServices);
-router.get('/services/department-admin/services/:serviceId', isAuthenticated, isDepartmentAdmin, departmentAdminController.showService);
+router.get('/department-admin', isAuthenticated, isDepartmentAdmin, departmentAdminController.index);
+router.get('/department-admin/services', isAuthenticated, isDepartmentAdmin, departmentAdminController.showServices);
+router.get('/department-admin/services/:serviceId', isAuthenticated, isDepartmentAdmin, departmentAdminController.showService);
 
-// User management routes (now at department level)
-router.get('/services/department-admin/users', isAuthenticated, isDepartmentAdmin, usersController.index);
-router.get('/services/department-admin/users/new', isAuthenticated, isDepartmentAdmin, usersController.showNewForm);
-router.post('/services/department-admin/users', isAuthenticated, isDepartmentAdmin, usersController.create);
-router.get('/services/department-admin/users/:id/edit', isAuthenticated, isDepartmentAdmin, usersController.showEditForm);
-router.post('/services/department-admin/users/:id', isAuthenticated, isDepartmentAdmin, usersController.update);
-router.post('/services/department-admin/users/:id/delete', isAuthenticated, isDepartmentAdmin, usersController.destroy);
+// User management routes (department level)
+router.get('/users', isAuthenticated, isDepartmentAdmin, usersController.index);
+router.get('/department-admin/users/new', isAuthenticated, isDepartmentAdmin, usersController.showNewForm);
+router.post('/department-admin/users', isAuthenticated, isDepartmentAdmin, usersController.create);
+router.get('/department-admin/users/:id/edit', isAuthenticated, isDepartmentAdmin, usersController.showEditForm);
+router.post('/department-admin/users/:id', isAuthenticated, isDepartmentAdmin, usersController.update);
+router.post('/department-admin/users/:id/delete', isAuthenticated, isDepartmentAdmin, usersController.destroy);
 
 // User service assignment routes
-router.get('/services/department-admin/users/:userId/services', isAuthenticated, isDepartmentAdmin, userServiceAssignmentsController.index);
-router.post('/services/department-admin/users/:userId/services', isAuthenticated, isDepartmentAdmin, userServiceAssignmentsController.update);
+router.get('/department-admin/users/:userId/services', isAuthenticated, isDepartmentAdmin, userServiceAssignmentsController.index);
+router.post('/department-admin/users/:userId/services', isAuthenticated, isDepartmentAdmin, userServiceAssignmentsController.update);
 
 // User services routes
 router.get('/services/user', isAuthenticated, userServicesController.index);
@@ -142,13 +142,6 @@ router.post('/departments/:id/admins/:adminId/remove', isAuthenticated, isSuperA
 
 // Support routes
 router.get('/support', isAuthenticated, supportController.index);
-
-// Users routes
-router.get('/users', isAuthenticated, isDepartmentAdmin, usersController.index);
-router.get('/users/:id/edit', isAuthenticated, isDepartmentAdmin, usersController.showEditForm);
-
-// Super admin users routes
-router.get('/admin/users', isAuthenticated, isSuperAdmin, usersController.superAdminIndex);
 
 // Reports routes
 router.get('/reports', isAuthenticated, isDepartmentAdmin, reportsController.index);
