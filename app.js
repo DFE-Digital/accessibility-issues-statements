@@ -111,7 +111,8 @@ app.use((req, res, next) => {
     '/favicon.ico',
     '/assets',
     '/govuk',
-    '/dfe'
+    '/dfe',
+    '/s/'
   ];
 
   // Check if the current path is public
