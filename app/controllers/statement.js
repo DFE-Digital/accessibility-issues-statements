@@ -3,6 +3,7 @@ const { getOpenIssues, getServiceIssues } = require('../data/issues');
 const { getActiveTemplate, getActiveTemplateByName } = require('../data/statement_templates');
 const { getServiceStatementSettings, getServiceContactSettings } = require('../data/service_statement_settings');
 const marked = require('marked');
+const { getWcagCriteria } = require('../data/wcag_criteria');
 
 /**
  * Show statement index page
@@ -103,10 +104,8 @@ function formatContactMethods(contactMethods) {
   return formattedMethods.join('\n');
 }
 
-async function replaceTemplateParameters(serviceId, content) {
+async function replaceTemplateParameters(serviceId, content, issuesWithWcagCriteria, template) {
   const service = await getService(serviceId);
-  const issues = await getServiceIssues(serviceId);
-  const openIssues = issues.filter(issue => issue.status === 'open');
   const settings = await getServiceStatementSettings(serviceId);
   const serviceContactSettings = await getServiceContactSettings(serviceId);
 
@@ -117,58 +116,11 @@ async function replaceTemplateParameters(serviceId, content) {
     year: 'numeric'
   });
 
-  // Format the basic issues list
-  const basicIssuesList = openIssues.map(issue => {
-    return `- ${issue.title}`;
-  }).join('\n');
-
-  // Format the detailed issues list
-  const detailedIssuesList = openIssues.length > 0 ? 
-    `| Issue | Description | WCAG Criteria | Resolution Information |
-|-------|-------------|---------------|------------------------|
-${openIssues.map(issue => {
-  const description = issue.description || 'No description provided';
-  const wcagCriteria = issue.wcag_criteria && issue.wcag_criteria.length > 0
-    ? issue.wcag_criteria.map(criterion => 
-        `${criterion.criterion} - ${criterion.title} (${criterion.level})`
-      ).join('<br>')
-    : 'WCAG criterion not specified';
-  
-  let resolutionInfo = 'No resolution information provided';
-  if (issue.planned_fix === true && issue.planned_fix_date) {
-    const fixDate = new Date(issue.planned_fix_date).toLocaleDateString('en-GB', {
-      month: 'long',
-      year: 'numeric'
-    });
-    resolutionInfo = `Planning to resolve by ${fixDate}`;
-  } else if (issue.planned_fix === false && issue.not_fixing_reason) {
-    resolutionInfo = `${issue.not_fixing_reason}`;
-  }
-  
-  return `| ${issue.title} | ${description} | ${wcagCriteria} | ${resolutionInfo} |`;
-}).join('\n')}` : 'No open issues';
-
-  // Determine which template to use based on number of issues
-  let templateName;
-  if (openIssues.length === 0) {
-    templateName = 'Compliant';
-  } else if (openIssues.length <= 10) {
-    templateName = 'Partially compliant';
-  } else {
-    templateName = 'Non-compliant';
-  }
-
-  // Get the appropriate template
-  const template = await getActiveTemplateByName(templateName);
-  if (!template) {
-    throw new Error(`No active template found for ${templateName}`);
-  }
-
   const replacements = {
     '{{ name_of_service }}': service.name,
     '{{ department_name }}': service.department_name,
     '{{ contact_email }}': service.contact_email,
-    '{{ statement_version }}': template.version,
+    '{{ statement_version }}': template.version || '1.0',
     '{{ service_url }}': service.url,
     '{{ response_time_sla }}': settings?.response_time_sla || '[Response time not set]',
     '{{ complaint_contact }}': settings?.complaint_contact || '[Complaint contact not provided]',
@@ -177,8 +129,42 @@ ${openIssues.map(issue => {
     '{{ last_audit_method }}': settings?.last_audit_method || '[Audit method not specified]',
     '{{ contact_methods }}': formatContactMethods(serviceContactSettings),
     '{{ today }}': today,
-    '{{ issues_basic }}': basicIssuesList || 'No open issues',
-    '{{ issues_detailed }}': detailedIssuesList || 'No open issues'
+    '{{ issues_basic }}': issuesWithWcagCriteria.length > 0 ? 
+      issuesWithWcagCriteria.map(issue => {
+        return `- ${issue.title}`;
+      }).join('\n') : 'No issues with WCAG criteria',
+    '{{ issues_detailed }}': issuesWithWcagCriteria.length > 0 ? 
+      issuesWithWcagCriteria.map(issue => {
+        const description = issue.description || 'No description provided';
+        const wcagCriteria = issue.wcag_criteria
+          .filter(criterion => criterion.level === 'A' || criterion.level === 'AA')
+          .map(criterion => 
+            `${criterion.criterion} - ${criterion.title} (${criterion.level})`
+          ).join('\n');
+        
+        let resolutionInfo = 'No resolution information provided';
+        if (issue.planned_fix === true && issue.planned_fix_date) {
+          const fixDate = new Date(issue.planned_fix_date).toLocaleDateString('en-GB', {
+            month: 'long',
+            year: 'numeric'
+          });
+          resolutionInfo = `Planning to resolve by ${fixDate}`;
+        } else if (issue.planned_fix === false && issue.not_fixing_reason) {
+          resolutionInfo = `${issue.not_fixing_reason}`;
+        }
+        
+        return `#### ${issue.title}
+
+${description}
+
+**WCAG Criteria:**
+${wcagCriteria}
+
+**Resolution Information:**
+${resolutionInfo}
+
+<hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible"></hr>`;
+      }).join('\n\n') : 'No issues with WCAG criteria'
   };
 
   let replacedContent = content;
@@ -203,20 +189,64 @@ async function showPublicStatement(req, res) {
       return res.status(404).render('404');
     }
 
-    const openIssues = await getOpenIssues(service.id);
+    // Get all issues and filter for open ones
+    const allIssues = await getServiceIssues(service.id);
+    const openIssues = allIssues.filter(issue => issue.status === 'open');
     
-    // Determine which template to use based on number of issues
+    // How many WCAG Criteria are there at Level A and AA?
+    const wcagCriteria = await getWcagCriteria();
+    const wcagCriteriaAtLevelsAAndAA = wcagCriteria.filter(criterion => criterion.level === 'A' || criterion.level === 'AA');
 
-    console.log(openIssues);
 
+
+    // Get all unique WCAG criteria at levels A and AA
+    const allWcagCriteria = new Set();
+    openIssues.forEach(issue => {
+      if (issue.wcag_criteria && issue.wcag_criteria.length > 0) {
+        issue.wcag_criteria.forEach(criterion => {
+          if (criterion.level === 'A' || criterion.level === 'AA') {
+            allWcagCriteria.add(criterion.criterion);
+          }
+        });
+      }
+    });
+
+    // Get issues with WCAG criteria at levels A and AA
+    const issuesWithWcagCriteria = openIssues.filter(issue => 
+      issue.wcag_criteria && 
+      issue.wcag_criteria.some(criterion => criterion.level === 'A' || criterion.level === 'AA')
+    );
+
+    // Count unique WCAG criteria in issues
+    const uniqueWcagCriteriaInIssues = new Set();
+    issuesWithWcagCriteria.forEach(issue => {
+      issue.wcag_criteria.forEach(criterion => {
+        if (criterion.level === 'A' || criterion.level === 'AA') {
+          uniqueWcagCriteriaInIssues.add(criterion.criterion);
+        }
+      });
+    });
+
+    const totalWcagCriteria = allWcagCriteria.size;
+    const affectedWcagCriteria = uniqueWcagCriteriaInIssues.size;
+    const percentageAffected = (affectedWcagCriteria / wcagCriteriaAtLevelsAAndAA.length) * 100;
+
+    console.log(totalWcagCriteria);
+    console.log(affectedWcagCriteria);
+    console.log(percentageAffected);
+
+    // Determine which template to use based on percentage of affected WCAG criteria
     let templateName;
-    if (openIssues.length === 0) {
+    if (affectedWcagCriteria === 0) {
       templateName = 'Compliant';
-    } else if (openIssues.length <= 10) {
+    } else if (percentageAffected <= 50) {
       templateName = 'Partially compliant';
     } else {
       templateName = 'Non-compliant';
     }
+
+    console.log(affectedWcagCriteria);
+    console.log(percentageAffected);
 
     const template = await getActiveTemplateByName(templateName);
 
@@ -225,11 +255,11 @@ async function showPublicStatement(req, res) {
     }
 
     // Replace template parameters and convert to HTML
-    const statementHtml = await replaceTemplateParameters(service.id, template.content);
+    const statementHtml = await replaceTemplateParameters(service.id, template.content, issuesWithWcagCriteria, template);
 
     res.render('public/statement', {
       service,
-      openIssues,
+      issues: issuesWithWcagCriteria,
       statementHtml
     });
   } catch (error) {

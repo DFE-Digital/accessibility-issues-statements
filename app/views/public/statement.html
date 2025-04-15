@@ -4,10 +4,16 @@
 
 {% block content %}
 
-    {% markdown %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
 
-    {{ statementHtml | safe }}
+        {% markdown %}
 
-    {% endmarkdown %}
+        {{ statementHtml | safe }}
+
+        {% endmarkdown %}
+
+    </div>
+</div>
 
 {% endblock %}
