@@ -19,7 +19,7 @@
         <p class="govuk-body">{{ wcagCriteria.description }}</p>
 
         {% if issues.length > 0 %}
-          <table class="govuk-table">
+          <table class="govuk-table compact-table">
             <thead class="govuk-table__head">
               <tr class="govuk-table__row">
                 <th scope="col" class="govuk-table__header">Issue</th>
@@ -30,9 +30,10 @@
             </thead>
             <tbody class="govuk-table__body">
               {% for issue in issues %}
+              
                 <tr class="govuk-table__row">
                   <td class="govuk-table__cell">
-                    <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue | dump }}</a>
+                    <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link">{{ issue.issue_title }}</a>
                    
                   </td>
                   <td class="govuk-table__cell"><a href="/services/{{ issue.service_id }}" class="govuk-link">{{ issue.service_name }}</a></td>

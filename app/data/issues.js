@@ -365,9 +365,22 @@ async function getAllIssues() {
 async function getIssuesByCriterion(criterion) {
   const issues = await db('issue_wcag_criteria')
     .select(
-      'issues.*',
+      'issues.id',
+      'issues.title as issue_title',
+      'issues.description',
+      'issues.status',
+      'issues.risk_level',
+      'issues.source_of_discovery',
+      'issues.created_at',
+      'issues.updated_at',
+      'issues.service_id',
+      'issues.created_by',
+      'issues.assigned_to',
+      'issues.planned_fix',
+      'issues.planned_fix_date',
+      'issues.not_fixing_reason',
       'wcag_criteria.criterion',
-      'wcag_criteria.title',
+      'wcag_criteria.title as wcag_title',
       'wcag_criteria.level',
       'services.name as service_name',
       'services.url as service_url'
