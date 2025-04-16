@@ -12,25 +12,176 @@
  {% include "services/department_admin/_subnav.html" %}
 
 <div class="govuk-width-container">
-  <div class="app-stats-grid govuk-!-margin-top-1">
-    <div class="app-stat-card">
-      <p class="app-stat-card__count">{{ openCount }}</p>
-      <p class="app-stat-card__label">Open issues</p>
-    </div>
-    <div class="app-stat-card">
-      <p class="app-stat-card__count">{{ levelACount }}</p>
-      <p class="app-stat-card__label">High priority</p>
-    </div>
-    <div class="app-stat-card">
-      <p class="app-stat-card__count">{{ levelAACount }}</p>
-      <p class="app-stat-card__label">Medium priority</p>
-    </div>
-    <div class="app-stat-card">
-      <p class="app-stat-card__count">{{ closedCount }}</p>
-      <p class="app-stat-card__label">Closed issues</p>
-    </div>
-  </div>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-quarter">
+      <div class="moj-filter" data-module="moj-filter">
+        <div class="moj-filter__header">
+          <h2 class="moj-filter__header-title">
+            Filter
+          </h2>
+        </div>
 
+        <div class="moj-filter__content">
+          <div class="moj-filter__selected">
+            <div class="moj-filter__selected-heading">
+              <p class="moj-filter__heading-title govuk-!-padding-top-1">
+                Selected filters
+              </p>
+              <div class="moj-filter__heading-action">
+                <p class="govuk-body-s">
+                  <a class="govuk-link govuk-link--no-visited-state" href="?">Clear filters</a>
+                </p>
+              </div>
+            </div>
+
+            {% if filters.wcag_level %}
+              <h3 class="govuk-heading-s govuk-!-margin-bottom-0">WCAG Level</h3>
+              <ul class="moj-filter-tags">
+                <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('wcag_level') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ filters.wcag_level }}</a></li>
+              </ul>
+            {% endif %}
+
+            {% if filters.planned_fix !== '' %}
+              <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Planned Fix</h3>
+              <ul class="moj-filter-tags">
+                <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('planned_fix') }}"><span class="govuk-visually-hidden">Remove this filter</span>{% if filters.planned_fix == 'true' %}Yes{% else %}No{% endif %}</a></li>
+              </ul>
+            {% endif %}
+
+            {% if filters.planned_fix_date %}
+              <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Planned Fix Date</h3>
+              <ul class="moj-filter-tags">
+                <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('planned_fix_date') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ filters.planned_fix_date | formatDateFilter }}</a></li>
+              </ul>
+            {% endif %}
+
+            {% if filters.search %}
+              <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Search</h3>
+              <ul class="moj-filter-tags">
+                <li><a class="moj-filter__tag" href="?{{ filters | removeFilter('search') }}"><span class="govuk-visually-hidden">Remove this filter</span> {{ filters.search }}</a></li>
+              </ul>
+            {% endif %}
+          </div>
+
+          <div class="moj-filter__options">
+            <form method="get" action="">
+              <div class="govuk-form-group govuk-!-margin-bottom-2">
+                <div class="moj-filter-layout__content">
+                  <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="search-filter">
+                    <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                      <path d="M0 0 L10 10 L20 0"></path>
+                    </svg>
+                    Keywords
+                  </button>
+                  <div id="search-filter" hidden>
+                    <label class="govuk-label" for="search">
+                      Search issues
+                    </label>
+                    <input class="govuk-input" id="search" name="search" type="text" value="{{ filters.search }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="govuk-form-group govuk-!-margin-bottom-2">
+                <div class="moj-filter-layout__content">
+                  <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="wcag-level-filter">
+                    <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                      <path d="M0 0 L10 10 L20 0"></path>
+                    </svg>
+                    WCAG Level
+                  </button>
+                  {% if filters.wcag_level %}
+                    <span class="moj-filter-toggle__count">1 selected</span>
+                  {% endif %}
+                  <div id="wcag-level-filter" hidden>
+                    <div class="govuk-checkboxes govuk-checkboxes--small">
+                      <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="wcag_level_a" name="wcag_level" type="checkbox" value="A" {% if filters.wcag_level == "A" %}checked{% endif %}>
+                        <label class="govuk-label govuk-checkboxes__label" for="wcag_level_a">
+                          A
+                        </label>
+                      </div>
+                      <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="wcag_level_aa" name="wcag_level" type="checkbox" value="AA" {% if filters.wcag_level == "AA" %}checked{% endif %}>
+                        <label class="govuk-label govuk-checkboxes__label" for="wcag_level_aa">
+                          AA
+                        </label>
+                      </div>
+                      <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="wcag_level_aaa" name="wcag_level" type="checkbox" value="AAA" {% if filters.wcag_level == "AAA" %}checked{% endif %}>
+                        <label class="govuk-label govuk-checkboxes__label" for="wcag_level_aaa">
+                          AAA
+                        </label>
+                      </div>
+                      <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="wcag_level_bp" name="wcag_level" type="checkbox" value="BP" {% if filters.wcag_level == "BP" %}checked{% endif %}>
+                        <label class="govuk-label govuk-checkboxes__label" for="wcag_level_bp">
+                          Best Practice
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="govuk-form-group govuk-!-margin-bottom-2">
+                <div class="moj-filter-layout__content">
+                  <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="planned-fix-filter">
+                    <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                      <path d="M0 0 L10 10 L20 0"></path>
+                    </svg>
+                    Planned Fix
+                  </button>
+                  {% if filters.planned_fix !== '' %}
+                    <span class="moj-filter-toggle__count">1 selected</span>
+                  {% endif %}
+                  <div id="planned-fix-filter" hidden>
+                    <select class="govuk-select" id="planned_fix" name="planned_fix">
+                      <option value="" {% if filters.planned_fix == "" %}selected{% endif %}>All</option>
+                      <option value="true" {% if filters.planned_fix == "true" %}selected{% endif %}>Yes</option>
+                      <option value="false" {% if filters.planned_fix == "false" %}selected{% endif %}>No</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="govuk-form-group govuk-!-margin-bottom-2">
+                <div class="moj-filter-layout__content">
+                  <button type="button" class="dfe-filter-collapsible-button moj-filter-toggle" aria-expanded="false" aria-controls="planned-fix-date-filter">
+                    <svg class="moj-filter-toggle__icon" viewBox="0 0 20 20" height="10" width="10">
+                      <path d="M0 0 L10 10 L20 0"></path>
+                    </svg>
+                    Planned Fix Date
+                  </button>
+                  {% if filters.planned_fix_date %}
+                    <span class="moj-filter-toggle__count">1 selected</span>
+                  {% endif %}
+                  <div id="planned-fix-date-filter" hidden>
+                    <select class="govuk-select" id="planned_fix_date" name="planned_fix_date">
+                      <option value="" {% if filters.planned_fix_date == "" %}selected{% endif %}>All dates</option>
+                      <option value="overdue" {% if filters.planned_fix_date == "overdue" %}selected{% endif %}>Overdue</option>
+                      <option value="next_month" {% if filters.planned_fix_date == "next_month" %}selected{% endif %}>Next month</option>
+                      <option value="next_3_months" {% if filters.planned_fix_date == "next_3_months" %}selected{% endif %}>Next 3 months</option>
+                      <option value="next_6_months" {% if filters.planned_fix_date == "next_6_months" %}selected{% endif %}>Next 6 months</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="govuk-form-group govuk-!-margin-top-2">
+                <div class="moj-filter__footer">
+                  <button type="submit" class="govuk-button govuk-!-margin-bottom-1" data-module="govuk-button">
+                    Apply filters
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="govuk-grid-column-three-quarters">
   <div class="govuk-summary-card">
     <div class="govuk-summary-card__title-wrapper">
       <h2 class="govuk-summary-card__title">Open issues</h2>
@@ -154,9 +305,7 @@
       </table>
       {% else %}
       <div class="app-empty-state">
-        <h3 class="govuk-heading-m">No open issues</h3>
-        <p class="govuk-body">This service currently has no open accessibility issues.</p>
-        <a href="/services/{{ service.id }}/issues/new" class="govuk-button">Add first issue</a>
+        <p class="govuk-body">No issues.</p>
       </div>
       {% endif %}
     </div>
@@ -237,6 +386,8 @@
         <p class="govuk-body">This service has no closed accessibility issues.</p>
       </div>
       {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -431,6 +582,71 @@
     display: flex;
     align-items: center;
   }
+
+  /* Filter styles */
+  .moj-filter-toggle {
+    background: none;
+    border: 0;
+    color: #1d70b8;
+    cursor: pointer;
+    margin-bottom: 10px;
+    padding: 0;
+    position: relative;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+  }
+
+  .moj-filter-toggle:hover {
+    color: #003078;
+  }
+
+  .moj-filter-toggle:focus {
+    outline: 3px solid transparent;
+    color: #0b0c0c;
+    background-color: #ffdd00;
+    box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
+    text-decoration: none;
+  }
+
+  .moj-filter-toggle__icon {
+    margin-right: 10px;
+    vertical-align: middle;
+    transition: transform 0.3s ease;
+  }
+
+  .moj-filter-toggle[aria-expanded="false"] .moj-filter-toggle__icon {
+    transform: rotate(-90deg);
+  }
+
+  .moj-filter-toggle__count {
+    color: #505a5f;
+    font-size: 16px;
+    margin-left: 4px;
+    display: block;
+    margin-top: -5px;
+    margin-bottom: 10px;
+  }
+
+  .moj-filter-layout__content {
+    padding: 0;
+  }
+
+  .moj-filter-layout__content > div {
+    margin-left: 15px;
+  }
+
+  [hidden] {
+    display: none;
+  }
+
+  .dfe-filter-collapsible-button {
+    margin-bottom: 16px;
+    font-weight: normal;
+    font-size: 1.188rem
+  }
 </style>
 
 <script>
@@ -470,10 +686,42 @@
     const toggleButton = document.querySelector('.app-toggle-button');
     const content = document.getElementById('closed-issues-content');
 
-    toggleButton.addEventListener('click', function() {
-      const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
-      toggleButton.setAttribute('aria-expanded', !isExpanded);
-      content.hidden = isExpanded;
+    if (toggleButton && content) {
+      toggleButton.addEventListener('click', function() {
+        const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
+        toggleButton.setAttribute('aria-expanded', !isExpanded);
+        content.hidden = isExpanded;
+      });
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document
+      .querySelectorAll('.moj-filter-toggle')
+      .forEach(toggle => {
+        const content = document.getElementById(toggle.getAttribute('aria-controls'));
+
+        if (content) {
+          toggle.addEventListener('click', function () {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
+            content.hidden = expanded;
+          });
+        }
+      });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        document
+          .querySelectorAll('.moj-filter-toggle')
+          .forEach(toggle => {
+            toggle.setAttribute('aria-expanded', 'false');
+            const content = document.getElementById(toggle.getAttribute('aria-controls'));
+            if (content) {
+              content.hidden = true;
+            }
+          });
+      }
     });
   });
 </script>

@@ -23,25 +23,7 @@ async function getAllServices(filters = {}) {
     .leftJoin('issues', function() {
       this.on('issues.service_id', '=', 'services.id')
           .andOn('issues.status', '<>', db.raw("'closed'"));
-    })
-    .groupBy(
-      'services.id',
-      'services.name',
-      'services.url',
-      'services.department_id',
-      'services.service_owner_id',
-      'services.external_id',
-      'services.created_at',
-      'services.updated_at',
-      'services.statement_enrolled',
-      'services.numeric_id',
-      'services.business_area_id',
-      'departments.name',
-      'owner.first_name',
-      'owner.last_name',
-      'owner.email',
-      'business_areas.name'
-    );
+    });
 
   // Apply filters
   if (filters.search) {
@@ -69,11 +51,35 @@ async function getAllServices(filters = {}) {
     query = query.where('services.statement_enrolled', false);
   }
 
-  // Apply pagination
-  const offset = (filters.page - 1) * filters.limit;
-  query = query.limit(filters.limit).offset(offset);
+  // Apply pagination using cursor-based pagination for better performance
+  if (filters.cursor) {
+    query = query.where('services.id', '>', filters.cursor);
+  }
 
-  return query.orderBy('services.name');
+  // Apply limit
+  query = query.limit(filters.limit || 10);
+
+  // Group by and order
+  query = query.groupBy(
+    'services.id',
+    'services.name',
+    'services.url',
+    'services.department_id',
+    'services.service_owner_id',
+    'services.external_id',
+    'services.created_at',
+    'services.updated_at',
+    'services.statement_enrolled',
+    'services.numeric_id',
+    'services.business_area_id',
+    'departments.name',
+    'owner.first_name',
+    'owner.last_name',
+    'owner.email',
+    'business_areas.name'
+  ).orderBy('services.id');
+
+  return query;
 }
 
 /**
@@ -128,11 +134,17 @@ async function getDepartmentServices(departmentId, filters = {}) {
     query = query.where('services.statement_enrolled', false);
   }
 
+  // Apply pagination using cursor-based pagination for better performance
+  if (filters.cursor) {
+    query = query.where('services.id', '>', filters.cursor);
+  }
+
   // Apply pagination
   const offset = (filters.page - 1) * filters.limit;
-  query = query.limit(filters.limit).offset(offset);
+  query = query.offset(offset).limit(filters.limit);
 
-  return query.groupBy(
+  // Group by and order
+  query = query.groupBy(
     'services.id',
     'services.name',
     'services.url',
@@ -149,7 +161,9 @@ async function getDepartmentServices(departmentId, filters = {}) {
     'owner.last_name',
     'owner.email',
     'business_areas.name'
-  ).orderBy('services.name');
+  ).orderBy('services.name', 'asc');
+
+  return query;
 }
 
 /**
@@ -214,8 +228,15 @@ async function getUserServices(userId, filters = {}) {
     query = query.where('services.statement_enrolled', false);
   }
 
-  // Apply pagination
-  const offset = (filters.page - 1) * filters.limit;
+  // Apply pagination using cursor-based pagination for better performance
+  if (filters.cursor) {
+    query = query.where('services.id', '>', filters.cursor);
+  }
+
+  // Apply limit
+  query = query.limit(filters.limit || 10);
+
+  // Group by and order
   query = query
     .groupBy(
       'services.id',
@@ -235,9 +256,7 @@ async function getUserServices(userId, filters = {}) {
       'owner.email',
       'business_areas.name'
     )
-    .orderBy('services.name')
-    .limit(filters.limit)
-    .offset(offset);
+    .orderBy('services.id');
 
   console.log('Final query:', query.toString());
   const results = await query;

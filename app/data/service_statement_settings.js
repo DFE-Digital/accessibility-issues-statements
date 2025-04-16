@@ -64,22 +64,24 @@ async function upsertServiceStatementSettings(serviceId, data, userId) {
         .insert(defaultSettings);
     }
 
-    // Delete existing contact methods
+    // Delete existing contact methods in a single operation
     await trx('service_contact_methods')
       .where({ service_id: serviceId })
       .delete();
 
-    // Insert new contact methods
+    // Insert new contact methods in a single batch operation
     if (contactMethods && contactMethods.length > 0) {
+      const contactMethodsToInsert = contactMethods.map((method, index) => ({
+        service_id: serviceId,
+        contact_type: method.contact_type,
+        contact_value: method.contact_value,
+        display_order: index,
+        created_by: userId,
+        updated_by: userId
+      }));
+
       await trx('service_contact_methods')
-        .insert(contactMethods.map((method, index) => ({
-          service_id: serviceId,
-          contact_type: method.contact_type,
-          contact_value: method.contact_value,
-          display_order: index,
-          created_by: userId,
-          updated_by: userId
-        })));
+        .insert(contactMethodsToInsert);
     }
   });
 }

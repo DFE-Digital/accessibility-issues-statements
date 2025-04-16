@@ -66,7 +66,7 @@
           <dl class="govuk-summary-list">
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
-                Issue Types
+                Issue types
               </dt>
               <dd class="govuk-summary-list__value">
                 {% for type in issue.types %}
@@ -86,7 +86,7 @@
             {% if issue.types.includes('wcag') %}
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
-                WCAG Version
+                WCAG version
               </dt>
               <dd class="govuk-summary-list__value">
                 WCAG {{ issue.wcag_criteria[0].version }}
@@ -94,7 +94,7 @@
             </div>
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
-                WCAG Criteria
+                WCAG criteria
               </dt>
               <dd class="govuk-summary-list__value">
                 {% for criterion in issue.wcag_criteria %}
@@ -137,6 +137,47 @@
                 </button>
               </dd>
             </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="govuk-summary-card">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">Resolution plan</h2>
+        </div>
+        <div class="govuk-summary-card__content">
+          <dl class="govuk-summary-list">
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">
+                Plan to fix
+              </dt>
+              <dd class="govuk-summary-list__value">
+                {% if issue.planned_fix %}
+               Yes
+                {% else %}
+                No
+                {% endif %}
+              </dd>
+            </div>
+            {% if issue.planned_fix %}
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">
+                Planned fix date
+              </dt>
+              <dd class="govuk-summary-list__value">
+                {{ issue.planned_fix_date | date('D MMMM YYYY') }}
+              </dd>
+            </div>
+            {% else %}
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">
+                Reason for not fixing
+              </dt>
+              <dd class="govuk-summary-list__value">
+                {{ issue.not_fixing_reason | nl2br | safe }}
+              </dd>
+            </div>
+            {% endif %}
           </dl>
         </div>
       </div>
@@ -230,7 +271,7 @@
 
       <div class="govuk-summary-card">
         <div class="govuk-summary-card__title-wrapper">
-          <h2 class="govuk-summary-card__title">Issue details</h2>
+          <h2 class="govuk-summary-card__title">Assignment</h2>
         </div>
         <div class="govuk-summary-card__content">
           <dl class="govuk-summary-list">
@@ -256,14 +297,14 @@
 
       <div class="govuk-summary-card">
         <div class="govuk-summary-card__title-wrapper">
-          <h2 class="govuk-summary-card__title">Assignee</h2>
+          <h2 class="govuk-summary-card__title">Source</h2>
         </div>
         <div class="govuk-summary-card__content">
           <dl class="govuk-summary-list">
           
             <div class="govuk-summary-list__row">
               <dt class="govuk-summary-list__key">
-                Source of discovery
+                Method
               </dt>
               <dd class="govuk-summary-list__value">
                 {{ issue.source_of_discovery }}
@@ -291,46 +332,7 @@
         </div>
       </div>
 
-      <div class="govuk-summary-card">
-        <div class="govuk-summary-card__title-wrapper">
-          <h2 class="govuk-summary-card__title">Resolution plan</h2>
-        </div>
-        <div class="govuk-summary-card__content">
-          <dl class="govuk-summary-list">
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key">
-                Plan to fix
-              </dt>
-              <dd class="govuk-summary-list__value">
-                {% if issue.planned_fix %}
-               Yes
-                {% else %}
-                No
-                {% endif %}
-              </dd>
-            </div>
-            {% if issue.planned_fix %}
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key">
-                Planned fix date
-              </dt>
-              <dd class="govuk-summary-list__value">
-                {{ issue.planned_fix_date | date('D MMMM YYYY') }}
-              </dd>
-            </div>
-            {% else %}
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key">
-                Reason for not fixing
-              </dt>
-              <dd class="govuk-summary-list__value">
-                {{ issue.not_fixing_reason | nl2br | safe }}
-              </dd>
-            </div>
-            {% endif %}
-          </dl>
-        </div>
-      </div>
+  
 
     </div>
   </div>

@@ -149,6 +149,7 @@ router.get('/reports/wcag/:criterion', isAuthenticated, isDepartmentAdmin, repor
 
 router.get('/issues', isAuthenticated, isDepartmentAdmin, issuesController.index);
 router.get('/issues/closed', isAuthenticated, isDepartmentAdmin, issuesController.showClosedIssues);
+router.get('/issues/overdue', isAuthenticated, isDepartmentAdmin, issuesController.showOverdueIssues);
 router.get('/issues/:criterion', isAuthenticated, isDepartmentAdmin, issuesController.issuesByCriterion);
 
 // Business areas routes

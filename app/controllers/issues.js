@@ -804,6 +804,88 @@ async function showClosedIssues(req, res) {
   }
 }
 
+/**
+ * Show overdue issues
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function showOverdueIssues(req, res) {
+  try {
+    const { user } = req.session;
+    const filters = {
+      wcag_level: req.query.wcag_level || '',
+      service_id: req.query.service_id || '',
+      search: req.query.search || ''
+    };
+
+    let issues;
+    if (user.role === 'super_admin') {
+      issues = await getAllIssues();
+    } else {
+      // Get department ID from user's department object
+      const departmentId = user.department?.id;
+      if (!departmentId) {
+        throw new Error('User department ID not found');
+      }
+      issues = await getDepartmentIssues(departmentId);
+    }
+
+    // Filter for overdue issues
+    const now = new Date();
+    issues = issues.filter(issue => {
+      return issue.status === 'open' && 
+             issue.planned_fix_date && 
+             new Date(issue.planned_fix_date) < now;
+    });
+
+    // Calculate days overdue for each issue
+    issues = issues.map(issue => {
+      const plannedFixDate = new Date(issue.planned_fix_date);
+      const daysOverdue = Math.round((now - plannedFixDate) / (1000 * 60 * 60 * 24));
+      return {
+        ...issue,
+        days_overdue: daysOverdue
+      };
+    });
+
+    // Apply filters
+    if (filters.wcag_level) {
+      const selectedLevels = Array.isArray(filters.wcag_level) ? filters.wcag_level : [filters.wcag_level];
+      issues = issues.filter(issue => selectedLevels.includes(issue.wcag_level));
+    }
+
+    if (filters.service_id) {
+      issues = issues.filter(issue => issue.service_id === filters.service_id);
+    }
+
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      issues = issues.filter(issue => 
+        issue.title.toLowerCase().includes(searchTerm) ||
+        issue.service_name?.toLowerCase().includes(searchTerm) ||
+        issue.wcag_level?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Get services for the department
+    let services = [];
+    if (user.role === 'super_admin') {
+      services = await getAllServices();
+    } else {
+      services = await getDepartmentServices(user.department?.id);
+    }
+
+    res.render('department_admin/issues/overdue', {
+      issues,
+      services,
+      filters
+    });
+  } catch (error) {
+    console.error('Error in overdue issues view:', error);
+    res.status(500).render('error', { error: 'Failed to load overdue issues' });
+  }
+}
+
 module.exports = {
   index,
   showNewIssueForm,
@@ -817,5 +899,6 @@ module.exports = {
   handleReopenIssue,
   assignIssue,
   issuesByCriterion,
-  showClosedIssues
+  showClosedIssues,
+  showOverdueIssues
 }; 

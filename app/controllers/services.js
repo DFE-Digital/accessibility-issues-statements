@@ -240,19 +240,21 @@ const showService = async (req, res) => {
     // Get issues for analysis
     const issues = await getServiceIssues(id);
 
+    // Calculate dates
+    const currentDate = new Date();
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+
     // Calculate issue statistics
     const openIssues = issues.filter(issue => ['open', 'in_progress'].includes(issue.status));
     const pastDueIssues = openIssues.filter(issue => {
       if (!issue.planned_fix) return false;
-      return new Date(issue.planned_fix) < new Date();
+      return new Date(issue.planned_fix) < currentDate;
     });
     const upcomingIssues = openIssues.filter(issue => {
       if (!issue.planned_fix) return false;
       const plannedDate = new Date(issue.planned_fix);
-      const today = new Date();
-      const twoWeeksFromNow = new Date();
-      twoWeeksFromNow.setDate(today.getDate() + 14);
-      return plannedDate >= today && plannedDate <= twoWeeksFromNow;
+      return plannedDate >= currentDate && plannedDate <= threeMonthsFromNow;
     });
 
     // Get service users - temporarily using a placeholder until user_services table is set up
@@ -269,7 +271,9 @@ const showService = async (req, res) => {
       },
       pastDueIssues,
       upcomingIssues,
-      issues: openIssues  // Only pass open issues to the template
+      issues: openIssues,
+      current_date: currentDate,
+      three_months_from_now: threeMonthsFromNow
     });
   } catch (error) {
     console.error('Error showing service:', error);
@@ -293,6 +297,14 @@ const showServiceIssues = async (req, res) => {
     const user = req.session.user;
     const { sort, order } = req.query;
 
+    // Get filter parameters from query string
+    const filters = {
+      wcag_level: req.query.wcag_level || '',
+      planned_fix: req.query.planned_fix || '',
+      planned_fix_date: req.query.planned_fix_date || '',
+      search: req.query.search || ''
+    };
+
     // Get the service and verify department access
     const services = await getDepartmentServices(user.department.id);
     const service = services.find(s => s.id === serviceId);
@@ -310,10 +322,66 @@ const showServiceIssues = async (req, res) => {
     const issues = await getServiceIssues(serviceId);
 
     // Calculate counts and filter issues
-    const openIssues = issues.filter(issue => issue.status === 'open');
-    const closedIssues = issues.filter(issue => issue.status === 'closed');
-    const levelAIssues = openIssues.filter(issue => issue.wcag_level === 'A');
-    const levelAAIssues = openIssues.filter(issue => issue.wcag_level === 'AA');
+    let openIssues = issues.filter(issue => issue.status === 'open');
+    let closedIssues = issues.filter(issue => issue.status === 'closed');
+
+    // Apply filters to open issues
+    if (filters.wcag_level) {
+      openIssues = openIssues.filter(issue => issue.wcag_level === filters.wcag_level);
+    }
+
+    if (filters.planned_fix !== '') {
+      const hasPlannedFix = filters.planned_fix === 'true';
+      openIssues = openIssues.filter(issue => issue.planned_fix === hasPlannedFix);
+    }
+
+    if (filters.planned_fix_date) {
+      const now = new Date();
+      openIssues = openIssues.filter(issue => {
+        if (!issue.planned_fix_date) return false;
+        const fixDate = new Date(issue.planned_fix_date);
+        
+        switch (filters.planned_fix_date) {
+          case 'overdue':
+            return fixDate < now;
+          case 'next_month':
+            const nextMonth = new Date(now);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            return fixDate >= now && fixDate <= nextMonth;
+          case 'next_3_months':
+            const next3Months = new Date(now);
+            next3Months.setMonth(next3Months.getMonth() + 3);
+            return fixDate >= now && fixDate <= next3Months;
+          case 'next_6_months':
+            const next6Months = new Date(now);
+            next6Months.setMonth(next6Months.getMonth() + 6);
+            return fixDate >= now && fixDate <= next6Months;
+          default:
+            return true;
+        }
+      });
+    }
+
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      openIssues = openIssues.filter(issue => 
+        issue.title.toLowerCase().includes(searchTerm) ||
+        issue.wcag_level?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Apply filters to closed issues
+    if (filters.wcag_level) {
+      closedIssues = closedIssues.filter(issue => issue.wcag_level === filters.wcag_level);
+    }
+
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      closedIssues = closedIssues.filter(issue => 
+        issue.title.toLowerCase().includes(searchTerm) ||
+        issue.wcag_level?.toLowerCase().includes(searchTerm)
+      );
+    }
 
     // Sort issues based on query parameters
     if (sort && order) {
@@ -337,20 +405,15 @@ const showServiceIssues = async (req, res) => {
       service,
       open_issues: openIssues,
       closed_issues: closedIssues,
-      openCount: openIssues.length,
-      levelACount: levelAIssues.length,
-      levelAACount: levelAAIssues.length,
-      closedCount: closedIssues.length,
-      sortBy: sort,
-      sortOrder: order
+      filters,
+      sort,
+      order
     });
   } catch (error) {
-    console.error('Error showing service issues:', error);
+    console.error('Error in showServiceIssues:', error);
     res.status(500).render('error', {
-      error: {
-        title: 'Error',
-        message: 'There was a problem loading the service issues.'
-      }
+      error: 'Failed to load service issues',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

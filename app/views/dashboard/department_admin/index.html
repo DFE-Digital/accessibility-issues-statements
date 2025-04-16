@@ -31,14 +31,14 @@
             <p class="app-stat-card__count">{{ overdueIssues | default(0) }}</p>
             <p class="app-stat-card__label">Overdue issues</p>
             <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">overdue</span> issues</a>
+              <a href="/issues/overdue" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">overdue</span> issues</a>
             </p>
           </div>
           <div class="app-stat-card">
             <p class="app-stat-card__count">{{ compliantServices | default(0) }}</p>
             <p class="app-stat-card__label">Closed issues</p>
             <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-3">
-              <a href="/issues" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">closed</span> issues</a>
+              <a href="/issues/closed" class="govuk-link govuk-link--no-underline govuk-link--no-visited-state">View all <span class="govuk-visually-hidden">closed</span> issues</a>
             </p>
           </div>
         </div>
@@ -327,7 +327,7 @@
           // Using WCAG-compliant colors with sufficient contrast
           colors: [
             '#003078', 
-            '#912b88', 
+            '#d53880', 
             '#85994b'  
           ],
           backgroundColor: 'transparent',

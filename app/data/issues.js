@@ -6,6 +6,7 @@ const { db } = require('../db');
  * @returns {Promise<Array>} Array of issues
  */
 async function getServiceIssues(serviceId) {
+  // First get the issues with basic info
   const issues = await db('issues')
     .select(
       'issues.*',
@@ -15,31 +16,43 @@ async function getServiceIssues(serviceId) {
     .where('issues.service_id', serviceId)
     .orderBy('issues.created_at', 'desc');
 
-  // Get WCAG criteria and types for each issue
-  for (const issue of issues) {
-    // Get WCAG criteria
-    const criteria = await db('issue_wcag_criteria')
-      .select('wcag_criteria.*')
-      .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
-      .where('issue_wcag_criteria.issue_id', issue.id);
-    
-    issue.wcag_criteria = criteria;
+  // Get WCAG criteria and types for all issues in one query each
+  const issueIds = issues.map(issue => issue.id);
+  
+  // Get WCAG criteria for all issues
+  const criteria = await db('issue_wcag_criteria')
+    .select(
+      'issue_wcag_criteria.issue_id',
+      'wcag_criteria.*'
+    )
+    .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+    .whereIn('issue_wcag_criteria.issue_id', issueIds);
 
-    // Set the highest WCAG level as the issue's main level for filtering
-    if (criteria.length > 0) {
-      const levels = criteria.map(c => c.level).filter(l => l);
-      issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
-    }
+  // Get types for all issues
+  const types = await db('issue_types')
+    .select('issue_id', 'type')
+    .whereIn('issue_id', issueIds);
 
-    // Get issue types
-    const types = await db('issue_types')
-      .select('type')
-      .where('issue_id', issue.id);
-    
-    issue.types = types.map(t => t.type);
-  }
+  // Group criteria and types by issue_id
+  const criteriaByIssue = criteria.reduce((acc, curr) => {
+    if (!acc[curr.issue_id]) acc[curr.issue_id] = [];
+    acc[curr.issue_id].push(curr);
+    return acc;
+  }, {});
 
-  return issues;
+  const typesByIssue = types.reduce((acc, curr) => {
+    if (!acc[curr.issue_id]) acc[curr.issue_id] = [];
+    acc[curr.issue_id].push(curr.type);
+    return acc;
+  }, {});
+
+  // Combine all the data
+  return issues.map(issue => ({
+    ...issue,
+    wcag_criteria: criteriaByIssue[issue.id] || [],
+    types: typesByIssue[issue.id] || [],
+    wcag_level: getHighestWcagLevel(criteriaByIssue[issue.id] || [])
+  }));
 }
 
 /**
@@ -48,6 +61,7 @@ async function getServiceIssues(serviceId) {
  * @returns {Promise<Array>} Array of open issues
  */
 async function getOpenIssues(serviceId) {
+  // First get the issues with basic info
   const issues = await db('issues')
     .select(
       'issues.*',
@@ -60,31 +74,43 @@ async function getOpenIssues(serviceId) {
     })
     .orderBy('issues.created_at', 'desc');
 
-  // Get WCAG criteria and types for each issue
-  for (const issue of issues) {
-    // Get WCAG criteria
-    const criteria = await db('issue_wcag_criteria')
-      .select('wcag_criteria.*')
-      .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
-      .where('issue_wcag_criteria.issue_id', issue.id);
-    
-    issue.wcag_criteria = criteria;
+  // Get WCAG criteria and types for all issues in one query each
+  const issueIds = issues.map(issue => issue.id);
+  
+  // Get WCAG criteria for all issues
+  const criteria = await db('issue_wcag_criteria')
+    .select(
+      'issue_wcag_criteria.issue_id',
+      'wcag_criteria.*'
+    )
+    .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+    .whereIn('issue_wcag_criteria.issue_id', issueIds);
 
-    // Set the highest WCAG level as the issue's main level for filtering
-    if (criteria.length > 0) {
-      const levels = criteria.map(c => c.level).filter(l => l);
-      issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
-    }
+  // Get types for all issues
+  const types = await db('issue_types')
+    .select('issue_id', 'type')
+    .whereIn('issue_id', issueIds);
 
-    // Get issue types
-    const types = await db('issue_types')
-      .select('type')
-      .where('issue_id', issue.id);
-    
-    issue.types = types.map(t => t.type);
-  }
+  // Group criteria and types by issue_id
+  const criteriaByIssue = criteria.reduce((acc, curr) => {
+    if (!acc[curr.issue_id]) acc[curr.issue_id] = [];
+    acc[curr.issue_id].push(curr);
+    return acc;
+  }, {});
 
-  return issues;
+  const typesByIssue = types.reduce((acc, curr) => {
+    if (!acc[curr.issue_id]) acc[curr.issue_id] = [];
+    acc[curr.issue_id].push(curr.type);
+    return acc;
+  }, {});
+
+  // Combine all the data
+  return issues.map(issue => ({
+    ...issue,
+    wcag_criteria: criteriaByIssue[issue.id] || [],
+    types: typesByIssue[issue.id] || [],
+    wcag_level: getHighestWcagLevel(criteriaByIssue[issue.id] || [])
+  }));
 }
 
 /**
@@ -368,6 +394,7 @@ async function getAllIssues() {
  * @returns {Promise<Array>} Array of issues
  */
 async function getDepartmentIssues(departmentId) {
+  // First get the issues with basic info
   const issues = await db('issues')
     .select(
       'issues.*',
@@ -379,31 +406,43 @@ async function getDepartmentIssues(departmentId) {
     .where('services.department_id', departmentId)
     .orderBy('issues.created_at', 'desc');
 
-  // Get WCAG criteria and types for each issue
-  for (const issue of issues) {
-    // Get WCAG criteria
-    const criteria = await db('issue_wcag_criteria')
-      .select('wcag_criteria.*')
-      .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
-      .where('issue_wcag_criteria.issue_id', issue.id);
-    
-    issue.wcag_criteria = criteria;
+  // Get WCAG criteria and types for all issues in one query each
+  const issueIds = issues.map(issue => issue.id);
+  
+  // Get WCAG criteria for all issues
+  const criteria = await db('issue_wcag_criteria')
+    .select(
+      'issue_wcag_criteria.issue_id',
+      'wcag_criteria.*'
+    )
+    .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+    .whereIn('issue_wcag_criteria.issue_id', issueIds);
 
-    // Set the highest WCAG level as the issue's main level for filtering
-    if (criteria.length > 0) {
-      const levels = criteria.map(c => c.level).filter(l => l);
-      issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
-    }
+  // Get types for all issues
+  const types = await db('issue_types')
+    .select('issue_id', 'type')
+    .whereIn('issue_id', issueIds);
 
-    // Get issue types - ensure we're getting all types regardless of status
-    const types = await db('issue_types')
-      .select('type')
-      .where('issue_id', issue.id);
-    
-    issue.types = types.map(t => t.type);
-  }
+  // Group criteria and types by issue_id
+  const criteriaByIssue = criteria.reduce((acc, curr) => {
+    if (!acc[curr.issue_id]) acc[curr.issue_id] = [];
+    acc[curr.issue_id].push(curr);
+    return acc;
+  }, {});
 
-  return issues;
+  const typesByIssue = types.reduce((acc, curr) => {
+    if (!acc[curr.issue_id]) acc[curr.issue_id] = [];
+    acc[curr.issue_id].push(curr.type);
+    return acc;
+  }, {});
+
+  // Combine all the data
+  return issues.map(issue => ({
+    ...issue,
+    wcag_criteria: criteriaByIssue[issue.id] || [],
+    types: typesByIssue[issue.id] || [],
+    wcag_level: getHighestWcagLevel(criteriaByIssue[issue.id] || [])
+  }));
 }
 
 // Get all open issues for a department
@@ -447,7 +486,6 @@ async function getDepartmentOpenIssues(departmentId) {
   return issues;
 }
 
-
 async function getIssuesByCriterion(criterion) {
   const issues = await db('issue_wcag_criteria')
     .select(
@@ -478,6 +516,13 @@ async function getIssuesByCriterion(criterion) {
     .orderBy('issues.created_at', 'desc');
 
   return issues;
+}
+
+// Helper function to determine highest WCAG level
+function getHighestWcagLevel(criteria) {
+  if (!criteria || !criteria.length) return null;
+  const levels = criteria.map(c => c.level).filter(l => l);
+  return levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
 }
 
 module.exports = {

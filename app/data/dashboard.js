@@ -88,54 +88,59 @@ async function getUserInfo(email) {
 async function getDepartmentServices(departmentId) {
   const validDepartmentId = validateDepartmentId(departmentId);
   
-  // Get services with issue counts using SQL Server syntax
-  const services = await db.raw(`
-    SELECT 
-      s.id,
-      s.name,
-      s.url,
-      s.department_id,
-      s.service_owner_id,
-      s.created_at,
-      s.updated_at,
-      COUNT(DISTINCT CASE WHEN i.status = 'open' THEN i.id END) as open_issues_count,
-      COUNT(DISTINCT CASE WHEN i.risk_level = 'high' AND i.status = 'open' THEN i.id END) as high_priority_issues,
-      COUNT(DISTINCT iwc.wcag_criterion) as wcag_criteria_count,
-      MAX(CASE 
-        WHEN i.risk_level = 'high' THEN 'high'
-        WHEN i.risk_level = 'medium' THEN 'medium'
-        ELSE 'low'
-      END) as risk_level
-    FROM services s
-    LEFT JOIN issues i ON s.id = i.service_id
-    LEFT JOIN issue_wcag_criteria iwc ON i.id = iwc.issue_id
-    WHERE s.department_id = ?
-    GROUP BY 
-      s.id,
-      s.name,
-      s.url,
-      s.department_id,
-      s.service_owner_id,
-      s.created_at,
-      s.updated_at,
-      s.business_area_id
-  `, [validDepartmentId]);
+  // Get services with issue counts using a single optimized query
+  const services = await db('services')
+    .select(
+      'services.id',
+      'services.name',
+      'services.url',
+      'services.department_id',
+      'services.service_owner_id',
+      'services.created_at',
+      'services.updated_at',
+      db.raw('COUNT(DISTINCT CASE WHEN issues.status = ? THEN issues.id END) as open_issues_count', ['open']),
+      db.raw('COUNT(DISTINCT CASE WHEN issues.risk_level = ? AND issues.status = ? THEN issues.id END) as high_priority_issues', ['high', 'open']),
+      db.raw('COUNT(DISTINCT issue_wcag_criteria.wcag_criterion) as wcag_criteria_count'),
+      db.raw('MAX(CASE WHEN issues.risk_level = ? THEN ? WHEN issues.risk_level = ? THEN ? ELSE ? END) as risk_level', 
+        ['high', 'high', 'medium', 'medium', 'low'])
+    )
+    .leftJoin('issues', 'services.id', 'issues.service_id')
+    .leftJoin('issue_wcag_criteria', 'issues.id', 'issue_wcag_criteria.issue_id')
+    .where('services.department_id', validDepartmentId)
+    .groupBy(
+      'services.id',
+      'services.name',
+      'services.url',
+      'services.department_id',
+      'services.service_owner_id',
+      'services.created_at',
+      'services.updated_at'
+    );
 
-  // Get issue types for each service
-  for (const service of services) {
-    const types = await db.raw(`
-      SELECT DISTINCT it.type
-      FROM services s
-      JOIN issues i ON s.id = i.service_id
-      JOIN issue_types it ON i.id = it.issue_id
-      WHERE s.id = ?
-      AND i.status = 'open'
-    `, [service.id]);
+  // Get issue types for all services in a single query
+  const serviceIds = services.map(service => service.id);
+  const types = await db('services')
+    .select(
+      'services.id as service_id',
+      db.raw('STRING_AGG(DISTINCT issue_types.type, ?, ?) as types', [',', 'ORDER BY issue_types.type'])
+    )
+    .leftJoin('issues', 'services.id', 'issues.service_id')
+    .leftJoin('issue_types', 'issues.id', 'issue_types.issue_id')
+    .whereIn('services.id', serviceIds)
+    .where('issues.status', 'open')
+    .groupBy('services.id');
 
-    service.types = types.map(t => t.type);
-  }
+  // Map types to services
+  const typesByService = types.reduce((acc, curr) => {
+    acc[curr.service_id] = curr.types ? curr.types.split(',') : [];
+    return acc;
+  }, {});
 
-  return services;
+  // Add types to services
+  return services.map(service => ({
+    ...service,
+    types: typesByService[service.id] || []
+  }));
 }
 
 /**
@@ -148,47 +153,44 @@ async function getRecentIssues(departmentId, limit = 5) {
   const validDepartmentId = validateDepartmentId(departmentId);
   const validLimit = validateLimit(limit);
   
-  // Use TOP instead of LIMIT for SQL Server
-  const issues = await db.raw(`
-    SELECT TOP (?) 
-      issues.id,
-      issues.title,
-      issues.status,
-      issues.created_at,
-      services.name as service_name
-    FROM issues
-    JOIN services ON issues.service_id = services.id
-    WHERE services.department_id = ?
-    ORDER BY issues.created_at DESC
-  `, [validLimit, validDepartmentId]);
+  // Get issues with all related data in a single query
+  const issues = await db('issues')
+    .select(
+      'issues.id',
+      'issues.title',
+      'issues.status',
+      'issues.created_at',
+      'services.name as service_name',
+      db.raw('STRING_AGG(DISTINCT wcag_criteria.level, ?, ?) as wcag_levels', [',', 'ORDER BY wcag_criteria.level']),
+      db.raw('STRING_AGG(DISTINCT issue_types.type, ?, ?) as types', [',', 'ORDER BY issue_types.type'])
+    )
+    .join('services', 'issues.service_id', 'services.id')
+    .leftJoin('issue_wcag_criteria', 'issues.id', 'issue_wcag_criteria.issue_id')
+    .leftJoin('wcag_criteria', 'issue_wcag_criteria.wcag_criterion', 'wcag_criteria.criterion')
+    .leftJoin('issue_types', 'issues.id', 'issue_types.issue_id')
+    .where('services.department_id', validDepartmentId)
+    .groupBy(
+      'issues.id',
+      'issues.title',
+      'issues.status',
+      'issues.created_at',
+      'services.name'
+    )
+    .orderBy('issues.created_at', 'desc')
+    .limit(validLimit);
 
-  // Get WCAG criteria and types for each issue
-  for (const issue of issues) {
-    // Get WCAG criteria using SQL Server syntax
-    const criteria = await db.raw(`
-      SELECT wcag_criteria.*
-      FROM issue_wcag_criteria
-      LEFT JOIN wcag_criteria ON issue_wcag_criteria.wcag_criterion = wcag_criteria.criterion
-      WHERE issue_wcag_criteria.issue_id = ?
-    `, [issue.id]);
-    
-    issue.wcag_criteria = criteria;
+  // Process the results
+  return issues.map(issue => ({
+    ...issue,
+    wcag_level: getHighestWcagLevel(issue.wcag_levels ? issue.wcag_levels.split(',') : []),
+    types: issue.types ? issue.types.split(',') : []
+  }));
+}
 
-    // Set the highest WCAG level as the issue's main level for filtering
-    if (criteria.length > 0) {
-      const levels = criteria.map(c => c.level).filter(l => l);
-      issue.wcag_level = levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
-    }
-
-    // Get issue types
-    const types = await db('issue_types')
-      .select('type')
-      .where('issue_id', issue.id);
-    
-    issue.types = types.map(t => t.type);
-  }
-
-  return issues;
+// Helper function to determine highest WCAG level
+function getHighestWcagLevel(levels) {
+  if (!levels || !levels.length) return null;
+  return levels.includes('A') ? 'A' : levels.includes('AA') ? 'AA' : levels.includes('AAA') ? 'AAA' : null;
 }
 
 /**

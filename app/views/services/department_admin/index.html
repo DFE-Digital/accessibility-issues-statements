@@ -296,7 +296,7 @@
                 {% endif %}
 
                 <ul class="govuk-pagination__list">
-                  {% for page in range(pagination.startPage, pagination.endPage + 1) %}
+                  {% for page in range(1, pagination.totalPages + 1) %}
                   <li class="govuk-pagination__item {% if page == pagination.currentPage %}govuk-pagination__item--current{% endif %}">
                     {% if page == pagination.currentPage %}
                     <span class="govuk-pagination__link" aria-current="page">{{ page }}</span>
