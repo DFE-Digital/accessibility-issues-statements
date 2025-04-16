@@ -446,7 +446,23 @@ async function getDepartmentIssues(departmentId) {
 }
 
 // Get all open issues for a department
-async function getDepartmentOpenIssues(departmentId) {
+async function getDepartmentOpenIssues(departmentId, page = 1, limit = 10) {
+  // Ensure page and limit are valid numbers
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  
+  // Calculate offset
+  const offset = (page - 1) * limit;
+
+  // Get total count first
+  const totalCount = await db('issues')
+    .join('services', 'issues.service_id', 'services.id')
+    .where('services.department_id', departmentId)
+    .where('issues.status', 'open')
+    .count('* as count')
+    .first();
+
+  // Get paginated issues
   const issues = await db('issues')
     .select(
       'issues.*',
@@ -457,7 +473,9 @@ async function getDepartmentOpenIssues(departmentId) {
     .leftJoin('users', 'issues.created_by', 'users.id')
     .where('services.department_id', departmentId)
     .where('issues.status', 'open')
-    .orderBy('issues.created_at', 'desc');
+    .orderBy('issues.created_at', 'desc')
+    .offset(offset)
+    .limit(limit);
 
   // Get WCAG criteria and types for each issue
   for (const issue of issues) {
@@ -483,7 +501,15 @@ async function getDepartmentOpenIssues(departmentId) {
     issue.types = types.map(t => t.type);
   }
 
-  return issues;
+  return {
+    issues,
+    pagination: {
+      total: parseInt(totalCount.count),
+      page,
+      limit,
+      totalPages: Math.ceil(parseInt(totalCount.count) / limit)
+    }
+  };
 }
 
 async function getIssuesByCriterion(criterion) {

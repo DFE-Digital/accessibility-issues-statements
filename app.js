@@ -66,6 +66,20 @@ nunjuckEnv.addFilter('findServiceName', findServiceName);
 nunjuckEnv.addFilter('findById', findById);
 nunjuckEnv.addFilter('formatDateFilter', formatDateFilter);
 
+// Add updateQueryParams filter for pagination
+nunjuckEnv.addFilter('updateQueryParams', function(url, params) {
+  // Create a URL object using the current path
+  const urlObj = new URL(url, 'http://localhost');
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      urlObj.searchParams.set(key, value);
+    } else {
+      urlObj.searchParams.delete(key);
+    }
+  });
+  return urlObj.pathname + urlObj.search;
+});
+
 // Register marked and markdown libraries
 marked.use(govukMarkdown({
   headingsStartWith: 'xl'

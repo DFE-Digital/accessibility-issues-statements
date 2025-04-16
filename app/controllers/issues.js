@@ -14,10 +14,18 @@ const index = async (req, res) => {
       service_id: req.query.service_id || '',
       planned_fix: req.query.planned_fix || '',
       planned_fix_date: req.query.planned_fix_date || '',
-      search: req.query.search || ''
+      search: req.query.search || '',
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10
     };
 
+    // Ensure limit is a positive integer
+    if (isNaN(filters.limit) || filters.limit <= 0) {
+      filters.limit = 10;
+    }
+
     let issues;
+    let pagination;
     if (user.role === 'super_admin') {
       issues = await getAllIssues();
     } else {
@@ -26,7 +34,9 @@ const index = async (req, res) => {
       if (!departmentId) {
         throw new Error('User department ID not found');
       }
-      issues = await getDepartmentOpenIssues(departmentId);
+      const result = await getDepartmentOpenIssues(departmentId, filters.page, filters.limit);
+      issues = result.issues;
+      pagination = result.pagination;
     }
 
     // Apply filters
@@ -81,6 +91,20 @@ const index = async (req, res) => {
       );
     }
 
+    // Recalculate pagination after filtering
+    if (user.role === 'super_admin') {
+      const totalIssues = issues.length;
+      const totalPages = Math.ceil(totalIssues / filters.limit);
+      const offset = (filters.page - 1) * filters.limit;
+      issues = issues.slice(offset, offset + filters.limit);
+      pagination = {
+        total: totalIssues,
+        page: filters.page,
+        limit: filters.limit,
+        totalPages
+      };
+    }
+
     // Get services for the department
     let services = [];
     if (user.role === 'super_admin') {
@@ -94,7 +118,8 @@ const index = async (req, res) => {
     res.render('department_admin/issues/index', {
       issues,
       services,
-      filters
+      filters,
+      pagination
     });
   } catch (error) {
     console.error('Error in issues index:', error);
