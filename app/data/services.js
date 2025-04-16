@@ -317,16 +317,18 @@ async function getUserServicesStats(userId) {
  * @returns {Promise<Object>} Created service
  */
 async function createService(serviceData) {
-  const [service] = await db('services')
+  const service = await db('services')
     .insert({
       name: serviceData.name,
       url: serviceData.url,
       department_id: serviceData.department_id,
       business_area_id: serviceData.business_area_id,
+      service_owner_id: serviceData.service_owner_id,
       created_at: serviceData.created_at,
       updated_at: serviceData.updated_at
     })
-    .returning('*');
+    .returning('*')
+    .then(rows => rows[0]);
 
   return service;
 }

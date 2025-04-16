@@ -1282,3 +1282,8 @@ body {
   }
 }
 
+.govuk-pagination__item--current {
+  color: #ffffff;
+}
+
+

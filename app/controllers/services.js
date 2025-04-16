@@ -107,10 +107,12 @@ const newService = async (req, res) => {
 
     const user = req.session.user;
     const businessAreas = await businessAreasData.getDepartmentBusinessAreas(user.department.id);
+    const departmentUsers = await usersData.getDepartmentUsers(user.department.id);
 
     res.render(`services/${user.role}/new`, {
       user,
       businessAreas,
+      departmentUsers,
       csrfToken: req.csrfToken()
     });
   } catch (error) {
@@ -135,12 +137,12 @@ const createService = async (req, res) => {
     }
 
     const user = req.session.user;
-    const { name, url, business_area_id } = req.body;
+    const { name, url, business_area_id, service_owner_id } = req.body;
 
     // Validate input
     const errorSummary = [];
     const fieldErrors = {};
-    const values = { name, url, business_area_id };
+    const values = { name, url, business_area_id, service_owner_id };
 
     if (!name || name.trim() === '') {
       const message = 'Enter a service name';
@@ -162,12 +164,20 @@ const createService = async (req, res) => {
       fieldErrors.url = message;
     }
 
+    if (!service_owner_id) {
+      const message = 'Select a service owner';
+      errorSummary.push({ field: 'service_owner_id', message });
+      fieldErrors.service_owner_id = message;
+    }
+
     // If there are validation errors, render the form again with errors
     if (errorSummary.length > 0) {
       const businessAreas = await businessAreasData.getDepartmentBusinessAreas(user.department.id);
+      const departmentUsers = await usersData.getDepartmentUsers(user.department.id);
       return res.render(`services/${user.role}/new`, {
         user,
         businessAreas,
+        departmentUsers,
         errors: errorSummary,
         fieldErrors,
         values,
@@ -183,6 +193,7 @@ const createService = async (req, res) => {
         url: url.trim(),
         department_id: user.department.id,
         business_area_id: business_area_id || null,
+        service_owner_id: service_owner_id,
         created_at: new Date(),
         updated_at: new Date()
       };

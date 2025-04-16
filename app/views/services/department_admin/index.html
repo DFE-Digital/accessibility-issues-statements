@@ -281,6 +281,46 @@
                   {% endfor %}
                 </tbody>
               </table>
+
+              {% if pagination.totalPages > 1 %}
+              <nav class="govuk-pagination" role="navigation" aria-label="Pagination">
+                {% if pagination.currentPage > 1 %}
+                <div class="govuk-pagination__prev">
+                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.currentPage - 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" rel="prev">
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                      <path d="m6.5938-0.0078125-6.7266 6.7266 6.7266 6.7266 1.4062-1.4062-4.3203-4.3203h8.3203v-2h-8.3203l4.3203-4.3203z"></path>
+                    </svg>
+                    <span class="govuk-pagination__link-title">Previous</span>
+                  </a>
+                </div>
+                {% endif %}
+
+                <ul class="govuk-pagination__list">
+                  {% for page in range(pagination.startPage, pagination.endPage + 1) %}
+                  <li class="govuk-pagination__item {% if page == pagination.currentPage %}govuk-pagination__item--current{% endif %}">
+                    {% if page == pagination.currentPage %}
+                    <span class="govuk-pagination__link" aria-current="page">{{ page }}</span>
+                    {% else %}
+                    <a class="govuk-link govuk-pagination__link" href="?page={{ page }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" aria-label="Page {{ page }}">
+                      {{ page }}
+                    </a>
+                    {% endif %}
+                  </li>
+                  {% endfor %}
+                </ul>
+
+                {% if pagination.currentPage < pagination.totalPages %}
+                <div class="govuk-pagination__next">
+                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.currentPage + 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" rel="next">
+                    <span class="govuk-pagination__link-title">Next</span>
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                      <path d="m8.4063-0.0078125 6.7266 6.7266-6.7266 6.7266-1.4062-1.4062 4.3203-4.3203h-8.3203v-2h8.3203l-4.3203-4.3203z"></path>
+                    </svg>
+                  </a>
+                </div>
+                {% endif %}
+              </nav>
+              {% endif %}
             {% else %}
               <p class="govuk-body">No services found for the selected filters</p>
             {% endif %}

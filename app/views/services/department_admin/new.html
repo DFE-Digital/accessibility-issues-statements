@@ -85,6 +85,26 @@
             </select>
           </div>
 
+          <div class="govuk-form-group {% if fieldErrors.service_owner_id %}govuk-form-group--error{% endif %}">
+            <label class="govuk-label" for="service_owner_id">
+              Service owner
+            </label>
+            {% if fieldErrors.service_owner_id %}
+              <span id="service_owner_id-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ fieldErrors.service_owner_id }}
+              </span>
+            {% endif %}
+            <select class="govuk-select {% if fieldErrors.service_owner_id %}govuk-select--error{% endif %}" id="service_owner_id" name="service_owner_id" required>
+              <option value="">Select a service owner</option>
+              {% for user in departmentUsers %}
+                <option value="{{ user.id }}" {% if values.service_owner_id == user.id %}selected{% endif %}>
+                  {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
           <div class="govuk-button-group">
             <button class="govuk-button" data-module="govuk-button">
           Add service
