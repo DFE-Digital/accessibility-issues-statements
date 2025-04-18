@@ -379,10 +379,18 @@ async function getServiceByNumericId(numericId) {
   const [service] = await db('services')
     .select(
       'services.*',
-      'departments.name as department_name'
+      'departments.name as department_name',
+      'departments.brand as department_brand'
     )
     .leftJoin('departments', 'services.department_id', 'departments.id')
     .where('services.numeric_id', numericId);
+
+  if (service) {
+    service.department = {
+      name: service.department_name,
+      brand: service.department_brand || 'gov'
+    };
+  }
   
   return service;
 }
