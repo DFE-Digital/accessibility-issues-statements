@@ -110,6 +110,8 @@ router.post('/settings', isAuthenticated, isDepartmentAdmin, departmentAdminCont
 router.get('/department-admin', isAuthenticated, isDepartmentAdmin, departmentAdminController.index);
 router.get('/department-admin/services', isAuthenticated, isDepartmentAdmin, departmentAdminController.showServices);
 router.get('/department-admin/services/:serviceId', isAuthenticated, isDepartmentAdmin, departmentAdminController.showService);
+router.get('/settings/branding', departmentAdminController.showBranding);
+router.post('/settings/branding', departmentAdminController.updateBranding);
 
 // User management routes (department level)
 router.get('/users', isAuthenticated, isDepartmentAdmin, usersController.index);
@@ -167,7 +169,5 @@ router.post('/super-admin/wcag', isAuthenticated, isSuperAdmin, wcagCriteriaCont
 router.get('/super-admin/wcag/:id/edit', isAuthenticated, isSuperAdmin, wcagCriteriaController.showEditForm);
 router.post('/super-admin/wcag/:id', isAuthenticated, isSuperAdmin, wcagCriteriaController.update);
 router.post('/super-admin/wcag/:id/delete', isAuthenticated, isSuperAdmin, wcagCriteriaController.destroy);
-
-
 
 module.exports = router; 

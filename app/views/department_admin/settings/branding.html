@@ -1,0 +1,153 @@
+{% extends "layouts/layout_wide.html" %}
+
+{% set pageTitle = "Settings" %}
+{% set serviceNav = "Settings" %}
+
+{% set verticalNav = "Branding" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% block content %}
+
+    {% include "layouts/_pageheader.html" %}
+
+    <div class="govuk-width-container">
+        <div class="govuk-grid-row">
+
+            <div class="govuk-grid-column-one-quarter">
+                <nav class="dfe-vertical-nav govuk-!-margin-top-0">
+                    <ul class="dfe-vertical-nav__section">
+                        <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Department information' %}dfe-vertical-nav__section-item--current{% endif %}">
+                            <a class="dfe-vertical-nav__link" href="/settings">Department information</a>
+                        </li>
+                        <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Business areas' %}dfe-vertical-nav__section-item--current{% endif %}">
+                            <a class="dfe-vertical-nav__link" href="/settings/business-areas">Business areas</a>
+                        </li>
+
+                        <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Branding' %}dfe-vertical-nav__section-item--current{% endif %}">
+                            <a class="dfe-vertical-nav__link" href="/settings/branding">Branding</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="govuk-grid-column-three-quarters">
+
+                <h2 class="govuk-heading-l">Manage your service branding</h2>
+
+                {% if successMessage %}
+                    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+                        <div class="govuk-notification-banner__header">
+                            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+              Success
+            </h2>
+                        </div>
+                        <div class="govuk-notification-banner__content">
+                            <p class="govuk-notification-banner__heading">
+                                {{ successMessage }}
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if errorMessage %}
+                    <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+                        <h2 class="govuk-error-summary__title" id="error-summary-title">
+            There is a problem
+          </h2>
+                        <div class="govuk-error-summary__body">
+                            <ul class="govuk-list govuk-error-summary__list">
+                                <li>
+                                    {{ errorMessage }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <p class="govuk-body">
+     You can change the logo that appears in the header to match your department.
+      </p>
+                <p class="govuk-body">
+       Currently, we support central government departments and devolved administrations. If your organisation is not listed, please <a href="https://design.education.gov.uk/designops" class="govuk-link govuk-link--no-visited-state">contact us</a> to request a logo.
+      </p>
+
+      <div class="govuk-inset-text">
+        <p class="govuk-body">
+        Your current branding is <strong>{{ user.department.brand }}</strong>.
+        </p>
+      </div>
+
+                <form action="/settings/branding" method="post">
+                    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+                    <div class="govuk-form-group">
+                        <label class="govuk-label" for="brand">
+                            Select your department
+                        </label>
+                        <select class="govuk-select" id="brand" name="brand" value="{{ department.brand }}">
+                            <option value="">Select a department</option>
+                            <option value="attorney-generals-office">Attorney General's Office</option>
+                            <option value="border-force">Border Force</option>
+                            <option value="cabinet-office">Cabinet Office</option>
+                            <option value="civil-service">Civil Service</option>
+                            <option value="criminal-injuries-compensation-authority">Criminal Injuries Compensation Authority</option>
+                            <option value="department-for-business-and-trade">Department for Business &amp; Trade</option>
+                            <option value="department-for-culture-media-and-sport">Department for Culture, Media &amp; Sport</option>
+                            <option value="department-for-education">Department for Education</option>
+                            <option value="department-for-energy-security-and-net-zero">Department for Energy Security &amp; Net Zero</option>
+                            <option value="department-for-environment-food-rural-affairs">Department for Environment, Food &amp; Rural Affairs</option>
+                            <option value="department-for-science-innovation-and-technology">Department for Science, Innovation &amp; Technology</option>
+                            <option value="department-for-transport">Department for Transport</option>
+                            <option value="department-for-work-pensions">Department for Work &amp; Pensions</option>
+                            <option value="department-of-health-and-social-care">Department of Health &amp; Social Care</option>
+                            <option value="education-skills-funding-agency">Education &amp; Skills Funding Agency</option>
+                            <option value="foreign-commonwealth-development-office">Foreign, Commonwealth &amp; Development Office</option>
+                            <option value="funded-by-uk-government">Funded by UK Government</option>
+                            <option value="gov-facility-services-limited">Gov Facility Services Limited</option>
+                            <option value="government-bodies">Government Bodies</option>
+                            <option value="government-internal-audit-agency">Government Internal Audit Agency</option>
+                            <option value="government-office-for-science">Government Office for Science</option>
+                            <option value="government-science-engineering">Government Science &amp; Engineering</option>
+                            <option value="hm-courts-tribunals-service">HM Courts &amp; Tribunals Service</option>
+                            <option value="hm-government">HM Government</option>
+                            <option value="hm-inspectorate-of-prisons">HM Inspectorate of Prisons</option>
+                            <option value="hm-inspectorate-of-probation">HM Inspectorate of Probation</option>
+                            <option value="hm-passport-office">HM Passport Office</option>
+                            <option value="hm-prison-probation-service">HM Prison &amp; Probation Service</option>
+                            <option value="hm-treasury">HM Treasury</option>
+                            <option value="home-office">Home Office</option>
+                            <option value="immigration-enforcement">Immigration Enforcement</option>
+                            <option value="independent-advisory-panel-on-deaths-in-custody">Independent Advisory Panel on Deaths in Custody</option>
+                            <option value="law-commission">Law Commission</option>
+                            <option value="legal-aid-agency">Legal Aid Agency</option>
+                            <option value="ministry-of-defence">Ministry of Defence</option>
+                            <option value="ministry-of-housing-communities-local-government">Ministry of Housing, Communities &amp; Local Government</option>
+                            <option value="ministry-of-justice">Ministry of Justice</option>
+                            <option value="northern-ireland-office">Northern Ireland Office</option>
+                            <option value="office-for-digital-identities-attributes">Office for Digital Identities &amp; Attributes</option>
+                            <option value="office-for-value-for-money">Office for Value for Money</option>
+                            <option value="office-of-the-advocate-general-for-scotland">Office of the Advocate General for Scotland</option>
+                            <option value="office-of-the-leader-of-the-house-of-commons">Office of the Leader of the House of Commons</option>
+                            <option value="office-of-the-leader-of-the-house-of-lords">Office of the Leader of the House of Lords</option>
+                            <option value="office-of-the-public-guardian">Office of the Public Guardian</option>
+                            <option value="office-of-the-secretary-of-state-for-scotland">Office of the Secretary of State for Scotland</option>
+                            <option value="privy-council-office">Privy Council Office</option>
+                            <option value="standard-testing-agency">Standard &amp; Testing Agency</option>
+                            <option value="supreme-court">Supreme Court</option>
+                            <option value="teaching-regulation-agency">Teaching Regulation Agency</option>
+                            <option value="uk-export-finance">UK Export Finance</option>
+                            <option value="uk-government">UK Government</option>
+                            <option value="uk-science-technology-network">UK Science &amp; Technology Network</option>
+                            <option value="uk-visas-immigration">UK Visas &amp; Immigration</option>
+                            <option value="wales-office">Wales Office</option>
+                        </select>
+                    </div>
+
+                    <button class="govuk-button" data-module="govuk-button">
+                        Save changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

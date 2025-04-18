@@ -3,7 +3,7 @@
   <div class="gem-c-layout-super-navigation-header__content">
     <div class="gem-c-layout-super-navigation-header__header-logo">
       <a href="/" class="gem-c-layout-super-navigation-header__logotype-crown">
-        <img src="/assets/images/dfe_horizontal.png" alt="Department for Education" class="gem-c-layout-super-navigation-header__logotype-crown-image" style="height: 30px;">
+        <img src="/assets/images/brands/{% if user.department.brand %}{{ user.department.brand }}_white.png{% else %}dfe_horizontal.png{% endif %}" alt="{% if user.department.name %}{{ user.department.name }}{% else %}Department for Education{% endif %}" class="gem-c-layout-super-navigation-header__logotype-crown-image">
       </a>
     </div>
 
@@ -15,7 +15,6 @@
       </div>
     </div>
   </div>
-
 
   <nav class="gem-c-layout-super-navigation-header__navigation-dropdown-menu" aria-label="Top Level Navigation" aria-hidden="true">
     <div class="govuk-width-container">
@@ -91,6 +90,7 @@
 }
 
 .gem-c-layout-super-navigation-header__header-logo {
+    height: 30px;
     display: flex;
     align-items: center;
 }
@@ -106,12 +106,13 @@
 }
 
 .gem-c-layout-super-navigation-header__logotype-crown:focus .gem-c-layout-super-navigation-header__logotype-crown-image {
-    content: url('/assets/images/dfe_horizontal_black.png');
+    content: url('/assets/images/brands/{% if user.department.brand %}{{ user.department.brand }}_black.png{% else %}dfe_horizontal_black.png{% endif %}');
 }
 
 .gem-c-layout-super-navigation-header__logotype-crown-image {
-    height: 25px;
+    height: 30px;
     width: auto;
+    object-fit: contain;
 }
 
 .gem-c-layout-super-navigation-header__button-container {
@@ -451,6 +452,10 @@
     }
     
     .gem-c-layout-super-navigation-header__logotype-crown-image {
+        height: 25px !important;
+    }
+    
+    .gem-c-layout-super-navigation-header__header-logo {
         height: 25px !important;
     }
     

@@ -396,11 +396,87 @@ const updateSettings = async (req, res) => {
   }
 };
 
+const showBranding = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect('/auth/sign-in');
+    }
+
+    const departmentId = req.session.user.department.id;
+
+    // Get user's department with latest data
+    const department = await db('departments')
+      .select('*')
+      .where('id', departmentId)
+      .first();
+
+    if (!department) {
+      return res.status(404).render('error', {
+        error: 'Department not found'
+      });
+    }
+
+    // Update session with latest department data
+    req.session.user.department = {
+      ...req.session.user.department,
+      ...department
+    };
+
+    res.render('department_admin/settings/branding', {
+      department,
+      user: req.session.user,
+      successMessage: req.session.successMessage,
+      errorMessage: req.session.errorMessage,
+      errors: req.session.errors || {},
+      csrfToken: req.csrfToken()
+    });
+
+    // Clear messages after displaying them
+    delete req.session.successMessage;
+    delete req.session.errorMessage;
+    delete req.session.errors;
+  } catch (error) {
+    console.error('Branding settings error:', error);
+    res.status(500).render('error', {
+      error: 'There was a problem loading the branding settings',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+const updateBranding = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect('/auth/sign-in');
+    }
+
+    const { brand } = req.body;
+    const departmentId = req.session.user.department.id;
+
+    // Update department brand
+    await db('departments')
+      .where('id', departmentId)
+      .update({
+        brand,
+        updated_at: new Date()
+      });
+
+    req.session.successMessage = 'Branding updated successfully';
+    res.redirect('/settings/branding');
+  } catch (error) {
+    console.error('Error updating branding:', error);
+    req.session.errorMessage = 'There was a problem updating the branding';
+    res.redirect('/settings/branding');
+  }
+};
+
 module.exports = {
   index,
   showServices,
   showService,
   showSettings,
   updateSettings,
-  showBusinessAreas
+  showBusinessAreas,
+  showBranding,
+  updateBranding
 }; 

@@ -23,6 +23,10 @@
             <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Business areas' %}dfe-vertical-nav__section-item--current{% endif %}">
               <a class="dfe-vertical-nav__link" href="/settings/business-areas">Business areas</a>
             </li>
+
+            <li class="dfe-vertical-nav__section-item {% if verticalNav === 'Branding' %}dfe-vertical-nav__section-item--current{% endif %}">
+              <a class="dfe-vertical-nav__link" href="/settings/branding">Branding</a>
+            </li>
           </ul>
         </nav>
       </div>
@@ -60,39 +64,34 @@
           </div>
         {% endif %}
 
-   
-            <form method="post" action="/settings">
-              <input type="hidden" name="_csrf" value="{{ csrfToken }}">
-              <div class="govuk-form-group {% if errors.name %}govuk-form-group--error{% endif %}">
-                <label class="govuk-label govuk-label--m" for="name">
+        <form method="post" action="/settings">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-form-group {% if errors.name %}govuk-form-group--error{% endif %}">
+            <label class="govuk-label govuk-label--m" for="name">
             Department name
           </label>
-                {% if errors.name %}
-                  <span id="name-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">Error:</span>
-                    {{ errors.name }}
-                  </span>
-                {% endif %}
-                <input class="govuk-input {% if errors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ department.name }}">
-              </div>
+            {% if errors.name %}
+              <span id="name-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ errors.name }}
+              </span>
+            {% endif %}
+            <input class="govuk-input {% if errors.name %}govuk-input--error{% endif %}" id="name" name="name" type="text" value="{{ department.name }}">
+          </div>
 
-              <div class="govuk-form-group">
-                <label class="govuk-label govuk-label--m" for="domains">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--m" for="domains">
             Domains allowed to self-register
           </label>
-                <div id="domains-hint" class="govuk-hint">
+            <div id="domains-hint" class="govuk-hint">
             Enter one domain per line. For example: example.gov.uk. These domains will be able to self-register and join this department.
           </div>
-                <textarea class="govuk-textarea" id="domains" name="domains" rows="5" aria-describedby="domains-hint">{{ department.domains.join('\n') }}</textarea>
-              </div>
+            <textarea class="govuk-textarea" id="domains" name="domains" rows="5" aria-describedby="domains-hint">{{ department.domains.join('\n') }}</textarea>
+          </div>
 
-              <button class="govuk-button" data-module="govuk-button">
+          <button class="govuk-button" data-module="govuk-button">
           Save changes
         </button>
-            </form>
+        </form>
 
-
-       
-
-
-    {% endblock %}
+      {% endblock %}
