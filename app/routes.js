@@ -54,6 +54,10 @@ router.post('/services/:serviceId/issues/:id', isAuthenticated, issuesController
 router.post('/services/:serviceId/issues/:id/comments', isAuthenticated, issuesController.addComment);
 router.post('/services/:serviceId/issues/:id/comments/:commentId/delete', isAuthenticated, issuesController.handleDeleteComment);
 
+// Issue resources
+router.post('/services/:serviceId/issues/:id/resources', isAuthenticated, issuesController.addIssueResource);
+router.post('/services/:serviceId/issues/:id/resources/:resourceId/delete', isAuthenticated, issuesController.deleteIssueResource);
+
 // Issue status changes
 router.post('/services/:serviceId/issues/:id/close', isAuthenticated, issuesController.handleCloseIssue);
 router.post('/services/:serviceId/issues/:id/reopen', isAuthenticated, issuesController.handleReopenIssue);

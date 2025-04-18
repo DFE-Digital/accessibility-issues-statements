@@ -7,10 +7,7 @@
 
 {% block content %}
 
-
 {% include "services/department_admin/_subnav.html" %}
-
-
 
 <div class="govuk-width-container">
   <div class="govuk-grid-row">
@@ -184,6 +181,62 @@
 
       <div class="govuk-summary-card">
         <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">External resources</h2>
+          {% if issue.status != 'closed' %}
+          <ul class="govuk-summary-card__actions">
+            <li class="govuk-summary-card__action">
+              <a class="govuk-link govuk-link--no-visited-state" href="#" onclick="openAddResourceModal(); return false;">Add new resource</a>
+            </li>
+          </ul>
+          {% endif %}
+        </div>
+        <div class="govuk-summary-card__content">
+          {# Resources List #}
+          {% if issue.resources and issue.resources.length > 0 %}
+          <div class="govuk-!-margin-bottom-6">
+            <table class="govuk-table">
+              <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                  <th scope="col" class="govuk-table__header">Resource</th>
+                  <th scope="col" class="govuk-table__header">Added by</th>
+                  <th scope="col" class="govuk-table__header">Created</th>
+                  {% if issue.status != 'closed' %}
+                  <th scope="col" class="govuk-table__header">Action</th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody class="govuk-table__body">
+                {% for resource in issue.resources %}
+                <tr class="govuk-table__row">
+                  <td class="govuk-table__cell">
+                  
+                      <a href="{{ resource.value }}" target="_blank" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">
+                        {{ resource.type | title }} <span class="govuk-visually-hidden"> (opens in a new tab)</span>
+                      </a>
+                  
+                  </td>
+                  <td class="govuk-table__cell">{{ resource.created_by_name }}</td>
+                  <td class="govuk-table__cell">{{ resource.created_at | date('D MMMM YYYY, HH:mm') }}</td>
+                  {% if issue.status != 'closed' %}
+                  <td class="govuk-table__cell">
+                    <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openDeleteResourceModal('{{ resource.id }}', '{{ resource.value | truncate(50) }}'); return false;">
+                      Delete <span class="govuk-visually-hidden"> {{ resource.type | title }}</span>
+                    </a>
+                  </td>
+                  {% endif %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="govuk-body govuk-!-margin-bottom-6">No resources added yet.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="govuk-summary-card">
+        <div class="govuk-summary-card__title-wrapper">
           <h2 class="govuk-summary-card__title">Comments</h2>
         </div>
         <div class="govuk-summary-card__content">
@@ -242,6 +295,7 @@
         </div>
       </div>
 
+    
 
     </div>
     <div class="govuk-grid-column-one-third">
@@ -557,6 +611,95 @@
   </div>
 </div>
 
+{# Delete Resource Modal #}
+<div class="govuk-modal-overlay" id="delete-resource-modal" style="display: none;" role="dialog" aria-labelledby="delete-resource-modal-title"
+  aria-describedby="delete-resource-modal-description" aria-modal="true" tabindex="-1">
+  <div class="govuk-modal">
+    <div class="govuk-modal__header">
+      <h2 class="govuk-modal__title" id="delete-resource-modal-title">Delete resource</h2>
+      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeDeleteResourceModal()">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div class="govuk-modal__content">
+      <div id="delete-resource-modal-description">
+        <div class="govuk-warning-text">
+          <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+          <strong class="govuk-warning-text__text">
+            <span class="govuk-warning-text__assistive">Warning</span>
+            This action cannot be undone
+          </strong>
+        </div>
+        <p class="govuk-body">Are you sure you want to delete this resource?</p>
+        <p class="govuk-body" id="resource-preview"></p>
+      </div>
+      <form id="delete-resource-form" method="post" style="display: inline;">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button govuk-button--warning" data-module="govuk-button"
+            data-prevent-double-click="true">
+            Delete resource
+          </button>
+          <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button"
+            onclick="closeDeleteResourceModal()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Add Resource Modal #}
+<div class="govuk-modal-overlay" id="add-resource-modal" style="display: none;" role="dialog" aria-labelledby="add-resource-modal-title"
+  aria-describedby="add-resource-modal-description" aria-modal="true" tabindex="-1">
+  <div class="govuk-modal">
+    <div class="govuk-modal__header">
+      <h2 class="govuk-modal__title" id="add-resource-modal-title">Add new resource</h2>
+      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeAddResourceModal()">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div class="govuk-modal__content">
+      <div id="add-resource-modal-description">
+        <form id="add-resource-form" method="post" action="/services/{{ service.id }}/issues/{{ issue.id }}/resources">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="resource-type">
+              Resource type
+            </label>
+            <div id="resource-type-hint" class="govuk-hint">
+              Enter the type of resource (e.g. document, link, image)
+            </div>
+            <input class="govuk-input" id="resource-type" name="type" type="text" aria-describedby="resource-type-hint" required>
+          </div>
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="resource-value">
+              Resource URL
+            </label>
+            <div id="resource-value-hint" class="govuk-hint">
+              Enter a URL starting with https://
+            </div>
+            <input class="govuk-input" id="resource-value" name="value" type="url" pattern="https://.*" aria-describedby="resource-value-hint" required>
+            <div class="govuk-error-message" id="url-error" style="display: none;">
+              Please enter a valid URL starting with https://
+            </div>
+          </div>
+          <div class="govuk-button-group">
+            <button type="submit" class="govuk-button" data-module="govuk-button" data-prevent-double-click="true">
+              Add resource
+            </button>
+            <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button"
+              onclick="closeAddResourceModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
   .govuk-modal-overlay {
     position: fixed;
@@ -841,11 +984,31 @@
       closeModal('assign-modal');
     };
 
+    // Delete resource modal
+    window.openDeleteResourceModal = function(resourceId, resourcePreview) {
+      openModal('delete-resource-modal');
+      document.getElementById('delete-resource-form').action = `/services/{{ service.id }}/issues/{{ issue.id }}/resources/${resourceId}/delete`;
+      document.getElementById('resource-preview').textContent = `"${resourcePreview}..."`;
+    };
+
+    window.closeDeleteResourceModal = function() {
+      closeModal('delete-resource-modal');
+    };
+
+    // Add resource modal
+    window.openAddResourceModal = function() {
+      openModal('add-resource-modal');
+    };
+
+    window.closeAddResourceModal = function() {
+      closeModal('add-resource-modal');
+    };
+
     // Initialize modals when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
       // Global event listeners for all modals
       document.addEventListener('click', function (event) {
-        const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal'];
+        const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal', 'delete-resource-modal', 'add-resource-modal'];
         
         modals.forEach(modalId => {
           const modal = document.querySelector(`#${modalId} .govuk-modal`);
@@ -859,7 +1022,7 @@
 
       document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-          const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal'];
+          const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal', 'delete-resource-modal', 'add-resource-modal'];
           
           modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
@@ -881,6 +1044,107 @@
             e.preventDefault();
             alert('Please select a user or enter an email address');
           }
+        });
+      }
+
+      // Handle add resource form submission
+      const addResourceForm = document.getElementById('add-resource-form');
+      if (addResourceForm) {
+        addResourceForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          console.log('Form submission started');
+          
+          // Get the CSRF token from the hidden input
+          const csrfToken = document.querySelector('input[name="_csrf"]').value;
+          console.log('CSRF token:', csrfToken);
+          
+          // Create form data
+          const formData = new FormData(this);
+          const resourceValue = formData.get('value');
+          
+          // Validate URL
+          if (!resourceValue.startsWith('https://')) {
+            const errorElement = document.getElementById('url-error');
+            errorElement.style.display = 'block';
+            return;
+          }
+          
+          const data = {
+            type: formData.get('type'),
+            value: resourceValue
+          };
+          
+          console.log('Form data:', data);
+          
+          // Submit the form using fetch
+          fetch(this.action, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken
+            },
+            body: JSON.stringify(data),
+            credentials: 'same-origin'
+          })
+          .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(err.error || 'Failed to add resource');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Success:', data);
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error('Error details:', error);
+            alert('Failed to add resource. Please try again. Error: ' + error.message);
+          });
+        });
+      }
+
+      // Handle delete resource form submission
+      const deleteResourceForm = document.getElementById('delete-resource-form');
+      if (deleteResourceForm) {
+        deleteResourceForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          console.log('Delete resource form submission started');
+          
+          // Get the CSRF token from the hidden input
+          const csrfToken = document.querySelector('input[name="_csrf"]').value;
+          
+          // Submit the form using fetch
+          fetch(this.action, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken
+            },
+            credentials: 'same-origin'
+          })
+          .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(err.error || 'Failed to delete resource');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Success:', data);
+            // Close the modal
+            closeDeleteResourceModal();
+            // Reload the page to show updated resources
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error('Error details:', error);
+            alert('Failed to delete resource. Please try again. Error: ' + error.message);
+          });
         });
       }
     });

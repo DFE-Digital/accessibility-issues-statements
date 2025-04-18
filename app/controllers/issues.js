@@ -4,6 +4,7 @@ const { createComment, getIssueComments, deleteComment } = require('../data/comm
 const { getWcagCriteria, getWcagCriteriaByCriterion } = require('../data/wcag_criteria');
 const { db } = require('../db');
 const { sendEmail } = require('../middleware/notify');
+const { getIssueResources, createResource, deleteResource } = require('../data/issue_resources');
 
 
 const index = async (req, res) => {
@@ -284,6 +285,10 @@ async function showIssueDetails(req, res) {
     // Get comments for the issue
     const comments = await getIssueComments(id);
     issue.comments = comments;
+
+    // Get resources for the issue
+    const resources = await getIssueResources(id);
+    issue.resources = resources;
 
     // Get users for the department
     const users = await db('users')
@@ -911,6 +916,78 @@ async function showOverdueIssues(req, res) {
   }
 }
 
+/**
+ * Get resources for an issue
+ */
+async function getIssueResourcesController(req, res) {
+  try {
+    const resources = await getIssueResources(req.params.issueId);
+    res.json(resources);
+  } catch (error) {
+    console.error('Error getting issue resources:', error);
+    res.status(500).json({ error: 'Failed to get issue resources' });
+  }
+}
+
+/**
+ * Add a new resource to an issue
+ */
+async function addIssueResource(req, res) {
+  try {
+    const { serviceId, id } = req.params;
+    const user = req.session.user;
+
+    // Verify service belongs to user's department
+    const services = await getDepartmentServices(user.department.id);
+    const service = services.find(s => s.id === serviceId);
+
+    if (!service) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    // Get the issue to get its department_id
+    const issue = await getIssue(id);
+    if (!issue) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    // Validate URL
+    if (!req.body.value.startsWith('https://')) {
+      return res.status(400).json({ error: 'URL must start with https://' });
+    }
+
+    const resourceData = {
+      issue_id: id,
+      department_id: issue.department_id,
+      type: req.body.type,
+      value: req.body.value,
+      created_by: user.id
+    };
+
+    const resource = await createResource(resourceData);
+    res.json(resource);
+  } catch (error) {
+    console.error('Error adding issue resource:', error);
+    res.status(500).json({ error: 'Failed to add issue resource' });
+  }
+}
+
+/**
+ * Delete a resource
+ */
+async function deleteIssueResource(req, res) {
+  try {
+    const deletedResource = await deleteResource(req.params.resourceId, req.session.user.id);
+    if (!deletedResource) {
+      return res.status(404).json({ error: 'Resource not found or not authorized to delete' });
+    }
+    res.json({ success: true, resource: deletedResource });
+  } catch (error) {
+    console.error('Error deleting issue resource:', error);
+    res.status(500).json({ error: 'Failed to delete issue resource' });
+  }
+}
+
 module.exports = {
   index,
   showNewIssueForm,
@@ -925,5 +1002,8 @@ module.exports = {
   assignIssue,
   issuesByCriterion,
   showClosedIssues,
-  showOverdueIssues
+  showOverdueIssues,
+  getIssueResources: getIssueResourcesController,
+  addIssueResource,
+  deleteIssueResource
 }; 
