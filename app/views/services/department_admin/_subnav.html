@@ -10,14 +10,19 @@
                         <table class="govuk-table  compact-table govuk-!-margin-bottom-5">
                             <thead class="govuk-table__head">
                                 <tr class="govuk-table__row">
+
+                                    <th scope="col" class="govuk-table__header">Service ID</th>
                                     <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service URL</th>
                                     <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service owner</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Business area</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Statement enrolled</th>
+                                    <th scope="col" class="govuk-table__header ">Business area</th>
+                                    <th scope="col" class="govuk-table__header">Statement enrolled</th>
                                 </tr>
                             </thead>
                             <tbody class="govuk-table__body">
                                 <tr class="govuk-table__row">
+                                     <td class="govuk-table__cell">
+                                       {{service.numeric_id}}
+                                    </td>
                                     <td class="govuk-table__cell">
                                         <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state">{{ service.url }}</a>
                                     </td>
