@@ -1,6 +1,6 @@
-# Design Manual
+# Accessibility issues and statements service
 
-This is the Department for Education Design Manual
+This is the Department for Education Accessibility issues and statements service
 
 ## Contributing
 Please see our [Contributing Guide](CONTRIBUTING.md) for details on how you can contribute to this project.

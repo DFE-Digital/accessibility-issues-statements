@@ -168,7 +168,7 @@ app.post('/form-response/feedback', (req, res) => {
 
   console.log("Feedback received:", response);
 
-  const service = 'Design manual'; // Example service name
+  const service = res.locals.serviceName;
   const pageURL = req.headers.referer || 'Unknown'; // Capture the referrer URL
 
   base('Feedback').create([
