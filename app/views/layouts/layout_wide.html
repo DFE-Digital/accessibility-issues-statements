@@ -14,7 +14,7 @@
         <link rel="stylesheet" href="/assets/css/moj-frontend.min.css">
         <link rel="stylesheet" href="/assets/css/app.css">
         <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
-       
+
         {% block head %}{% endblock %}
     </head>
 
@@ -39,6 +39,18 @@
         {% include 'layouts/_servicenav.html' %}
 
         <main class="govuk-main-wrapper {{mainClasses}}" id="main-content">
+            <div class="govuk-width-container">
+                <div class="govuk-phase-banner">
+                    <p class="govuk-phase-banner__content">
+                        <strong class="govuk-tag govuk-phase-banner__content__tag">
+      Beta
+    </strong>
+                        <span class="govuk-phase-banner__text">
+     We're testing this service with a small group of users in DfE.
+    </span>
+                    </p>
+                </div>
+            </div>
             {%- block content -%}{%- endblock -%}
         </main>
 
@@ -46,8 +58,6 @@
 
         {% include 'layouts/_feedback.html' %}
         {% include 'layouts/_footer.html' %}
-
-      
 
         <script src="/assets/js/govuk-frontend.min.js"></script>
         <script type="module" src="/assets/js/moj-frontend.min.js"></script>
@@ -65,7 +75,6 @@
         <script src="/assets/js/app.js"></script>
         <script src="/assets/js/feedback.js"></script>
 
-      
         {% block scripts %}{% endblock %}
     </body>
 
