@@ -198,7 +198,7 @@ const createService = async (req, res) => {
         updated_at: new Date()
       };
 
-      const [service] = await servicesData.createService(serviceData);
+      const service = await servicesData.createService(serviceData);
 
       // Log the creation
       await servicesData.logServiceAction(service.id, user.id, 'create', serviceData);

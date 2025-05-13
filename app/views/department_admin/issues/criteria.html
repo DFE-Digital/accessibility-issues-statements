@@ -16,6 +16,8 @@
         <span class="govuk-caption-m">Issues for WCAG criteria</span>
         <h2 class="govuk-heading-m">{{ wcagCriteria.criterion }} - {{ wcagCriteria.title }} ({{ wcagCriteria.level }})</h2>
 
+        <p class="govuk-body">
+          You can read <a href="https://accessibility.education.gov.uk/knowledge-hub/wcag/criteria" target="_blank" class="govuk-link">guidance on this criterion <span class="govuk-visually-hidden">(opens in new tab)</span>in the accessibility manual</span></a>.        </p>
         <p class="govuk-body">{{ wcagCriteria.description }}</p>
 
         {% if issues.length > 0 %}
