@@ -1,0 +1,18 @@
+:root {
+    --modern-blue: #1d70b8;
+    --modern-blue-dark: #175a93;
+    --modern-blue-light: #f4f8fb;
+    --modern-yellow: #ffdd00;
+    --modern-pink: #d0354f;
+    --modern-pink-dark: #a62a3f;
+    --modern-bg-blue: #f6fafe;
+    --modern-bg-yellow: #fffbe6;
+    --modern-card-radius: 2px;
+    --modern-card-radius-large: 10px;
+    --modern-card-shadow: 0 6px 32px rgba(37,99,235,0.07);
+    --modern-card-focus: 0 0 0 3px #235edf;
+    --modern-border-grey: #b1b4b6;
+    --modern-light-grey: #f3f2f1;
+    --modern-black: #0b0c0c;
+    --modern-white: #ffffff;
+}

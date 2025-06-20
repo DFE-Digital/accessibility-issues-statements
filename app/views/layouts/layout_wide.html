@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="govuk-template--rebranded">
 
     <head>
         <meta charset="utf-8">
@@ -13,12 +13,13 @@
         <link rel="stylesheet" href="/assets/css/dfefrontend-2.0.0.min.css">
         <link rel="stylesheet" href="/assets/css/moj-frontend.min.css">
         <link rel="stylesheet" href="/assets/css/app.css">
+        <link rel="stylesheet" href="/assets/css/dfe-custom.css">
         <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
 
         {% block head %}{% endblock %}
     </head>
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-x"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N3HS8Y651Z"></script>
 
     <body class="govuk-template__body">
 
@@ -39,19 +40,11 @@
         {% include 'layouts/_servicenav.html' %}
 
         <main class="govuk-main-wrapper {{mainClasses}}" id="main-content">
-            <div class="govuk-width-container">
-                <div class="govuk-phase-banner">
-                    <p class="govuk-phase-banner__content">
-                        <strong class="govuk-tag govuk-phase-banner__content__tag">
-      Beta
-    </strong>
-                        <span class="govuk-phase-banner__text">
-     We're testing this service with a small group of users in DfE.
-    </span>
-                    </p>
-                </div>
-            </div>
-            {%- block content -%}{%- endblock -%}
+
+
+ {%- block content -%}{%- endblock -%}
+
+       
         </main>
 
         {%- block pageActions -%}{%- endblock -%}
@@ -74,6 +67,7 @@
         <script src="/assets/js/cookies.js"></script>
         <script src="/assets/js/app.js"></script>
         <script src="/assets/js/feedback.js"></script>
+        <script src="/assets/js/dfe-custom.js"></script>
 
         {% block scripts %}{% endblock %}
     </body>
