@@ -68,6 +68,8 @@ async function getAllServices(filters = {}) {
         'services.statement_enrolled',
         'services.numeric_id',
         'services.business_area_id',
+        'services.rosid',
+        'services.cmdbid',
         'departments.name',
         'owner.first_name',
         'owner.last_name',
@@ -147,6 +149,8 @@ async function getDepartmentServices(departmentId, filters = {}) {
         'services.statement_enrolled',
         'services.numeric_id',
         'services.business_area_id',
+        'services.rosid',
+        'services.cmdbid',
         'departments.name',
         'owner.first_name',
         'owner.last_name',
@@ -240,6 +244,8 @@ async function getUserServices(userId, filters = {}) {
             'services.statement_enrolled',
             'services.numeric_id',
             'services.business_area_id',
+            'services.rosid',
+            'services.cmdbid',
             'departments.name',
             'owner.first_name',
             'owner.last_name',
@@ -397,7 +403,19 @@ async function getServiceByNumericId(numericId) {
 async function getService(id) {
     const [service] = await db('services')
         .select(
-            'services.*',
+            'services.id',
+            'services.name',
+            'services.url',
+            'services.department_id',
+            'services.service_owner_id',
+            'services.external_id',
+            'services.created_at',
+            'services.updated_at',
+            'services.statement_enrolled',
+            'services.numeric_id',
+            'services.business_area_id',
+            'services.rosid',
+            'services.cmdbid',
             'departments.name as department_name',
             'owner.first_name as owner_first_name',
             'owner.last_name as owner_last_name',
@@ -450,10 +468,13 @@ async function getServiceByUrl(url) {
  * @returns {Promise<Object>} Updated service
  */
 async function updateService(id, serviceData) {
+    const { rosid, cmdbid, ...restOfServiceData } = serviceData;
     const [service] = await db('services')
         .where('id', id)
         .update({
-            ...serviceData,
+            ...restOfServiceData,
+            rosid: rosid,
+            cmdbid: cmdbid,
             updated_at: new Date()
         })
         .returning('*');

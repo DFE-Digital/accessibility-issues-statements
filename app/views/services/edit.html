@@ -63,6 +63,40 @@
               pattern="https?://.+">
           </div>
 
+    
+
+          <div class="govuk-form-group {% if fieldErrors.rosid %}govuk-form-group--error{% endif %}">
+            <label class="govuk-label" for="rosid">
+              ROSID
+            </label>
+            <span class="govuk-hint">
+              The ROSID is a unique identifier for the service. It is used to identify the service in the Register of Services.
+            </span> 
+            {% if fieldErrors.rosid %}
+              <span id="rosid-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ fieldErrors.rosid }}
+              </span>
+            {% endif %}
+            <input class="govuk-input {% if fieldErrors.rosid %}govuk-input--error{% endif %}" id="rosid" name="rosid" type="text" value="{{ values.rosid or service.rosid }}">
+          </div>
+
+          <div class="govuk-form-group {% if fieldErrors.cmdbid %}govuk-form-group--error{% endif %}">
+            <label class="govuk-label" for="cmdbid">
+              CMDBID
+            </label>
+            <span class="govuk-hint">
+              The CMDBID is a unique identifier for the service. It is used to identify the service in the CMDB.
+            </span>
+            {% if fieldErrors.cmdbid %}
+              <span id="cmdbid-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ fieldErrors.cmdbid }}
+              </span>
+            {% endif %}
+            <input class="govuk-input {% if fieldErrors.cmdbid %}govuk-input--error{% endif %}" id="cmdbid" name="cmdbid" type="text" value="{{ values.cmdbid or service.cmdbid }}">
+          </div>
+
           <div class="govuk-form-group {% if fieldErrors.service_owner_id %}govuk-form-group--error{% endif %}">
             <label class="govuk-label" for="service_owner_id">
               Service owner

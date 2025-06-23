@@ -485,85 +485,52 @@ const editService = async(req, res) => {
  */
 const updateService = async(req, res) => {
     try {
-        // Double check authentication (belt and braces)
         if (!req.session.user) {
             req.session.returnTo = req.originalUrl;
             return res.redirect('/auth/sign-in');
         }
 
         const user = req.session.user;
-        const serviceId = req.params.id;
+        const { id } = req.params;
+        const { name, url, business_area_id, service_owner_id, rosid, cmdbid, repositories = [] } = req.body;
 
-        // Get the existing service
-        const existingService = await servicesData.getService(serviceId);
-
+        // Get the existing service to perform validation against it
+        const existingService = await servicesData.getService(id);
         if (!existingService) {
-            return res.status(404).render('error', {
-                error: 'Service not found'
-            });
+            return res.status(404).render('error', { error: 'Service not found' });
         }
 
         // Check if user has permission to edit this service
         if (user.role !== 'super_admin' && existingService.department_id !== user.department.id) {
-            return res.status(403).render('error', {
-                error: 'You do not have permission to edit this service'
-            });
+            return res.status(403).render('error', { error: 'You do not have permission to edit this service' });
         }
 
         // Validate input
         const errorSummary = [];
         const fieldErrors = {};
-        const values = {
-            name: req.body.name,
-            url: req.body.url,
-            service_owner_id: req.body.service_owner_id,
-            business_area_id: req.body.business_area_id || null
-        };
+        const values = { name, url, business_area_id, service_owner_id, rosid, cmdbid, repositories };
 
-        // Name validation
-        if (!values.name || values.name.trim() === '') {
+        if (!name || name.trim() === '') {
             const message = 'Enter a service name';
             errorSummary.push({ field: 'name', message });
             fieldErrors.name = message;
-        } else if (values.name.length > 255) {
+        } else if (name.length > 255) {
             const message = 'Service name must be 255 characters or less';
             errorSummary.push({ field: 'name', message });
             fieldErrors.name = message;
-        } else if (values.name !== existingService.name) {
-            // Check if name is already taken
-            const existingServiceWithName = await servicesData.getServiceByName(values.name);
-            if (existingServiceWithName && existingServiceWithName.id !== serviceId) {
-                const message = 'A service with this name already exists';
-                errorSummary.push({ field: 'name', message });
-                fieldErrors.name = message;
-            }
         }
 
-        // URL validation
-        if (!values.url || values.url.trim() === '') {
+        if (!url || url.trim() === '') {
             const message = 'Enter a service URL';
             errorSummary.push({ field: 'url', message });
             fieldErrors.url = message;
-        } else if (!values.url.match(/^https?:\/\/.+/)) {
+        } else if (!url.match(/^https?:\/\/.+/)) {
             const message = 'Enter a valid URL starting with http:// or https://';
             errorSummary.push({ field: 'url', message });
             fieldErrors.url = message;
-        } else if (values.url.length > 1000) {
-            const message = 'URL must be 1000 characters or less';
-            errorSummary.push({ field: 'url', message });
-            fieldErrors.url = message;
-        } else if (values.url !== existingService.url) {
-            // Check if URL is already taken
-            const existingServiceWithUrl = await servicesData.getServiceByUrl(values.url);
-            if (existingServiceWithUrl && existingServiceWithUrl.id !== serviceId) {
-                const message = 'A service with this URL already exists';
-                errorSummary.push({ field: 'url', message });
-                fieldErrors.url = message;
-            }
         }
 
-        // Service owner validation
-        if (!values.service_owner_id) {
+        if (!service_owner_id) {
             const message = 'Select a service owner';
             errorSummary.push({ field: 'service_owner_id', message });
             fieldErrors.service_owner_id = message;
@@ -571,18 +538,16 @@ const updateService = async(req, res) => {
 
         // If there are validation errors, render the form again with errors
         if (errorSummary.length > 0) {
-            // Get business areas for the department
-            const businessAreas = await businessAreasData.getDepartmentBusinessAreas(existingService.department_id);
-
-            return res.render('services/edit', {
+            const businessAreas = await businessAreasData.getDepartmentBusinessAreas(user.department.id);
+            const departmentUsers = await usersData.getDepartmentUsers(user.department.id);
+            return res.render(`services/${user.role}/edit`, {
                 user,
-                service: existingService,
-                departmentUsers: await usersData.getDepartmentUsers(existingService.department_id),
                 businessAreas,
+                departmentUsers,
                 errors: errorSummary,
                 fieldErrors,
                 values,
-                repositories: req.body.repositories || existingService.repositories
+                csrfToken: req.csrfToken()
             });
         }
 
@@ -590,26 +555,24 @@ const updateService = async(req, res) => {
         await db.transaction(async(trx) => {
             // Update the service
             const serviceData = {
-                name: values.name.trim(),
-                url: values.url.trim(),
-                service_owner_id: values.service_owner_id,
-                business_area_id: values.business_area_id,
+                name: name.trim(),
+                url: url.trim(),
+                business_area_id: business_area_id || null,
+                service_owner_id: service_owner_id,
+                rosid: rosid,
+                cmdbid: cmdbid,
                 updated_at: new Date()
             };
 
-            await servicesData.updateService(serviceId, serviceData);
+            const updatedService = await servicesData.updateService(id, serviceData, trx);
 
-            // Handle repositories
-            const repositories = req.body.repositories || [];
+            // Update repositories
+            await serviceRepositoriesData.deleteServiceRepositories(id);
 
-            // Delete existing repositories
-            await serviceRepositoriesData.deleteServiceRepositories(serviceId);
-
-            // Add new repositories
             for (const repo of repositories) {
                 if (repo.url && repo.type) {
                     await serviceRepositoriesData.addRepository({
-                        serviceId,
+                        serviceId: id,
                         url: repo.url.trim(),
                         type: repo.type
                     });
@@ -617,10 +580,10 @@ const updateService = async(req, res) => {
             }
 
             // Log the update
-            await servicesData.logServiceAction(serviceId, user.id, 'update', serviceData);
+            await servicesData.logServiceAction(id, user.id, 'update', serviceData);
         });
 
-        res.redirect(`/services/${serviceId}`);
+        res.redirect(`/services/${id}`);
     } catch (error) {
         console.error('Update service error:', error);
         res.status(500).render('error', {
