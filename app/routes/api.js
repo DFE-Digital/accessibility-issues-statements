@@ -126,8 +126,16 @@ router.get('/v1/issues', async(req, res) => {
         }
 
         if (wcag_criteria) {
-            query.where('wcag_criteria', 'like', `%${wcag_criteria}%`);
-            countQuery.where('wcag_criteria', 'like', `%${wcag_criteria}%`);
+            query.whereExists(function() {
+                this.select('*').from('issue_wcag_criteria')
+                    .whereRaw('issue_wcag_criteria.issue_id = issues.id')
+                    .andWhere('issue_wcag_criteria.wcag_criterion', 'like', `%${wcag_criteria}%`);
+            });
+            countQuery.whereExists(function() {
+                this.select('*').from('issue_wcag_criteria')
+                    .whereRaw('issue_wcag_criteria.issue_id = issues.id')
+                    .andWhere('issue_wcag_criteria.wcag_criterion', 'like', `%${wcag_criteria}%`);
+            });
         }
 
         if (planned_fix !== undefined) {
