@@ -12,10 +12,10 @@
                                 <tr class="govuk-table__row">
 
                                     <th scope="col" class="govuk-table__header">Service ID</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service URL</th>
                                     <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service owner</th>
                                     <th scope="col" class="govuk-table__header ">Business area</th>
                                     <th scope="col" class="govuk-table__header">Statement enrolled</th>
+                                    <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Service URL</th>
                                 </tr>
                             </thead>
                             <tbody class="govuk-table__body">
@@ -23,14 +23,12 @@
                                      <td class="govuk-table__cell">
                                        {{service.numeric_id}}
                                     </td>
-                                    <td class="govuk-table__cell">
-                                        <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state">{{ service.url }}</a>
-                                    </td>
+                                   
                                     <td class="govuk-table__cell">{{ service.owner_first_name }}
-                                        {{ service.owner_last_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change <span class="govuk-visually-hidden">service owner</span></a>
+                                        {{ service.owner_last_name }}{% if user.role == 'department_admin' or user.role == 'super_admin' %} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change <span class="govuk-visually-hidden">service owner</span></a>{% endif %}
                                     </td>
 
-                                    <td class="govuk-table__cell">{{ service.business_area_name }} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change <span class="govuk-visually-hidden">business area</span></a>
+                                    <td class="govuk-table__cell">{{ service.business_area_name }}{% if user.role == 'department_admin' or user.role == 'super_admin' %} - <a href="/services/{{ service.id }}/edit" class="govuk-link govuk-link--no-visited-state">Change <span class="govuk-visually-hidden">business area</span></a>{% endif %}
                                     </td>
                                     <td class="govuk-table__cell">
                                         {% if service.statement_enrolled %}
@@ -61,6 +59,9 @@
                                             <span class="govuk-visually-hidden">Open information about statement enrollment</span>
                                         </button>
                                     </td>
+                                    <td class="govuk-table__cell">
+                                        <a href="{{ service.url }}" class="govuk-link govuk-link--no-visited-state">Visit service</a>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -81,11 +82,11 @@
                             <ul
                 class="govuk-service-navigation__list"
                 id="navigation">
-                                <li class="govuk-service-navigation__item {% if subnav == 'service' %}govuk-service-navigation__item--active{% endif %}">
+                                {# <li class="govuk-service-navigation__item {% if subnav == 'service' %}govuk-service-navigation__item--active{% endif %}">
                                     <a class="govuk-service-navigation__link" href="/services/{{ service.id }}">
                     Service details
                   </a>
-                                </li>
+                                </li> #}
 
                                 <li
                   class="govuk-service-navigation__item {% if  subnav == 'issues' %}govuk-service-navigation__item--active{% endif %}">
@@ -113,12 +114,15 @@
                     Statement settings
                   </a>
                                 </li>
+                                
+                                {% if user.role == 'department_admin' or user.role == 'super_admin' %}
                                 <li
                   class="govuk-service-navigation__item {% if subnav == 'service-settings' %}govuk-service-navigation__item--active{% endif %}">
                                     <a class="govuk-service-navigation__link" href="/services/{{ service.id }}/edit">
                     Service settings
                   </a>
                                 </li>
+                                {% endif %}
 
                             </ul>
                         </nav>

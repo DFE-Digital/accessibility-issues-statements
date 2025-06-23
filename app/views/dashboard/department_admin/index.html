@@ -85,6 +85,38 @@
             </div>
           </div>
 
+          {% if retestRequests.length > 0 %}
+          <div class="govuk-summary-card">
+            <div class="govuk-summary-card__title-wrapper">
+              <h2 class="govuk-summary-card__title">Retest requests</h2>
+            </div>
+            <div class="govuk-summary-card__content">
+              <table class="govuk-table compact-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header govuk-!-width-one-half">Issue</th>
+                    <th scope="col" class="govuk-table__header">Service</th>
+                    <th scope="col" class="govuk-table__header">Requested</th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for issue in retestRequests %}
+                  <tr class="govuk-table__row">
+                    <td class="govuk-table__header">
+                      <a href="/services/{{ issue.service_id }}/issues/{{ issue.id }}" class="govuk-link"><span class="govuk-visually-hidden">View issue</span> {{ issue.title }}</a>
+                    </td>
+                    <td class="govuk-table__cell">
+                      <a href="/services/{{ issue.service_id }}" class="govuk-link"><span class="govuk-visually-hidden">View service</span> {{ issue.service_name }}</a>
+                    </td>
+                    <td class="govuk-table__cell">{{ issue.updated_at | date('D MMM YYYY') }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+
           <!-- WCAG Compliance Section -->
           <div class="govuk-grid-row govuk-!-margin-top-6">
             <div class="govuk-grid-column-one-half">

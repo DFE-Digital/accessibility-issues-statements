@@ -24,17 +24,17 @@
 
         <div class="moj-filter" data-module="moj-filter">
           <div class="moj-filter__header">
-            <h2 class="moj-filter__header-title">
-              Filter
-            </h2>
+            <div class="moj-filter__header-title">
+              <h2 class="govuk-heading-m">Filter</h2>
+            </div>
           </div>
 
           <div class="moj-filter__content">
             <div class="moj-filter__selected">
               <div class="moj-filter__selected-heading">
-                <p class="moj-filter__heading-title govuk-!-padding-top-1">
-                  Selected filters
-                </p>
+                <div class="moj-filter__heading-title">
+                  <h2 class="govuk-heading-s">Selected filters</h2>
+                </div>
                 <div class="moj-filter__heading-action">
                   <p class="govuk-body-s">
                     <a class="govuk-link govuk-link--no-visited-state" href="?">Clear filters</a>
@@ -107,7 +107,7 @@
             </div>
 
             <div class="moj-filter__options">
-              <form method="get" action="">
+              <form method="get" action="" novalidate>
                 <div class="govuk-form-group govuk-!-margin-bottom-2">
                   <div class="moj-filter-layout__content">
                     <button type="button" class=" dfe-filter-collapsible-button moj-filter-toggle " aria-expanded="false" aria-controls="search-filter">
@@ -229,9 +229,11 @@
           <div class="govuk-summary-card__title-wrapper">
             <h2 class="govuk-summary-card__title">Services</h2>
             <ul class="govuk-summary-card__actions">
-              <li class="govuk-summary-card__action">
-                <a class="govuk-link govuk-link--no-visited-state" href="/services/new">Add service</a>
-              </li>
+              {% if user.role == 'department_admin' or user.role == 'super_admin' %}
+                <li class="govuk-summary-card__action">
+                  <a class="govuk-link govuk-link--no-visited-state" href="/services/new">Add service</a>
+                </li>
+              {% endif %}
             </ul>
           </div>
           <div class="govuk-summary-card__content">
@@ -262,9 +264,9 @@
                       </td>
                       <td class="govuk-table__cell">
                         {% if service.owner_email %}
-                         <a href="mailto:{{ service.owner_email }}" class="govuk-link govuk-link--no-visited-state">
+                          <a href="mailto:{{ service.owner_email }}" class="govuk-link govuk-link--no-visited-state">
                              <span class="govuk-visually-hidden">Email the owner of {{ service.name }}: </span>{{ service.owner_first_name }}
-                            {{ service.owner_last_name }} 
+                            {{ service.owner_last_name }}
                           </a>
                         {% else %}
                           <strong class="govuk-tag govuk-tag--grey">Not assigned</strong>
@@ -286,7 +288,7 @@
               <nav class="govuk-pagination" role="navigation" aria-label="Pagination">
                 {% if pagination.currentPage > 1 %}
                 <div class="govuk-pagination__prev">
-                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.currentPage - 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" rel="prev">
+                  <a class="govuk-link govuk-pagination__link" href="{{ filters | paginationUrl(pagination.currentPage - 1) }}" rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                       <path d="m6.5938-0.0078125-6.7266 6.7266 6.7266 6.7266 1.4062-1.4062-4.3203-4.3203h8.3203v-2h-8.3203l4.3203-4.3203z"></path>
                     </svg>
@@ -296,12 +298,12 @@
                 {% endif %}
 
                 <ul class="govuk-pagination__list">
-                  {% for page in range(1, pagination.totalPages + 1) %}
+                  {% for page in range(pagination.startPage, pagination.endPage + 1) %}
                   <li class="govuk-pagination__item {% if page == pagination.currentPage %}govuk-pagination__item--current{% endif %}">
                     {% if page == pagination.currentPage %}
                     <span class="govuk-pagination__link" aria-current="page">{{ page }}</span>
                     {% else %}
-                    <a class="govuk-link govuk-pagination__link" href="?page={{ page }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" aria-label="Page {{ page }}">
+                    <a class="govuk-link govuk-pagination__link" href="{{ filters | paginationUrl(page) }}" aria-label="Page {{ page }}">
                       {{ page }}
                     </a>
                     {% endif %}
@@ -311,7 +313,7 @@
 
                 {% if pagination.currentPage < pagination.totalPages %}
                 <div class="govuk-pagination__next">
-                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.currentPage + 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.business_areas %}{% for area in filters.business_areas %}&business_areas={{ area }}{% endfor %}{% endif %}{% if filters.has_issues %}&has_issues={{ filters.has_issues }}{% endif %}{% if filters.no_issues %}&no_issues={{ filters.no_issues }}{% endif %}{% if filters.enrolled %}&enrolled={{ filters.enrolled }}{% endif %}{% if filters.not_enrolled %}&not_enrolled={{ filters.not_enrolled }}{% endif %}" rel="next">
+                  <a class="govuk-link govuk-pagination__link" href="{{ filters | paginationUrl(pagination.currentPage + 1) }}" rel="next">
                     <span class="govuk-pagination__link-title">Next</span>
                     <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                       <path d="m8.4063-0.0078125 6.7266 6.7266-6.7266 6.7266-1.4062-1.4062 4.3203-4.3203h-8.3203v-2h8.3203l-4.3203-4.3203z"></path>
@@ -426,4 +428,4 @@
     });
   </script>
 
-{% endblock %}
+{% endblock %} 

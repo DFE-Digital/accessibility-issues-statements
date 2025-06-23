@@ -41,7 +41,25 @@
 
     <div class="govuk-grid-column-two-thirds">
 
-
+{% if issue.retest_request == true %}
+<div class="govuk-notification-banner govuk-notification-banner--info" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+  <div class="govuk-notification-banner__header">
+    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+      Information
+    </h2>
+  </div>
+  <div class="govuk-notification-banner__content">
+    <h3 class="govuk-notification-banner__heading">
+      A request to retest this issue has been sent to DesignOps.
+    </h3>
+    <p class="govuk-body">Contact <a class="govuk-notification-banner__link" href="mailto:design.ops@education.gov.uk">design.ops@education.gov.uk</a> if you want to discuss or cancel the retest.</p>
+    <p class="govuk-body">You'll get an email when the retest is complete.</p>
+    {% if user.role == 'department_admin' %}
+    <p class="govuk-body"><a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openCompleteRetestModal(); return false;">Mark retest as complete</a></p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 
 
       <div class="govuk-summary-card">
@@ -260,9 +278,9 @@
           {% endif %}
 
           {# Comments List #}
-          {% if issue.comments and issue.comments.length > 0 %}
+          {% if comments and comments.length > 0 %}
           <div class="govuk-!-margin-bottom-6">
-            {% for comment in issue.comments %}
+            {% for comment in comments %}
             <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
             <strong>{{ comment.created_by_name }}</strong>
@@ -309,13 +327,23 @@
             <li>
               <a href="/services/{{ service.id }}/issues/{{ issue.id }}/edit" class="govuk-link govuk-link--no-visited-state">Edit issue</a>
             </li>
-            <li>
+
               {% if issue.status == 'closed' %}
-              <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openReopenModal(); return false;">Reopen issue</a>
+              <li>
+                 <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openReopenModal(); return false;">Reopen issue</a>
+              </li>
               {% else %}
-              <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openCloseModal(); return false;">Close issue</a>
+              {% if issue.retest_request != true %}
+               <li>
+                <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openRetestModal(); return false;">Request a retest</a>
+                </li>
+            
               {% endif %}
-            </li>
+              <li>
+                <a href="#" class="govuk-link govuk-link--no-visited-state" onclick="openCloseModal(); return false;">Close issue</a>
+              </li>
+              {% endif %}
+
           </ul>
         </div>
       </div>
@@ -700,6 +728,59 @@
   </div>
 </div>
 
+<div class="govuk-modal-overlay" id="retest-modal" style="display: none;" role="dialog" aria-labelledby="retest-modal-title" aria-describedby="retest-modal-description" aria-modal="true" tabindex="-1">
+    <div class="govuk-modal">
+        <div class="govuk-modal__header">
+            <h2 class="govuk-modal__title" id="retest-modal-title">Request a retest</h2>
+            <button class="govuk-modal__close" aria-label="Close modal" onclick="closeRetestModal()">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+        <div class="govuk-modal__content">
+            <div id="retest-modal-description">
+                <p class="govuk-body">You are about to request a retest for this issue. This will notify DesignOps to retest the issue.</p>
+                <p class="govuk-body">Are you sure you want to proceed?</p>
+                
+                <form action="/services/{{ service.id }}/issues/{{ issue.id }}/request-retest" method="post" novalidate>
+                    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                    <div class="govuk-button-group">
+                        <button type="submit" class="govuk-button" data-module="govuk-button">Yes, request retest</button>
+                        <button type="button" class="govuk-button govuk-button--secondary" data-module="govuk-button" onclick="closeRetestModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Complete Retest Modal #}
+<div class="govuk-modal-overlay" id="complete-retest-modal" style="display: none;" role="dialog" aria-labelledby="complete-retest-modal-title" aria-describedby="complete-retest-modal-description" aria-modal="true" tabindex="-1">
+  <div class="govuk-modal">
+    <div class="govuk-modal__header">
+      <h2 class="govuk-modal__title" id="complete-retest-modal-title">Complete retest</h2>
+      <button class="govuk-modal__close" aria-label="Close modal" onclick="closeCompleteRetestModal()">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div class="govuk-modal__content">
+      <div id="complete-retest-modal-description">
+        <p class="govuk-body">Add a comment to record the outcome of the retest. This will be visible to everyone who can see this issue.</p>
+        <form action="/services/{{ service.id }}/issues/{{ issue.id }}/complete-retest" method="post">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="retest-outcome-comment">Retest outcome comment</label>
+            <textarea class="govuk-textarea" id="retest-outcome-comment" name="comment" rows="5" required></textarea>
+          </div>
+          <div class="govuk-button-group">
+            <button type="submit" class="govuk-button">Complete retest and add comment</button>
+            <button type="button" class="govuk-button govuk-button--secondary" onclick="closeCompleteRetestModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
   .govuk-modal-overlay {
     position: fixed;
@@ -1004,11 +1085,29 @@
       closeModal('add-resource-modal');
     };
 
+    // Retest modal
+    window.openRetestModal = function() {
+        openModal('retest-modal');
+    };
+
+    window.closeRetestModal = function() {
+        closeModal('retest-modal');
+    };
+
+    // Complete retest modal
+    window.openCompleteRetestModal = function() {
+      openModal('complete-retest-modal');
+    };
+
+    window.closeCompleteRetestModal = function() {
+      closeModal('complete-retest-modal');
+    };
+
     // Initialize modals when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
       // Global event listeners for all modals
       document.addEventListener('click', function (event) {
-        const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal', 'delete-resource-modal', 'add-resource-modal'];
+        const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal', 'delete-resource-modal', 'add-resource-modal', 'retest-modal', 'complete-retest-modal'];
         
         modals.forEach(modalId => {
           const modal = document.querySelector(`#${modalId} .govuk-modal`);
@@ -1022,7 +1121,7 @@
 
       document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-          const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal', 'delete-resource-modal', 'add-resource-modal'];
+          const modals = ['delete-modal', 'close-modal', 'reopen-modal', 'priority-info-modal', 'assign-modal', 'delete-resource-modal', 'add-resource-modal', 'retest-modal', 'complete-retest-modal'];
           
           modals.forEach(modalId => {
             const modal = document.getElementById(modalId);

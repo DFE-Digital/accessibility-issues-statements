@@ -62,6 +62,8 @@ router.post('/services/:serviceId/issues/:id/resources/:resourceId/delete', isAu
 router.post('/services/:serviceId/issues/:id/close', isAuthenticated, issuesController.handleCloseIssue);
 router.post('/services/:serviceId/issues/:id/reopen', isAuthenticated, issuesController.handleReopenIssue);
 router.post('/services/:serviceId/issues/:id/assign', isAuthenticated, issuesController.assignIssue);
+router.post('/services/:serviceId/issues/:id/request-retest', isAuthenticated, issuesController.requestRetest);
+router.post('/services/:serviceId/issues/:id/complete-retest', isAuthenticated, isDepartmentAdmin, issuesController.completeRetest);
 
 // Statement routes
 router.get('/services/:serviceId/statement', isAuthenticated, statementController.showStatementIndex);
@@ -174,4 +176,4 @@ router.get('/super-admin/wcag/:id/edit', isAuthenticated, isSuperAdmin, wcagCrit
 router.post('/super-admin/wcag/:id', isAuthenticated, isSuperAdmin, wcagCriteriaController.update);
 router.post('/super-admin/wcag/:id/delete', isAuthenticated, isSuperAdmin, wcagCriteriaController.destroy);
 
-module.exports = router; 
+module.exports = router;

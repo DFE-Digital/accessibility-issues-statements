@@ -1316,6 +1316,7 @@ body {
 
 .govuk-main-wrapper {
     flex: 1 0 auto;
+    background-color: #ffffff;
 }
 
 .dfe-feedback,

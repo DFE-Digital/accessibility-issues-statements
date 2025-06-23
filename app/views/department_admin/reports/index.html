@@ -1005,17 +1005,31 @@
   }
   /* Highlight cells by data-rating */
   td[data-rating="green"], td[data-rating="green"] a {
-    background: #98e2a6; /* pale green */
+    background: #00703c; /* pale green */
+    color: #ffffff;
   }
   td[data-rating="amber"], td[data-rating="amber"] a {
-    background: #f8ea85; /* pale amber */
+    background: #f47738; /* pale amber */
+    color: #0b0c0c;
   }
   td[data-rating="red"], td[data-rating="red"] a {
-    background: #f1a4a7; /* pale red/pink */
+    background: #d4351c; /* pale red/pink */
+    color: #ffffff;
   }
   td {
     min-width: 60px;
   }
+
+ td[data-rating="green"] a:hover, td[data-rating="green"] a:focus-visible {
+    color: #0b0c0c;
+  }
+ td[data-rating="amber"] a:hover, td[data-rating="amber"] a:focus-visible {
+    color: #0b0c0c;
+  }
+td[data-rating="red"] a:hover, td[data-rating="red"] a:focus-visible {
+    color: #0b0c0c;
+  }
+
 </style>
 
 {% endblock %}

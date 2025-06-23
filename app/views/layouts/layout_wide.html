@@ -41,6 +41,49 @@
 
         <main class="govuk-main-wrapper {{mainClasses}}" id="main-content">
 
+        {% set success = query.success %}
+        {% set error = query.error %}
+
+        {% if success %}
+        <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+            <div class="govuk-notification-banner__header">
+                <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                Success
+                </h2>
+            </div>
+            <div class="govuk-notification-banner__content">
+                <p class="govuk-notification-banner__heading">
+                {% if success == 'retest_requested' %}Retest requested successfully. DesignOps has been notified.{% endif %}
+                {% if success == 'comment_deleted' %}Comment deleted successfully.{% endif %}
+                {% if success == 'issue_assigned' %}Issue assigned successfully.{% endif %}
+                {% if success == 'retest_completed' %}Retest marked as complete and user notified.{% endif %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="govuk-notification-banner" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+            <div class="govuk-notification-banner__header">
+                <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                Important
+                </h2>
+            </div>
+            <div class="govuk-notification-banner__content">
+                <h3 class="govuk-notification-banner__heading">
+                {% if error == 'retest_failed' %}Failed to request retest.{% endif %}
+                {% if error == 'comment_empty' %}Comment cannot be empty.{% endif %}
+                {% if error == 'permission' %}You do not have permission to delete this comment.{% endif %}
+                {% if error == 'delete_failed' %}Failed to delete comment.{% endif %}
+                {% if error == 'assign_failed' %}Failed to assign issue.{% endif %}
+                {% if error == 'no_user_selected' %}Please select a user or enter an email address.{% endif %}
+                {% if error == 'service_not_found' %}Service not found.{% endif %}
+                {% if error == 'notify_config' %}The GOV.UK Notify integration is not configured correctly. Please check your environment variables.{% endif %}
+                {% if error == 'retest_complete_failed' %}Failed to mark retest as complete.{% endif %}
+                </h3>
+            </div>
+        </div>
+        {% endif %}
 
  {%- block content -%}{%- endblock -%}
 

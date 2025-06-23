@@ -81,6 +81,20 @@ nunjuckEnv.addFilter('updateQueryParams', function(url, params) {
     return urlObj.pathname + urlObj.search;
 });
 
+nunjuckEnv.addFilter('paginationUrl', function(filters, page) {
+    const newFilters = {...filters, page };
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(newFilters)) {
+        if (key === 'limit') continue; // Don't include limit in pagination links for cleanliness
+        if (Array.isArray(value)) {
+            value.forEach(item => params.append(key, item));
+        } else if (value) {
+            params.append(key, value);
+        }
+    }
+    return `?${params.toString()}`;
+});
+
 // Register marked and markdown libraries
 marked.use(govukMarkdown({
     headingsStartWith: 'xl'

@@ -2,7 +2,7 @@
   <div class="govuk-header__container govuk-width-container">
       <div class="govuk-header__logo">
         <a href="#" class="govuk-header__link govuk-header__link--homepage">
-            <img src="/public/images/department-for-education_white.png" alt="Department for Education" class="govuk-header__logotype">
+             <img src="/public/images/brands/{% if user.department.brand %}{{ user.department.brand }}_white.png{% else %}department-for-education_white.png{% endif %}" alt="{% if user.department.name %}{{ user.department.name }}{% else %}Department for Education{% endif %}" class="govuk-header__logotype">
         </a>
       </div>
   </div>
