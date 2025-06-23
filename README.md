@@ -7,9 +7,11 @@ This is the Department for Education's service for managing accessibility issues
 This guide explains how to get the application running locally for development.
 
 
-> We recommend you read these instructions through before attempting to deploy this product.
+>   We recommend you read these instructions through before attempting to deploy this product.
 > 
-> If you need assistance, contact design.ops@education.gov.uk for help. (We respond between Monday to Friday 9am to 5pm usually within 1 working day)
+>   If you need assistance, contact design.ops@education.gov.uk for help. (We respond between Monday to Friday 9am to 5pm usually within 1 working day)
+>
+>   We know it's not perfect and theres things we can improve, so please contribute, fork, and raise issues. We'll continute to work and improve this product 
 
 
 ### Prerequisites
@@ -207,6 +209,13 @@ You can find the content for these templates in the `/notify_templates` director
 *   `GOVUK_NOTIFY_RETESTREQUEST_TEMPLATE_ID`
 
 You will need to create these templates in your own Notify account and use their unique IDs in your environment configuration.
+
+## Analytics
+
+To track usage with your own analytics, you need to update the tracking codes in the following files:
+
+-   `app/public/js/cookies.js`: Update the two instances of the GA tracking code with your own Google Analytics ID and Microsoft Clarity ID
+-   `app/views/layouts/`: Update the layout files to include your own Google Analytics ID's for scripts.
 
 ## Contributing
 

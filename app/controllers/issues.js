@@ -642,13 +642,18 @@ const completeRetest = async(req, res) => {
 async function showClosedIssues(req, res) {
     try {
         const { user } = req.session;
-        let issues;
-        if (user.role === 'super_admin') {
-            issues = await issuesData.getAllIssues().where('status', 'closed');
-        } else {
-            issues = await issuesData.getDepartmentIssues(user.department.id).where('status', 'closed');
+        const departmentId = user.department.id;
+        if (!departmentId) {
+            throw new Error('User department ID not found');
         }
-        res.render('department_admin/issues/closed', { issues });
+
+        const allIssues = await issuesData.getDepartmentIssues(departmentId);
+        const issues = allIssues.filter(issue => issue.status === 'closed');
+
+        res.render('department_admin/issues/closed', {
+            issues,
+            user: req.session.user
+        });
     } catch (error) {
         console.error('Error showing closed issues:', error);
         res.status(500).render('error', { error: 'Failed to load closed issues' });
@@ -664,8 +669,18 @@ async function showOverdueIssues(req, res) {
     try {
         const { user } = req.session;
         const departmentId = user.department.id;
-        const issues = await issuesData.getDepartmentOverdueIssues(departmentId);
-        res.render('department_admin/issues/overdue', { issues });
+        if (!departmentId) {
+            throw new Error('User department ID not found');
+        }
+
+        const allIssues = await issuesData.getDepartmentIssues(departmentId);
+        const now = new Date();
+        const issues = allIssues.filter(issue => issue.planned_fix_date && new Date(issue.planned_fix_date) < now && issue.status !== 'closed');
+
+        res.render('department_admin/issues/overdue', {
+            issues,
+            user: req.session.user
+        });
     } catch (error) {
         console.error('Error showing overdue issues:', error);
         res.status(500).render('error', { error: 'Failed to load overdue issues' });
