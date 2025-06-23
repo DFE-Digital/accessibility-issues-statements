@@ -121,7 +121,8 @@ const index = async(req, res) => {
             issues,
             services,
             filters,
-            pagination
+            pagination,
+            user: req.session.user
         });
     } catch (error) {
         console.error('Error in issues index:', error);
@@ -134,7 +135,7 @@ const issuesByCriterion = async(req, res) => {
     const issues = await issuesData.getIssuesByCriterion(criterion);
     const wcagCriteria = await getWcagCriteriaByCriterion(criterion);
 
-    res.render('department_admin/issues/criteria', { issues, wcagCriteria });
+    res.render('department_admin/issues/criteria', { issues, wcagCriteria, user: req.session.user });
 };
 
 /**
@@ -166,7 +167,8 @@ async function showNewIssueForm(req, res) {
         res.render('services/department_admin/issues/new', {
             service,
             wcag_criteria,
-            csrfToken: req.csrfToken()
+            csrfToken: req.csrfToken(),
+            user: req.session.user
         });
     } catch (error) {
         console.error('Error showing new issue form:', error);
@@ -254,27 +256,49 @@ async function handleCreateIssue(req, res) {
 async function showIssueDetails(req, res) {
     try {
         const { serviceId, id } = req.params;
+        const user = req.session.user;
+
+        // Verify service belongs to user's department
+        const services = await servicesData.getDepartmentServices(user.department.id);
+        const service = services.find(s => s.id === serviceId);
+
+        if (!service) {
+            return res.status(404).render('error', {
+                error: {
+                    title: 'Service not found',
+                    message: 'The service you are looking for could not be found.'
+                }
+            });
+        }
+
+        // Get the issue
         const issue = await issuesData.getIssue(id);
-        const service = await servicesData.getService(serviceId);
+        if (!issue) {
+            return res.status(404).render('error', {
+                error: {
+                    title: 'Issue not found',
+                    message: 'The issue you are looking for could not be found.'
+                }
+            });
+        }
+
+        // Get comments and resources
         const comments = await getIssueComments(id);
         const resources = await getIssueResources(id);
-        const departmentUsers = await db('users').where('department_id', service.department_id);
-
-        if (!issue) {
-            return res.status(404).render('error', { error: 'Issue not found' });
-        }
 
         res.render('services/department_admin/issues/show', {
             service,
             issue,
             comments,
             resources,
-            departmentUsers,
-            csrfToken: req.csrfToken()
+            csrfToken: req.csrfToken(),
+            user: req.session.user
         });
     } catch (error) {
         console.error('Error showing issue details:', error);
-        res.status(500).render('error', { error: 'Failed to load issue details' });
+        res.status(500).render('error', {
+            error: 'There was a problem loading the issue details.'
+        });
     }
 }
 
@@ -286,23 +310,50 @@ async function showIssueDetails(req, res) {
 async function showEditIssueForm(req, res) {
     try {
         const { serviceId, id } = req.params;
-        const issue = await issuesData.getIssue(id);
-        const service = await servicesData.getService(serviceId);
-        const wcag_criteria = await getWcagCriteria();
+        const user = req.session.user;
 
-        if (!issue) {
-            return res.status(404).render('error', { error: 'Issue not found' });
+        // Verify service belongs to user's department
+        const services = await servicesData.getDepartmentServices(user.department.id);
+        const service = services.find(s => s.id === serviceId);
+
+        if (!service) {
+            return res.status(404).render('error', {
+                error: {
+                    title: 'Service not found',
+                    message: 'The service you are looking for could not be found.'
+                }
+            });
         }
+
+        // Get the issue
+        const issue = await issuesData.getIssue(id);
+        if (!issue) {
+            return res.status(404).render('error', {
+                error: {
+                    title: 'Issue not found',
+                    message: 'The issue you are looking for could not be found.'
+                }
+            });
+        }
+
+        // Get WCAG criteria for the form
+        const wcag_criteria = await getWcagCriteria();
 
         res.render('services/department_admin/issues/edit', {
             service,
             issue,
             wcag_criteria,
-            csrfToken: req.csrfToken()
+            csrfToken: req.csrfToken(),
+            user: req.session.user
         });
     } catch (error) {
         console.error('Error showing edit issue form:', error);
-        res.status(500).render('error', { error: 'Failed to load edit issue form' });
+        res.status(500).render('error', {
+            error: {
+                title: 'Error',
+                message: 'There was a problem loading the edit issue form.'
+            }
+        });
     }
 }
 

@@ -66,7 +66,8 @@ const index = async(req, res) => {
         res.render('department_admin/reports/index', {
             wcagData,
             wcagCriteria,
-            csrfToken: req.csrfToken()
+            csrfToken: req.csrfToken(),
+            user: req.session.user
         });
     } catch (error) {
         console.error('Error loading reports:', error);
@@ -106,7 +107,8 @@ const showWcagCriterion = async(req, res) => {
             criterion,
             criterionData: wcagCriteria[criterion],
             issues,
-            csrfToken: req.csrfToken()
+            csrfToken: req.csrfToken(),
+            user: req.session.user
         });
     } catch (error) {
         console.error('Error loading WCAG criterion:', error);

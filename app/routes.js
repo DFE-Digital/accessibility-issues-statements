@@ -21,6 +21,8 @@ const departmentsController = require('./controllers/departments');
 const reportsController = require('./controllers/reports');
 const businessAreasController = require('./controllers/business_areas');
 const wcagCriteriaController = require('./controllers/wcag_criteria');
+const apiManagerController = require('./controllers/api_manager_controller');
+const superAdminDashboardController = require('./controllers/dashboard');
 
 // Import route modules
 const authRoutes = require('./routes/auth');
@@ -175,5 +177,19 @@ router.post('/super-admin/wcag', isAuthenticated, isSuperAdmin, wcagCriteriaCont
 router.get('/super-admin/wcag/:id/edit', isAuthenticated, isSuperAdmin, wcagCriteriaController.showEditForm);
 router.post('/super-admin/wcag/:id', isAuthenticated, isSuperAdmin, wcagCriteriaController.update);
 router.post('/super-admin/wcag/:id/delete', isAuthenticated, isSuperAdmin, wcagCriteriaController.destroy);
+
+// API Manager routes (super admin only)
+router.get('/super-admin/api-manager', isAuthenticated, isSuperAdmin, apiManagerController.index);
+router.post('/super-admin/api-manager/keys', isAuthenticated, isSuperAdmin, apiManagerController.createKey);
+router.post('/super-admin/api-manager/keys/:id/delete', isAuthenticated, isSuperAdmin, apiManagerController.deleteKey);
+router.get('/super-admin/api-manager/logs', isAuthenticated, isSuperAdmin, apiManagerController.showLogs);
+
+// Super Admin Routes
+router.get('/super-admin/dashboard', isAuthenticated, isSuperAdmin, dashboardController.index);
+router.get('/super-admin/users', isAuthenticated, isSuperAdmin, usersController.superAdminIndex);
+
+// Departments
+router.get('/super-admin/departments', isAuthenticated, isSuperAdmin, departmentsController.index);
+router.get('/super-admin/departments/new', isAuthenticated, isSuperAdmin, departmentsController.showNewForm);
 
 module.exports = router;

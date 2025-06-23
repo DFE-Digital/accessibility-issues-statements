@@ -96,14 +96,12 @@
         {% include 'layouts/_footer.html' %}
 
         <script src="/assets/js/govuk-frontend.min.js"></script>
+        <script>
+          window.GOVUKFrontend.initAll()
+        </script>
         <script type="module" src="/assets/js/moj-frontend.min.js"></script>
-
-        <script type="module">
-            import * as GOVUKFrontend from '/assets/js/govuk-frontend.min.js'
-            import * as MOJFrontend from '/assets/js/moj-frontend.min.js'
-
-            GOVUKFrontend.initAll()
-            MOJFrontend.initAll()
+        <script>
+            window.MOJFrontend.initAll()
         </script>
 
         <script src="/assets/js/dfefrontend-2.0.0.min.js"></script>

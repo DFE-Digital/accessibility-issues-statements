@@ -13,7 +13,7 @@
                 </button>
                 <ul class="govuk-service-navigation__list" id="navigation">
                     {% if user %}
-                        {% if user.role == 'super_admin' %}
+                        {% if user.role and user.role.trim() == 'super_admin' %}
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>
                             </li>
@@ -21,16 +21,18 @@
                                 <a class="govuk-service-navigation__link" href="/departments">Departments</a>
                             </li>
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Users' %}govuk-service-navigation__item--active{% endif %}">
-                                <a class="govuk-service-navigation__link" href="/admin/users">Users</a>
+                                <a class="govuk-service-navigation__link" href="/super-admin/users">Users</a>
                             </li>
                              <li class="govuk-service-navigation__item {% if serviceNav == 'Statements' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/super-admin/statement-templates">Statement templates</a>
                             </li>
-
+                            <li class="govuk-service-navigation__item {% if serviceNav == 'API Manager' %}govuk-service-navigation__item--active{% endif %}">
+                                <a class="govuk-service-navigation__link" href="/super-admin/api-manager">API Manager</a>
+                            </li>
                              <li class="govuk-service-navigation__item {% if serviceNav == 'WCAG Criteria' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/super-admin/wcag">WCAG criteria</a>
                             </li>
-                        {% elseif user.role == 'department_admin' %}
+                        {% elseif user.role and user.role.trim() == 'department_admin' %}
                             <li class="govuk-service-navigation__item {% if serviceNav == 'Dashboard' %}govuk-service-navigation__item--active{% endif %}">
                                 <a class="govuk-service-navigation__link" href="/dashboard">Dashboard</a>
                             </li>

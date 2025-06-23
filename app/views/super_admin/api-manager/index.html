@@ -1,0 +1,211 @@
+{% extends "layouts/layout_wide.html" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set pageTitle = "API Manager" %}
+
+{% set serviceNav = "API Manager" %}
+
+{% block content %}
+{% include "layouts/_pageheader.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">API Management</h1>
+
+      <div class="govuk-tabs" data-module="govuk-tabs">
+        <h2 class="govuk-tabs__title">
+          Contents
+        </h2>
+        <ul class="govuk-tabs__list">
+          <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+            <a class="govuk-tabs__tab" href="/super-admin/api-manager">
+              API Keys
+            </a>
+          </li>
+          <li class="govuk-tabs__list-item">
+            <a class="govuk-tabs__tab" href="/super-admin/api-manager/logs">
+              Request Logs
+            </a>
+          </li>
+        </ul>
+        <div class="govuk-tabs__panel" id="api-keys">
+          <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+              <h2 class="govuk-heading-m">Create API Key</h2>
+              <form action="/super-admin/api-manager/keys" method="post">
+                <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                <div class="govuk-form-group">
+                  <label class="govuk-label" for="name">
+                    Key Name
+                  </label>
+                  <input class="govuk-input" id="name" name="name" type="text" required>
+                </div>
+
+                <div class="govuk-form-group">
+                  <label class="govuk-label" for="department_id">
+                    Department
+                  </label>
+                  <select class="govuk-select" id="department_id" name="department_id" required>
+                    <option value="">Select a department</option>
+                    {% for department in departments %}
+                      <option value="{{ department.id }}">{{ department.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="govuk-form-group">
+                  <label class="govuk-label" for="expires_at">
+                    Expires At (optional)
+                  </label>
+                  <input class="govuk-input" id="expires_at" name="expires_at" type="date">
+                </div>
+
+                <button class="govuk-button" data-module="govuk-button">
+                  Create API Key
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="govuk-grid-row govuk-!-margin-top-6">
+            <div class="govuk-grid-column-full">
+              <h2 class="govuk-heading-m">Existing API Keys</h2>
+              {% if apiKeys.length > 0 %}
+                <table class="govuk-table">
+                  <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                      <th scope="col" class="govuk-table__header">Name</th>
+                      <th scope="col" class="govuk-table__header">Department</th>
+                      <th scope="col" class="govuk-table__header">Expires At</th>
+                      <th scope="col" class="govuk-table__header">Created At</th>
+                      <th scope="col" class="govuk-table__header">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="govuk-table__body">
+                    {% for key in apiKeys %}
+                      <tr class="govuk-table__row">
+                        <td class="govuk-table__cell">{{ key.name }}</td>
+                        <td class="govuk-table__cell">{{ key.department_name or 'N/A' }}</td>
+                        <td class="govuk-table__cell">{{ key.expires_at | date('d MMMM yyyy') if key.expires_at else 'Never' }}</td>
+                        <td class="govuk-table__cell">{{ key.created_at | date('d MMMM yyyy') }}</td>
+                        <td class="govuk-table__cell">
+                          <button type="button" class="govuk-button govuk-button--secondary govuk-!-margin-right-2" onclick="openViewModal('{{ key.name }}', '{{ key.token }}')">View</button>
+                          <form action="/super-admin/api-manager/keys/{{ key.id }}/delete" method="post" style="display:inline;">
+                            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                            <button type="submit" class="govuk-button govuk-button--warning" onclick="return confirm('Are you sure you want to delete this key?')">Delete</button>
+                          </form>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <p class="govuk-body">No API keys found.</p>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Key Modal -->
+<div id="viewKeyModal" class="govuk-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="view-key-modal-title" style="display: none;">
+  <div class="govuk-modal">
+    <div class="govuk-modal__content">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="view-key-modal-title">API Key</h2>
+      </div>
+      <div class="govuk-modal__body">
+        <p class="govuk-body">API key for <strong id="view-key-name"></strong></p>
+        <div class="govuk-form-group">
+            <label class="govuk-label" for="apiKeyInput">Your API Key</label>
+            <div class="govuk-input__wrapper">
+                <input class="govuk-input" id="apiKeyInput" name="apiKeyInput" type="text" readonly>
+            </div>
+        </div>
+      </div>
+      <div class="govuk-modal__footer">
+        <button type="button" class="govuk-button" id="copyKeyButton">Copy key</button>
+        <button type="button" class="govuk-button govuk-button--secondary govuk-modal__close" data-module="govuk-button">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .govuk-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .govuk-modal {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 500px;
+    width: 100%;
+    margin: 0 20px;
+  }
+
+  .govuk-modal__header {
+    margin-bottom: 20px;
+  }
+
+  .govuk-modal__body {
+    margin-bottom: 20px;
+  }
+
+  .govuk-modal__footer {
+    display: flex;
+    gap: 10px;
+  }
+</style>
+
+<script>
+  function openViewModal(name, token) {
+    document.getElementById('view-key-name').textContent = name;
+    document.getElementById('apiKeyInput').value = token;
+    document.getElementById('viewKeyModal').style.display = 'flex';
+  }
+
+  // Close modal when clicking close button
+  document.querySelector('#viewKeyModal .govuk-modal__close').onclick = function() {
+    document.getElementById('viewKeyModal').style.display = 'none';
+  }
+  
+  // Close modal when clicking outside
+  window.addEventListener('click', function(event) {
+    if (event.target == document.getElementById('viewKeyModal')) {
+      document.getElementById('viewKeyModal').style.display = 'none';
+    }
+  });
+
+  // Copy key to clipboard
+  document.getElementById('copyKeyButton').onclick = function() {
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    apiKeyInput.select();
+    apiKeyInput.setSelectionRange(0, 99999); /* For mobile devices */
+    navigator.clipboard.writeText(apiKeyInput.value);
+    
+    const copyButton = document.getElementById('copyKeyButton');
+    const originalText = copyButton.textContent;
+    copyButton.textContent = 'Copied!';
+    setTimeout(() => {
+        copyButton.textContent = originalText;
+    }, 2000);
+  }
+</script>
+
+{% endblock %}

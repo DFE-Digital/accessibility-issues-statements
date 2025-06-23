@@ -66,13 +66,13 @@
               <td class="govuk-table__cell">{{ user.email }}</td>
               <td class="govuk-table__cell">{{ user.department_name or 'No department' }}</td>
               <td class="govuk-table__cell">
-                <span class="govuk-tag govuk-tag--{{ user.role === 'department_admin' ? 'blue' : user.role === 'service_admin' ? 'green' : 'grey' }}">
+                <span class="govuk-tag govuk-tag--{% if user.role === 'department_admin' %}blue{% elif user.role === 'service_admin' %}green{% else %}grey{% endif %}">
                   {{ user.role }}
                 </span>
               </td>
               <td class="govuk-table__cell">
-                <span class="govuk-tag govuk-tag--{{ user.is_active ? 'green' : 'red' }}">
-                  {{ user.is_active ? 'Active' : 'Inactive' }}
+                <span class="govuk-tag govuk-tag--{% if user.is_active %}green{% else %}red{% endif %}">
+                  {% if user.is_active %}Active{% else %}Inactive{% endif %}
                 </span>
               </td>
               <td class="govuk-table__cell">

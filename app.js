@@ -14,6 +14,7 @@ const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const path = require('path');
 const routes = require('./app/routes');
+const apiRoutes = require('./app/routes/api');
 const dateFilter = require('nunjucks-date-filter');
 const markdown = require('nunjucks-markdown');
 const marked = require('marked');
@@ -23,6 +24,9 @@ const session = require('./app/config/session');
 const csrf = require('csurf');
 const { getNavigationItems } = require('./app/helpers/navigation');
 const { removeFilter, findServiceName, formatDateFilter, findById } = require('./app/filters');
+const { authenticateApiKey } = require('./app/middleware/api_auth.js');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const app = express();
 
@@ -118,18 +122,40 @@ app.get('/robots.txt', function(req, res) {
     res.sendFile(path.join(__dirname, 'app/robots.txt'));
 });
 
+// --- API Rate Limiting ---
+// Apply rate limiting to all /api routes
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 250, // Limit each key to 250 requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    keyGenerator: (req, res) => {
+        // Use the API key ID for rate limiting
+        return req.apiKey ? req.apiKey.id : req.ip;
+    },
+    message: {
+        error: 'Too many requests, please try again later.'
+    },
+});
+
+// Separate API routes from web routes
+app.use('/api', apiLimiter, apiRoutes);
+
+// Web application routes - These use session-based authentication and CSRF
+const webapp = express.Router();
+
 // Set up session middleware
-app.use(session);
+webapp.use(session);
 
 // Set up CSRF protection
-app.use(csrf({ cookie: false }));
-app.use((req, res, next) => {
+webapp.use(csrf({ cookie: false }));
+webapp.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken();
     next();
 });
 
 // Authentication middleware
-app.use((req, res, next) => {
+webapp.use((req, res, next) => {
     // List of public paths that don't require authentication
     const publicPaths = [
         '/auth/sign-in',
@@ -157,18 +183,7 @@ app.use((req, res, next) => {
     }
 });
 
-// Add navigation items and DfE-specific variables to all responses
-app.use((req, res, next) => {
-    res.locals.user = req.session.user;
-    res.locals.currentPath = req.path;
-    res.locals.navigationItems = req.session.user ? getNavigationItems(req.session.user) : [];
-    res.locals.serviceName = 'Accessibility Issues Management';
-    res.locals.description = 'Manage and track accessibility issues across government services';
-    res.locals.env = process.env.NODE_ENV;
-    next();
-});
-
-app.post('/form-response/feedback', (req, res) => {
+webapp.post('/form-response/feedback', (req, res) => {
     const { response } = req.body;
 
     // Prevent bots submitting empty feedback
@@ -203,7 +218,9 @@ app.post('/form-response/feedback', (req, res) => {
 });
 
 // Use application routes
-app.use('/', routes);
+webapp.use('/', routes);
+
+app.use('/', webapp);
 
 // Clean URLs
 app.get(/\.html?$/i, function(req, res) {

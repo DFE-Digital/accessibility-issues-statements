@@ -413,7 +413,8 @@ const showServiceIssues = async(req, res) => {
             closed_issues: closedIssues,
             filters,
             sort,
-            order
+            order,
+            user: req.session.user
         });
     } catch (error) {
         console.error('Error in showServiceIssues:', error);

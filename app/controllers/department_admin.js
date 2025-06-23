@@ -136,11 +136,12 @@ const index = async(req, res) => {
             compliantServices: compliantServices.count,
             services,
             recentIssues,
-            levelAIssues: wcagLevels.find(l => l.level === 'A')?.count || 0,
-            levelAAIssues: wcagLevels.find(l => l.level === 'AA')?.count || 0,
-            levelAAAIssues: wcagLevels.find(l => l.level === 'AAA')?.count || 0,
+            levelAIssues: (wcagLevels.find(l => l.level === 'A') || {}).count || 0,
+            levelAAIssues: (wcagLevels.find(l => l.level === 'AA') || {}).count || 0,
+            levelAAAIssues: (wcagLevels.find(l => l.level === 'AAA') || {}).count || 0,
             commonIssues,
-            retestRequests
+            retestRequests,
+            user: req.session.user
         });
     } catch (error) {
         console.error('Department admin dashboard error:', error);

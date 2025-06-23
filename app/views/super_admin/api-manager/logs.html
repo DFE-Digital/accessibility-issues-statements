@@ -1,0 +1,196 @@
+{% extends "layouts/layout_wide.html" %}
+{% set mainClasses = 'govuk-!-padding-top-0' %}
+
+{% set pageTitle = "API Request Logs" %}
+{% set serviceNav = "API Manager" %}
+
+{% block content %}
+{% include "layouts/_pageheader.html" %}
+
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">API Request Logs</h1>
+
+      <div class="govuk-tabs" data-module="govuk-tabs">
+        <h2 class="govuk-tabs__title">
+          Contents
+        </h2>
+        <ul class="govuk-tabs__list">
+          <li class="govuk-tabs__list-item">
+            <a class="govuk-tabs__tab" href="/super-admin/api-manager">
+              API Keys
+            </a>
+          </li>
+          <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+            <a class="govuk-tabs__tab" href="/super-admin/api-manager/logs">
+              Request Logs
+            </a>
+          </li>
+        </ul>
+        <div class="govuk-tabs__panel" id="request-logs">
+          {% if logs.length > 0 %}
+            <table class="govuk-table">
+              <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                  <th scope="col" class="govuk-table__header">Key Name</th>
+                  <th scope="col" class="govuk-table__header">Path</th>
+                  <th scope="col" class="govuk-table__header">Method</th>
+                  <th scope="col" class="govuk-table__header">Status</th>
+                  <th scope="col" class="govuk-table__header">IP Address</th>
+                  <th scope="col" class="govuk-table__header">Timestamp</th>
+                  <th scope="col" class="govuk-table__header">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="govuk-table__body">
+                {% for log in logs %}
+                  <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">{{ log.key_name if log.key_name else 'N/A (Invalid Key)' }}</td>
+                    <td class="govuk-table__cell">{{ log.path }}</td>
+                    <td class="govuk-table__cell">{{ log.method }}</td>
+                    <td class="govuk-table__cell">{{ log.status }}</td>
+                    <td class="govuk-table__cell">{{ log.ip_address }}</td>
+                    <td class="govuk-table__cell">{{ log.created_at | date('d MMMM yyyy, HH:mm:ss') }}</td>
+                    <td class="govuk-table__cell">
+                      <button type="button" class="govuk-button govuk-button--secondary govuk-button--small" onclick='openLogModal({{ log | dump | safe }})'>View</button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <nav class="govuk-pagination" role="navigation" aria-label="results">
+              {% if pagination.page > 1 %}
+                <div class="govuk-pagination__prev">
+                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.page - 1 }}&limit={{ pagination.limit }}" rel="prev">
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                      <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.4492-4.1856-3.9768h12.896v-2h-12.984l4.293-4.293-1.4219-1.4141z"></path>
+                    </svg>
+                    <span class="govuk-pagination__link-title">Previous</span>
+                  </a>
+                </div>
+              {% endif %}
+              <ul class="govuk-pagination__list">
+                {% for i in range(1, pagination.totalPages + 1) %}
+                  <li class="govuk-pagination__item {% if i == pagination.page %}govuk-pagination__item--current{% endif %}">
+                    <a class="govuk-link govuk-pagination__link" href="?page={{ i }}&limit={{ pagination.limit }}" aria-label="Page {{ i }}">
+                      {{ i }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+              {% if pagination.page < pagination.totalPages %}
+                <div class="govuk-pagination__next">
+                  <a class="govuk-link govuk-pagination__link" href="?page={{ pagination.page + 1 }}&limit={{ pagination.limit }}" rel="next">
+                    <span class="govuk-pagination__link-title">Next</span>
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                      <path d="m8.107-0.0078125-1.4136 1.4141 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7266-6.7266z"></path>
+                    </svg>
+                  </a>
+                </div>
+              {% endif %}
+            </nav>
+
+          {% else %}
+            <p class="govuk-body">No API request logs found.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Log Modal -->
+<div id="viewLogModal" class="govuk-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="view-log-modal-title" style="display: none;">
+  <div class="govuk-modal">
+    <div class="govuk-modal__content">
+      <div class="govuk-modal__header">
+        <h2 class="govuk-modal__title" id="view-log-modal-title">API Request Details</h2>
+      </div>
+      <div class="govuk-modal__body">
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Key Name</dt>
+            <dd class="govuk-summary-list__value" id="log-key-name"></dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Path</dt>
+            <dd class="govuk-summary-list__value" id="log-path"></dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Method</dt>
+            <dd class="govuk-summary-list__value" id="log-method"></dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Status</dt>
+            <dd class="govuk-summary-list__value" id="log-status"></dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">IP Address</dt>
+            <dd class="govuk-summary-list__value" id="log-ip-address"></dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Timestamp</dt>
+            <dd class="govuk-summary-list__value" id="log-timestamp"></dd>
+          </div>
+        </dl>
+      </div>
+      <div class="govuk-modal__footer">
+        <button type="button" class="govuk-button govuk-button--secondary govuk-modal__close">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .govuk-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .govuk-modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 5px;
+    max-width: 600px;
+    width: 100%;
+  }
+  .govuk-modal__header { margin-bottom: 20px; }
+  .govuk-modal__body { margin-bottom: 20px; }
+  .govuk-modal__footer { display: flex; justify-content: flex-end; }
+</style>
+
+<script>
+  function openLogModal(log) {
+    document.getElementById('log-key-name').textContent = log.key_name || 'N/A (Invalid Key)';
+    document.getElementById('log-path').textContent = log.path;
+    document.getElementById('log-method').textContent = log.method;
+    document.getElementById('log-status').textContent = log.status;
+    document.getElementById('log-ip-address').textContent = log.ip_address;
+    
+    const date = new Date(log.created_at);
+    const formattedDate = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + ', ' + date.toLocaleTimeString('en-GB');
+    document.getElementById('log-timestamp').textContent = formattedDate;
+
+    document.getElementById('viewLogModal').style.display = 'flex';
+  }
+
+  document.querySelector('#viewLogModal .govuk-modal__close').addEventListener('click', function() {
+    document.getElementById('viewLogModal').style.display = 'none';
+  });
+  
+  window.addEventListener('click', function(event) {
+    if (event.target == document.getElementById('viewLogModal')) {
+      document.getElementById('viewLogModal').style.display = 'none';
+    }
+  });
+</script>
+
+{% endblock %} 
