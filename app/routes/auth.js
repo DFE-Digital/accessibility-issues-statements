@@ -25,6 +25,6 @@ router.post('/complete-profile', (req, res, next) => {
 });
 
 // Sign out
-router.get('/auth/sign-out', authController.signOut);
+router.get('/sign-out', authController.signOut);
 
 module.exports = router;

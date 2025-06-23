@@ -39,7 +39,9 @@ const index = async(req, res) => {
                 'services.updated_at',
                 'services.statement_enrolled',
                 'services.numeric_id',
-                'services.business_area_id'
+                'services.business_area_id',
+                'services.rosid',
+                'services.cmdbid'
             )
             .orderBy('services.name');
 
@@ -159,11 +161,11 @@ const showServices = async(req, res) => {
             .select(
                 'services.*',
                 db.raw('COUNT(DISTINCT user_services.user_id) as enrolled_users'),
-                db.raw('(SELECT COUNT(*) FROM issues WHERE issues.service_id = services.id AND issues.status = \'open\') as open_issues_count')
+                db.raw("(SELECT COUNT(*) FROM issues WHERE issues.service_id = services.id AND issues.status = 'open') as open_issues_count")
             )
             .leftJoin('user_services', 'services.id', 'user_services.service_id')
             .where('services.department_id', req.session.user.department.id)
-            .whereRaw('(SELECT COUNT(*) FROM issues WHERE issues.service_id = services.id AND issues.status = \'open\') > 0')
+            .whereRaw("(SELECT COUNT(*) FROM issues WHERE issues.service_id = services.id AND issues.status = 'open') > 0")
             .groupBy('services.id')
             .orderBy('services.name');
 

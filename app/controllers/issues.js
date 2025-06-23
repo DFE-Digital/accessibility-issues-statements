@@ -612,12 +612,8 @@ async function showClosedIssues(req, res) {
 async function showOverdueIssues(req, res) {
     try {
         const { user } = req.session;
-        let issues;
-        if (user.role === 'super_admin') {
-            issues = await issuesData.getAllIssues().where('planned_fix_date', '<', new Date());
-        } else {
-            issues = await issuesData.getDepartmentIssues(user.department.id).where('planned_fix_date', '<', new Date());
-        }
+        const departmentId = user.department.id;
+        const issues = await issuesData.getDepartmentOverdueIssues(departmentId);
         res.render('department_admin/issues/overdue', { issues });
     } catch (error) {
         console.error('Error showing overdue issues:', error);

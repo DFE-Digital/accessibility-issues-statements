@@ -486,6 +486,16 @@ async function getDepartmentOpenIssues(departmentId, page = 1, limit = 10) {
     };
 }
 
+async function getDepartmentOverdueIssues(departmentId) {
+    return db('issues')
+        .select('issues.*', 'services.name as service_name')
+        .join('services', 'issues.service_id', 'services.id')
+        .where('services.department_id', departmentId)
+        .where('issues.status', 'open')
+        .where('issues.planned_fix_date', '<', new Date())
+        .orderBy('issues.planned_fix_date', 'asc');
+}
+
 async function getIssuesByCriterion(criterion) {
     const issues = await db('issue_wcag_criteria')
         .select(
@@ -571,6 +581,8 @@ module.exports = {
     getAllIssues,
     getDepartmentIssues,
     getDepartmentOpenIssues,
+    getDepartmentOverdueIssues,
+    getDepartmentOverdueIssues,
     getIssuesByCriterion,
     getWcagLevel,
     getHighestWcagLevel,
