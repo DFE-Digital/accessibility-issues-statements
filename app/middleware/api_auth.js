@@ -2,12 +2,22 @@ const { db } = require('../db');
 
 const logApiRequest = async(apiKeyId, path, method, status, ipAddress) => {
     try {
+        let cleanIpAddress = ipAddress;
+        if (ipAddress === '::1') {
+            cleanIpAddress = '127.0.0.1';
+        } else if (ipAddress && ipAddress.startsWith('::ffff:')) {
+            cleanIpAddress = ipAddress.substring(7);
+            if (cleanIpAddress === '127.0.0.1') {
+                cleanIpAddress = '127.0.0.1';
+            }
+        }
+
         await db('api_requests').insert({
             api_key_id: apiKeyId,
             path,
             method,
             status,
-            ip_address: ipAddress
+            ip_address: cleanIpAddress
         });
     } catch (error) {
         console.error('Error logging API request:', error);
