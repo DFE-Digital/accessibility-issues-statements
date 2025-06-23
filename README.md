@@ -8,6 +8,8 @@ This guide explains how to get the application running locally for development.
 
 
 > We recommend you read these instructions through before attempting to deploy this product.
+> 
+> If you need assistance, contact design.ops@education.gov.uk for help. (We respond between Monday to Friday 9am to 5pm usually within 1 working day)
 
 
 ### Prerequisites
