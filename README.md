@@ -6,11 +6,18 @@ This is the Department for Education's service for managing accessibility issues
 
 This guide explains how to get the application running locally for development.
 
+
+> We recommend you read these instructions through before attempting to deploy this product.
+
+
 ### Prerequisites
 
-*   **Node.js:** Please use the latest Long-Term Support (LTS) version.
-*   **SQL Server:** A running instance of Microsoft SQL Server. You can use Docker to run this locally.
-*   **Git:** For version control.
+*   **Node.js:** Please use the latest Long-Term Support (LTS) version
+*   **SQL Server:** A running instance of Microsoft SQL Server
+*   **Git:** For version control
+*   **GOV.UK Notify** For sending emails
+*   **Azure App Service** Running the serivce (Basic app service plan is sufficient)
+*   **Azure SQL (mssql)** Basic database is sufficient
 
 ### 1. Clone the repository
 
@@ -102,7 +109,7 @@ This will create all the necessary tables in your database.
 
 To get the application running with the necessary data, you need to run two seed files.
 
-First, run the WCAG criteria seed to populate the database with the accessibility standards:
+First, run the WCAG criteria seed to populate the database with the accessibility standards, (you can later manage these in the admin interface (as super user))
 
 ```bash
 npx knex seed:run --specific=wcag_criteria_seed.js

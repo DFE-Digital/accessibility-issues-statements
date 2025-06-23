@@ -4,8 +4,8 @@ const authController = require('../controllers/auth');
 
 // Debug middleware
 router.use((req, res, next) => {
-  console.log('Auth route hit:', req.method, req.path);
-  next();
+    console.log('Auth route hit:', req.method, req.path);
+    next();
 });
 
 // Sign in page
@@ -19,12 +19,12 @@ router.get('/verify/:token', authController.verifyToken);
 
 // Complete profile
 router.post('/complete-profile', (req, res, next) => {
-  console.log('Complete profile route hit');
-  console.log('Request body:', req.body);
-  authController.completeProfile(req, res, next);
+    console.log('Complete profile route hit');
+    console.log('Request body:', req.body);
+    authController.completeProfile(req, res, next);
 });
 
 // Sign out
-router.get('/sign-out', authController.signOut);
+router.get('/auth/sign-out', authController.signOut);
 
-module.exports = router; 
+module.exports = router;
