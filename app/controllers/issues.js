@@ -258,6 +258,12 @@ async function showIssueDetails(req, res) {
         const { serviceId, id } = req.params;
         const user = req.session.user;
 
+        console.log('showIssueDetails');
+        console.log(user);
+        console.log(serviceId);
+        console.log(id);
+
+
         // Verify service belongs to user's department
         const services = await servicesData.getDepartmentServices(user.department.id);
         const service = services.find(s => s.id === serviceId);

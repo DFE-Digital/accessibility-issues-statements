@@ -228,6 +228,10 @@ const showService = async(req, res) => {
         const { id } = req.params;
         const user = req.session.user;
 
+        console.log('showService');
+        console.log(user);
+        console.log(id);
+
         return res.redirect(`/services/${id}/issues`);
 
         // Get the service and verify department access
@@ -311,11 +315,9 @@ const showServiceIssues = async(req, res) => {
             search: req.query.search || ''
         };
 
-        // Get the service and verify department access
-        const services = await getDepartmentServices(user.department.id);
-        const service = services.find(s => s.id === serviceId);
-
-        if (!service) {
+        // Fetch the service by ID directly
+        const service = await servicesData.getService(serviceId);
+        if (!service || service.department_id !== user.department.id) {
             return res.status(404).render('error', {
                 error: {
                     title: 'Service not found',
@@ -676,7 +678,10 @@ async function assignToTeam(req, res) {
             return res.redirect(`/services/${serviceId}/issues/${issueId}/assign?error=no_team_selected`);
         }
 
-        const issue = await issuesData.getIssue(issueId);
+        const issue = await db('issues')
+            .where('id', issueId)
+            .first();
+
         if (!issue) {
             return res.redirect(`/services/${serviceId}?error=issue_not_found`);
         }
@@ -687,16 +692,24 @@ async function assignToTeam(req, res) {
             return res.status(403).send('You do not have permission to assign issues for this service.');
         }
 
-        await issuesData.assignIssueToTeam(issueId, teamId);
+        await db('issues')
+            .where('id', issueId)
+            .update({
+                assigned_to: teamId,
+                updated_at: new Date()
+            });
 
         // Add a comment
         const team = await db('teams').where('id', teamId).first();
         const comment = `Issue assigned to team "${team.name}" by ${req.session.user.first_name} ${req.session.user.last_name}.`;
-        await createComment({
-            issue_id: issueId,
-            user_id: userId,
-            comment: comment
-        });
+        await db('issue_comments')
+            .insert({
+                issue_id: issueId,
+                user_id: userId,
+                comment: comment,
+                created_at: new Date(),
+                user: req.session.user
+            });
 
         res.redirect(`/services/${serviceId}/issues/${issueId}?success=issue_assigned`);
     } catch (error) {

@@ -5,12 +5,22 @@ const { db } = require('../db');
 
 async function show(req, res) {
     try {
+        const user = req.session.user;
         const service = await getService(req.params.serviceId);
-        const settings = await getServiceStatementSettings(service.id);
 
-        if (!service) {
-            return res.status(404).render('error', { message: 'Service not found' });
+
+
+        // Check that the service exists and belongs to the user's department
+        if (!service || service.department_id !== user.department.id) {
+            return res.status(404).render('error', {
+                error: {
+                    title: 'Service not found',
+                    message: 'The service you are looking for could not be found.'
+                }
+            });
         }
+
+        const settings = await getServiceStatementSettings(service.id);
 
         // Check if user can enroll the service
         const ableToEnroll = settings &&
@@ -33,7 +43,12 @@ async function show(req, res) {
         });
     } catch (error) {
         console.error('Error showing service statement:', error);
-        res.status(500).render('error', { message: 'Error loading service statement' });
+        res.status(500).render('error', {
+            error: {
+                title: 'Error loading service statement',
+                message: error.message
+            }
+        });
     }
 }
 

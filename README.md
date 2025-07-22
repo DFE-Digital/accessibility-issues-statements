@@ -2,6 +2,11 @@
 
 This is the Department for Education's service for managing accessibility issues and generating real-time accessibility statements.
 
+>   It is a private beta, we're learning how people use it
+>   
+>   We will likely rebuilt it in Beta to be more production quality and build it API-first
+
+
 ## Technical setup guide
 
 This guide explains how to get the application running locally for development.
