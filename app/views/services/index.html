@@ -244,7 +244,6 @@
                     <th scope="col" class="govuk-table__header govuk-!-width-one-third">Service name</th>
                     <th scope="col" class="govuk-table__header">Business area</th>
                     <th scope="col" class="govuk-table__header">Open issues</th>
-                    <th scope="col" class="govuk-table__header">Owner</th>
                     <th scope="col" class="govuk-table__header">Statement service</th>
                   </tr>
                 </thead>
@@ -262,16 +261,7 @@
                       <td class="govuk-table__cell">
                         {{ service.open_issues_count if service.open_issues_count != undefined else 0 }}
                       </td>
-                      <td class="govuk-table__cell">
-                        {% if service.owner_email %}
-                          <a href="mailto:{{ service.owner_email }}" class="govuk-link govuk-link--no-visited-state">
-                             <span class="govuk-visually-hidden">Email the owner of {{ service.name }}: </span>{{ service.owner_first_name }}
-                            {{ service.owner_last_name }}
-                          </a>
-                        {% else %}
-                          <strong class="govuk-tag govuk-tag--grey">Not assigned</strong>
-                        {% endif %}
-                      </td>
+                      
                       <td class="govuk-table__cell">
                         {% if service.statement_enrolled %}
                           <strong class="govuk-tag govuk-tag--green">Enrolled</strong>
