@@ -3,7 +3,7 @@
 
     <head>
         <meta charset="utf-8">
-        <title>{{-pageTitle }} | {{serviceName}}</title>
+        <title>{{-title }} | {{serviceName}}</title>
         <meta name="description" content="{{-description-}}">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="theme-color" content="#00294a">
@@ -12,6 +12,7 @@
         <link rel="stylesheet" href="/assets/css/govuk-frontend.min.css">
         <link rel="stylesheet" href="/assets/css/dfefrontend-2.0.0.min.css">
         <link rel="stylesheet" href="/assets/css/app.css">
+        <link rel="stylesheet" href="/assets/css/_header.css">
         <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
         {% block head %}{% endblock %}
     </head>
@@ -57,7 +58,7 @@
         <script src="/assets/js/cookies.js"></script>
         <script src="/assets/js/app.js"></script>
         <script src="/assets/js/feedback.js"></script>
-
+        <script src="/assets/js/header.js"></script>
 
         {% block scripts %}{% endblock %}
     </body>

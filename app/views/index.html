@@ -1,84 +1,71 @@
 {% extends "layouts/layout_wide.html" %}
 
-{% set title = "Manage your service accessibility issues and statements" %}
-{% set description = "The simple way to record accessibility issues and create legally-compliant, real-time accessibility statements." %}
+{% set title = "Homepage" %}
+{% set description = "Keep track of accessibility issues and get a real-time accessibility statement for your product." %}
 {% set mainClasses = "govuk-!-padding-top-0 govuk-!-padding-bottom-0" %}
+{% set homepage = 'true' %}
 
 {% block content %}
 
-   <section class="dfe-manual-hero dfe-manual-hero--modern" style="background: #f3f2f1; padding: 40px 0;">
-        <div class="govuk-width-container">
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-two-thirds">
-                    <div class="dfe-manual-hero__content">
-                        <h1 class="govuk-heading-xl govuk-!-margin-bottom-4">{{title}}</h1>
-                        <p class="govuk-body-l">{{description}}</p>
-                        <a href="/auth/sign-in" role="button" draggable="false" class="govuk-button govuk-button--start govuk-!-margin-top-4">
-                            Get started
-                            <svg class="govuk-button__start-icon" xmlns="http://www.w3.org/2000/svg" width="17.5" height="19" viewBox="0 0 33 40" aria-hidden="true" focusable="false">
-                                <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <section class="dfe-manual-section">
-        <div class="govuk-width-container">
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l govuk-!-text-align-center">How this service helps your team</h2>
-                    <p class="govuk-body-l govuk-!-text-align-center">This service helps product teams, accessibility leads and auditors work more effectively.</p>
-                </div>
-            </div>
 
-            <div class="govuk-grid-row govuk-!-margin-top-6">
-                <div class="govuk-grid-column-one-third">
-                    <h3 class="govuk-heading-m">A single place for all issues</h3>
-                    <p class="govuk-body">Record and manage your accessibility issues in one place. This gives your team a clear, actionable backlog to help prioritise and fix problems.</p>
-                </div>
-                <div class="govuk-grid-column-one-third">
-                    <h3 class="govuk-heading-m">Always-accurate statements</h3>
-                    <p class="govuk-body">Use your issue data to automatically generate a legally compliant accessibility statement. It's always up to date, with no manual effort.</p>
-                </div>
-                <div class="govuk-grid-column-one-third">
-                    <h3 class="govuk-heading-m">Better oversight for experts</h3>
-                    <p class="govuk-body">Accessibility leads can spot common problems to target support. Auditors can add findings directly, saving time and reducing duplicated work.</p>
-                </div>
+<header class="homepage-header homepage-header--bottom-border">
+   <div class="govuk-width-container">
+      <div class="govuk-grid-row govuk-!-margin-bottom-3 govuk-!-margin-top-6">
+         <div class="govuk-grid-column-two-thirds">
+            <div class="homepage-header__title-container">
+               <h1 class="homepage-header__title">
+                  Manage your accessibility issues and statements
+               </h1>
+               <p class="govuk-body homepage-header__intro ">
+                  {{ description }}
+               </p>
+             
             </div>
-        </div>
-    </section>
+         </div>
+         
+      </div>
+   </div>
+</header>
 
-    <section class="dfe-manual-section">
-        <div class="govuk-width-container">
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-two-thirds">
-                    <h2 class="govuk-heading-l">How it works</h2>
-                    <p class="govuk-body">From an accessibility issue being found to a live, legally-compliant statement, the process is simple.</p>
-                    <ol class="govuk-list govuk-list--number">
-                        <li><strong>Issues are found</strong> during testing, an audit or from user feedback.</li>
-                        <li><strong>Issues are added</strong> to your product entry in this service.</li>
-                        <li><strong>You update your accessibility statement</strong> in your product to point to the unique URL this service provides.</li>
-                        <li><strong>Your statement updates in real-time</strong> as issues are added and resolved.</li>
-                    </ol>
-                    <p class="govuk-body">Your statement is always legally compliant and will automatically show if your service is 'fully' or 'partially' compliant based on the issues you've recorded.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<section class="dfe-manual-section">
+   <div class="govuk-width-container">
+      <div class="govuk-grid-row">
+         <div class="govuk-grid-column-two-thirds">
+            <h2 class="govuk-heading-l">Before you use this service</h2>
 
-    <section class="dfe-manual-section">
-        <div class="govuk-width-container">
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-two-thirds">
-                    <h2 class="govuk-heading-l">Interested in using this service?</h2>
-                    <p class="govuk-body">This service is currently for teams within the Department for Education.</p>
-                    <p class="govuk-body">If you're interested in using it in your department, contact DfE DesignOps at <a href="mailto:design.ops@education.gov.uk" class="govuk-link govuk-link--no-visited-state">design.ops@education.gov.uk</a>.</p>
-                 </div>
-            </div>
-        </div>
-    </section>
+            <p class="govuk-body">This service is currently for teams within the Department for Education.</p>
+
+            <p class="govuk-body">Before you use this service for the first time, you need to be onboarded by DesignOps.</p>
+
+            <p class="govuk-body">Contact <a href="mailto:design.ops@education.gov.uk" class="govuk-link govuk-link--no-visited-state">DesignOps</a>.</p>
+
+            
+
+            <h2 class="govuk-heading-l">When you're ready to start</h2>
+
+            <p class="govuk-body">If you have been onboarded with DesignOps, you can use the service to:</p>
+
+
+          <ul class="govuk-list govuk-list--bullet">
+            <li>record and manage your accessibility issues in one place</li>
+            <li>automatically generate an accessibility statement, that stays up-to-date</li>
+            <li>use a clear, actionable backlog to prioritise and fix problems</li>
+          </ul>
+
+          <p class="govuk-body">Accessibility auditors can also add issues directly to the service, to save you time.</p>
+
+          <a href="/auth/sign-in" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">
+  Start now
+  <svg class="govuk-button__start-icon" xmlns="http://www.w3.org/2000/svg" width="17.5" height="19" viewBox="0 0 33 40" aria-hidden="true" focusable="false">
+    <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
+  </svg>
+</a>
+
+            
+         </div>
+      </div>
+   </div>
+</section>
 
 {% endblock %}

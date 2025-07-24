@@ -71,6 +71,7 @@ nunjuckEnv.addFilter('findServiceName', findServiceName);
 nunjuckEnv.addFilter('findById', findById);
 nunjuckEnv.addFilter('formatDateFilter', formatDateFilter);
 
+
 // Add updateQueryParams filter for pagination
 nunjuckEnv.addFilter('updateQueryParams', function(url, params) {
     // Create a URL object using the current path
@@ -116,6 +117,8 @@ app.use((req, res, next) => {
     res.locals.env = process.env.NODE_ENV;
     next();
 });
+
+app.locals.serviceName = 'Manage your service accessibility issues and statements';
 
 // Add a route that serves the app/robots.txt file
 app.get('/robots.txt', function(req, res) {

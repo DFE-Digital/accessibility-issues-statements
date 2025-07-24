@@ -53,7 +53,7 @@ div {
 
 .govuk-width-container,
 .dfe-width-container {
-    max-width: 1400px;
+    max-width: 1200px;
 }
 
 
@@ -1499,4 +1499,42 @@ body {
         padding: 15px 0 0 0;
         line-height: 1.5;
     }
+}
+
+
+/* GOV.UK Homepage Header */
+
+.homepage-header {
+    background-color: #1d70b8;
+    color: #ffffff;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.homepage-header__title-container {
+    margin-bottom: 2rem;
+}
+
+.homepage-header__title {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #ffffff;
+    margin-bottom: 30px;
+}
+
+.homepage-header__intro {
+    color: #ffffff;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+.homepage-inverse-header__intro--bold {
+    font-weight: 700;
+}
+
+.homepage-header__search {
+    max-width: 100%;
 }
