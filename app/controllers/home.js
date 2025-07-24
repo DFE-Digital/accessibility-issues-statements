@@ -1,3 +1,13 @@
-exports.g_home = async (req, res, next) => {
-    return res.render('index');
+exports.g_home = async(req, res, next) => {
+
+
+    if (req.session.user) {
+
+        if (req.session.user.role === 'user') {
+            return res.redirect("/services");
+        } else {
+            return res.redirect("/dashboard");
+        }
+    }
+    return res.render("index");
 };
