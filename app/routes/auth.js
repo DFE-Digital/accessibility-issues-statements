@@ -8,6 +8,7 @@ router.use((req, res, next) => {
     next();
 });
 
+
 // Sign in page
 router.get('/sign-in', authController.showSignIn);
 

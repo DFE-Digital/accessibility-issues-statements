@@ -161,6 +161,7 @@ webapp.use((req, res, next) => {
 webapp.use((req, res, next) => {
     // List of public paths that don't require authentication
     const publicPaths = [
+        '/',
         '/auth/sign-in',
         '/auth/verify',
         '/auth/complete-profile',

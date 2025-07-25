@@ -24,14 +24,18 @@ const wcagCriteriaController = require('./controllers/wcag_criteria');
 const apiManagerController = require('./controllers/api_manager_controller');
 const superAdminDashboardController = require('./controllers/dashboard');
 
+
+
+// Public routes
+router.get('/', homeController.g_home);
+
+
 // Import route modules
 const authRoutes = require('./routes/auth');
 
 // Auth routes
 router.use('/auth', authRoutes);
 
-// Public routes
-router.get('/', homeController.g_home);
 
 // Protected routes
 router.get('/dashboard', isAuthenticated, dashboardController.index);

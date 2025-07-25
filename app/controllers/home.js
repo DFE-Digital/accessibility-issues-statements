@@ -1,5 +1,6 @@
 exports.g_home = async(req, res, next) => {
 
+    console.log('homepage');
 
     if (req.session.user) {
 
@@ -9,5 +10,6 @@ exports.g_home = async(req, res, next) => {
             return res.redirect("/dashboard");
         }
     }
+
     return res.render("index");
 };
